@@ -7,12 +7,24 @@ ARG BUILD_FROM=ghcr.io/hassio-addons/base:15.0.2
 ARG BUILD_VERSION
 FROM ${BUILD_FROM}
 
+# Set shell
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 COPY /src/requirements.txt ./
 
 RUN \
-    apk --update add --virtual scipy-runtime python py-pip \
-    pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    apk add --no-cache \
+        aiohttp=3.9.1
+        aioserial=1.3.1
+        multidict=6.0.4
+        psutil=5.9.6
+        py_cpuinfo=9.0.0
+        pymodbus=3.6.2
+        pyserial=3.5
+        pyserial_asyncio=0.6
+        PyYAML=6.0.1
+        websockets=12.0 \
+       
 
 # Add src
 COPY /src /src
