@@ -9,7 +9,6 @@ FROM ${BUILD_FROM}
 
 COPY /src/requirements.txt ./
 
-FROM
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
