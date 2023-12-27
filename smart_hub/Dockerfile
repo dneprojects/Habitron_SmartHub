@@ -14,16 +14,16 @@ COPY /src/requirements.txt ./
 
 RUN \
     apk add --no-cache \
-        aiohttp=3.9.1
-        aioserial=1.3.1
-        multidict=6.0.4
-        psutil=5.9.6
-        py_cpuinfo=9.0.0
-        pymodbus=3.6.2
-        pyserial=3.5
-        pyserial_asyncio=0.6
-        PyYAML=6.0.1
-        websockets=12.0 \
+        aiohttp=3.9.1 \
+        aioserial=1.3.1 \
+        multidict=6.0.4 \
+        psutil=5.9.6 \
+        py_cpuinfo=9.0.0 \
+        pymodbus=3.6.2 \
+        pyserial=3.5 \
+        pyserial_asyncio=0.6 \
+        PyYAML=6.0.1 \
+        websockets=12.0
        
 
 # Add src
