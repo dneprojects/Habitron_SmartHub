@@ -6,7 +6,7 @@
 </h2>
 
 <p align="center">
-  <a href="https://github.com/custom-components/hacs"><img src="https://img.shields.io/badge/Home Assistant-Add-on-orange.svg"></a>
+  <a href="https://github.com/custom-components/hacs"><img src="https://img.shields.io/badge/HomeAssistant-Addon-green.svg"></a>
   <img src="https://img.shields.io/github/v/release/dneprojects/Habitron_SmartHub" alt="Current version">
 </p>
-Home Assistant Add-on: SmartHub for Habitron systems based on Raspberry Pi
+<p align="center">Home Assistant Add-on: SmartHub for Habitron systems based on Raspberry Pi</p>
