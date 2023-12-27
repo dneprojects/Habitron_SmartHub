@@ -3,10 +3,9 @@
 #=== Home Assistant Addon ===#
 #============================#
 
-# ARG BUILD_FROM
+ARG BUILD_FROM
 ARG BUILD_VERSION
 FROM ${BUILD_FROM}
-# FROM python:3.11
 
 COPY /src/requirements.txt ./
 

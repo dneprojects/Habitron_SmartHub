@@ -5,8 +5,6 @@ slug: "smart_hub"
 init: true
 arch:
   - aarch64
-  - armhf
-  - armv7
 ports:
   7777/udp: 7777
   7780/tcp: 7780
@@ -16,4 +14,4 @@ devicetree: true
 hassio_role: "admin"
 "hassio_api": true
 "homeassistant_api": true
-"image": "ghcr.io/dneprojects/smart_hub-{arch}"
+"image": "ghcr.io/dneprojects/{arch}-smart_hub"
