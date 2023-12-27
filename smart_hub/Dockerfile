@@ -2,29 +2,137 @@
 #  dneprojects'S DOCKERFILE  #
 #=== Home Assistant Addon ===#
 #============================#
-ARG BUILD_FROM=ghcr.io/hassio-addons/base:15.0.2
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:14.3.3
 # hadolint ignore=DL3006
-ARG BUILD_VERSION
 FROM ${BUILD_FROM}
+
+# Environment variables
+ENV \
+    PATH="/usr/local/bin:$PATH" \
+    GPG_KEY="7169605F62C751356D054A26A821E680E5FA6305"
 
 # Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# Install base system
+ARG PYTHON_VERSION="v3.12.1"
+ARG PYTHON_PIP_VERSION="23.3.2"
+ARG PYTHON_SETUPTOOLS_VERSION="69.0.3"
+# hadolint ignore=DL3003,DL4006,SC2155
+RUN \
+    apk add --no-cache --virtual .build-dependencies \
+        bzip2-dev=1.0.8-r5 \
+        dpkg-dev=1.21.21-r1 \
+        dpkg=1.21.21-r1 \
+        expat-dev=2.5.0-r1 \
+        findutils=4.9.0-r5 \
+        gcc=12.2.1_git20220924-r10 \
+        gdbm-dev=1.23-r1 \
+        gnupg=2.4.3-r0 \
+        libc-dev=0.7.2-r5 \
+        libffi-dev=3.4.4-r2 \
+        libnsl-dev=2.0.0-r0 \
+        libtirpc-dev=1.3.3-r2 \
+        linux-headers=6.3-r0 \
+        make=4.4.1-r1 \
+        ncurses-dev=6.4_p20230506-r0 \
+        openssl-dev=3.1.4-r1 \
+        pax-utils=1.3.7-r1 \
+        readline-dev=8.2.1-r1 \
+        sqlite-dev=3.41.2-r2 \
+        tar=1.34-r3 \
+        tcl-dev=8.6.13-r1 \
+        tk-dev=8.6.13-r1 \
+        tk=8.6.13-r1 \
+        util-linux-dev=2.38.1-r8 \
+        xz-dev=5.4.3-r0 \
+        xz=5.4.3-r0 \
+        zlib-dev=1.2.13-r1 \
+    \
+    && curl -J -L -o /tmp/python.tar.xz \
+        "https://www.python.org/ftp/python/${PYTHON_VERSION#v}/Python-${PYTHON_VERSION#v}.tar.xz" \
+    && curl -J -L -o /tmp/python.tar.xz.asc \
+        "https://www.python.org/ftp/python/${PYTHON_VERSION#v}/Python-${PYTHON_VERSION#v}.tar.xz.asc" \
+    \
+    && export GNUPGHOME="$(mktemp -d)" \
+    && gpg \
+        --batch \
+        --keyserver hkps://keys.openpgp.org \
+        --recv-keys "$GPG_KEY" \
+    && gpg \
+        --batch \
+        --verify /tmp/python.tar.xz.asc /tmp/python.tar.xz \
+    && { command -v gpgconf > /dev/null && gpgconf --kill all || :; } \
+    \
+    && mkdir -p /usr/src/python \
+    && tar -xJC /usr/src/python --strip-components=1 -f /tmp/python.tar.xz \
+    && cd /usr/src/python \
+    \
+    && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
+    && ./configure \
+        --build="$gnuArch" \
+        --enable-loadable-sqlite-extensions \
+        --enable-optimizations \
+        --enable-option-checking=fatal \
+        --enable-shared \
+        --with-lto \
+        --with-system-expat \
+        --without-ensurepip \
+    \
+    && make -j "$(nproc)" \
+        EXTRA_CFLAGS="-DTHREAD_STACK_SIZE=0x100000" \
+        LDFLAGS="-Wl,--strip-all" \
+    && make install \
+    \
+    && find /usr/local \
+        -type f \
+        -executable \
+        -not \( -name '*tkinter*' \) \
+        -exec scanelf \
+        --needed \
+        --nobanner \
+        --format '%n#p' '{}' ';' \
+            | tr ',' '\n' \
+            | sort -u \
+            | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
+            | xargs -rt apk add --no-cache --virtual .python-rundeps \
+    \
+    && cd /usr/local/bin \
+    && ln -s idle3 idle \
+    && ln -s pydoc3 pydoc \
+    && ln -s python3 python \
+    && ln -s python3-config python-config \
+    \
+    && curl -J -L -o /tmp/get-pip.py \
+        'https://bootstrap.pypa.io/get-pip.py' \
+    \
+    && python /tmp/get-pip.py \
+        --disable-pip-version-check \
+        --no-cache-dir \
+        --no-compile \
+        "pip==$PYTHON_PIP_VERSION" \
+        "setuptools==$PYTHON_SETUPTOOLS_VERSION" \
+    \
+    && apk del --no-cache --purge .build-dependencies \
+    && rm -f -r \
+        /usr/src \
+        "$GNUPGHOME" \
+        /tmp/* \
+    \
+    && python3 --version \
+    && pip3 --version \
+    \
+    && find /usr -depth \
+        \( \
+            \( -type d -a \( -name test -o -name tests -o -name idle_test \) \) \
+            -o \
+            \( -type f -a \( -name '*.pyc' -o -name '*.pyo' -o -name 'libpython*.a' \) \) \
+        \) -exec rm -rf '{}' +
+
 COPY /src/requirements.txt ./
 
-RUN \
-    apk add --no-cache \
-        aiohttp=3.9.1 \
-        aioserial=1.3.1 \
-        multidict=6.0.4 \
-        psutil=5.9.6 \
-        py_cpuinfo=9.0.0 \
-        pymodbus=3.6.2 \
-        pyserial=3.5 \
-        pyserial_asyncio=0.6 \
-        PyYAML=6.0.1 \
-        websockets=12.0
-       
+RUN pip3 install --no-cache-dir --upgrade pip3 \
+    && pip3 install --no-cache-dir -r requirements.txt
 
 # Add src
 COPY /src /src
