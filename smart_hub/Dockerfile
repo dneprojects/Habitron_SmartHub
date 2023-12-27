@@ -2,13 +2,14 @@
 #  dneprojects'S DOCKERFILE  #
 #=== Home Assistant Addon ===#
 #============================#
-
-ARG BUILD_FROM
+ARG BUILD_FROM=ghcr.io/hassio-addons/base:15.0.2
+# hadolint ignore=DL3006
 ARG BUILD_VERSION
 FROM ${BUILD_FROM}
 
 COPY /src/requirements.txt ./
 
+FROM
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
