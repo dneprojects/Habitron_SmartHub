@@ -131,14 +131,14 @@ RUN \
 
 COPY /src/requirements.txt ./
 
-RUN pip3 install --no-cache-dir --upgrade pip3 \
-    && pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
 # Add src
 COPY /src /src
 
 WORKDIR /src
-CMD ["python3", "smarthub.py"]
+CMD ["python", "smarthub.py"]
 
 # Labels 
 
