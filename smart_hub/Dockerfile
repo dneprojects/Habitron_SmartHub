@@ -9,7 +9,9 @@ FROM ${BUILD_FROM}
 
 COPY /src/requirements.txt ./
 
-RUN pip install --no-cache-dir --upgrade pip \
+RUN \
+    apk --update add --virtual scipy-runtime python py-pip \
+    pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
 # Add src
