@@ -1,4 +1,4 @@
-# https://developers.home-assistant.io/docs/add-ons/repository#repository-configuration
+---
 name: Habitron SmartHub Home Assistant add-on repository
 url: 'https://github.com/dneprojects/Habitron_SmartHub'
 maintainer: dneprojects <dne.projects.1@gmail.com>
