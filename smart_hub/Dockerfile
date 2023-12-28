@@ -131,7 +131,7 @@ RUN \
 
 COPY /src/requirements.txt /
 
-RUN pip install --no-cache-dir --upgrade pip \
+RUN pip install --no-cache-dir --upgrade pip==latest \
     && pip install --no-cache-dir --requirement requirements.txt
 
 # Add src
