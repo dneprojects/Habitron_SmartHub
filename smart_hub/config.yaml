@@ -14,4 +14,4 @@ devicetree: true
 hassio_role: "admin"
 "hassio_api": true
 "homeassistant_api": true
-"image": "ghcr.io/dneprojects/smart_hub/{arch}
+"image": "ghcr.io/dneprojects/smart_hub/{arch}"
