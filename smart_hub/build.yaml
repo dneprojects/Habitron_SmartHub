@@ -4,10 +4,14 @@ build_from:
 codenotary:
   signer: codenotary@frenck.dev
 labels:
-  org.opencontainers.image.title: "Home Assistant Add-on: Habitron SmartHub"
-  org.opencontainers.image.description: "Habitron Smart Hub as Home Assistant Add-on"
-  org.opencontainers.image.source: "https://github.com/dneprojects/Habitron_SmartHub"
-  org.opencontainers.image.licenses: "Apache License 2.0"
+  org.opencontainers.image.title: \
+    "Home Assistant Add-on: Habitron SmartHub"
+  org.opencontainers.image.description: \
+    "Habitron Smart Hub as Home Assistant Add-on"
+  org.opencontainers.image.source: \
+    "https://github.com/dneprojects/Habitron_SmartHub"
+  org.opencontainers.image.licenses: \
+    "Apache License 2.0"
 args:
   TEMPIO_VERSION: "2021.09.0"
   SMARTHUB_VERSION: 0.9.5
