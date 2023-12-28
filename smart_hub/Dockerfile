@@ -129,10 +129,10 @@ RUN \
             \( -type f -a \( -name '*.pyc' -o -name '*.pyo' -o -name 'libpython*.a' \) \) \
         \) -exec rm -rf '{}' +
 
-COPY /src/requirements.txt ./
+COPY /src/requirements.txt /
 
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir --requirement requirements.txt
 
 # Add src
 COPY /src /src
