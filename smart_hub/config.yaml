@@ -15,3 +15,5 @@ host_network: true
 uart: true
 devicetree: true
 image: "ghcr.io/dneprojects/smart_hub/{arch}"
+init: false
+host_pid: true
