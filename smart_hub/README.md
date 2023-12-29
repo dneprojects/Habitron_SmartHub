@@ -9,4 +9,7 @@ SmartHub for Habitron systems based on Raspberry Pi.
 SmartHub performs as gateway between network clients, such as home assistant, and the serial interface of the Habitron router.
 
 SmartHub also offers a web based configurator to setup names and basic settings of all Habitron modules.
-<img src="../images/configurator.png" alt="Smart Configurator" width="400">
+
+<img src="../images/configurator.png" alt="Smart Configurator" width="600">
+
+[aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
