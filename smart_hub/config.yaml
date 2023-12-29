@@ -8,10 +8,10 @@ arch:
 ports:
   7777/udp: 7777
   7780/tcp: 7780
+hassio_api: true
+hassio_role: manager
+homeassistant_api: true
 host_network: true
-full_access: true
+uart: true
 devicetree: true
-hassio_role: "admin"
-"hassio_api": true
-"homeassistant_api": true
-"image": "ghcr.io/dneprojects/{arch}-smart_hub"
+image: "ghcr.io/dneprojects/smart_hub/{arch}"
