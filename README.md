@@ -10,4 +10,6 @@ SmartHub performs as gateway between network clients, such as home assistant, an
 
 SmartHub also offers a web based configurator to setup names and basic settings of all Habitron modules.
 
-![HADashboard screenshot](images/screenshot.png)
+![Smart Configurator screenshot](images/configurator.png)
+
+[aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
