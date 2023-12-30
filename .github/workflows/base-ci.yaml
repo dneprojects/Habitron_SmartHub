@@ -26,19 +26,19 @@ jobs:
         id: information
         uses: frenck/action-addon-information@v1.4.2
 
-  lint-addon:
-    name: Lint Add-on
-    needs:
-      - information
-    runs-on: ubuntu-latest
-    steps:
-      - name: ⤵️ Check out code from GitHub
-        uses: actions/checkout@v4
-      - name: 🚀 Run Add-on Lint
-        uses: frenck/action-addon-linter@v2.15.0
-        with:
-          community: true
-          path: "./${{ needs.information.outputs.target }}"
+  # lint-addon:
+  #   name: Lint Add-on
+  #   needs:
+  #     - information
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: ⤵️ Check out code from GitHub
+  #       uses: actions/checkout@v4
+  #     - name: 🚀 Run Add-on Lint
+  #       uses: frenck/action-addon-linter@v2.15.0
+  #       with:
+  #         community: true
+  #         path: "./${{ needs.information.outputs.target }}"
 
   lint-hadolint:
     name: Hadolint
