@@ -83,6 +83,11 @@ class EventServer:
     async def open_websocket(self):
         """Opens web socket connection to home assistant."""
 
+        if self.websck == None | self.websck == []:
+            self.logger.info("Open websocket to home assistant.")
+        else:
+            return
+
         if self.api_srv.is_addon:
             # SmartHub running with Home Assistant, use internal websocket
             self._uri = "ws://supervisor/core/websocket"
@@ -96,39 +101,46 @@ class EventServer:
             # token for 192.168.178.140: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI4OTNlZDJhODU2ZmY0ZDQ3YmVlZDE2MzIyMmU1ODViZCIsImlhdCI6MTcwMjgyMTYxNiwiZXhwIjoyMDE4MTgxNjE2fQ.NT-WSwkG9JN8f2cCt5fXlP4A8FEOAgDTrS1sdhB0ioo"
             self.token = self.get_ident()
 
-        if self.token != None:
+        if self.token == None:
+            if self.api_srv.is_addon:
+                self.logger.error(
+                    "Websocket supervisor token is none, open_websocket failed."
+                )
+            else:
+                self.logger.error(
+                    "Websocket stored token is none, open_websocket failed."
+                )
+            self.websck = None
+            return
+
+        try:
+            if self.api_srv.is_addon:
+                self.websck = await websockets.connect(
+                    self._uri,
+                    extra_headers={"Authorization": f"Bearer {self.token}"},
+                )
+            else:
+                self.websck = await websockets.connect(self._uri)
+        except Exception as err_msg:
+            self.logger.error(f"Websocket connect failed: {err_msg}")
+            self.websck = []
+            return
+        resp = await self.websck.recv()
+        if json.loads(resp)["type"] == "auth_required":
             try:
-                if self.api_srv.is_addon:
-                    self.websck = await websockets.connect(
-                        self._uri,
-                        extra_headers={"Authorization": f"Bearer {self.token}"},
-                    )
-                else:
-                    self.websck = await websockets.connect(self._uri)
+                msg = WEBSOCK_MSG.auth_msg
+                msg["access_token"] = self.token
+                await self.websck.send(json.dumps(msg))
+                resp = await self.websck.recv()
+                self.logger.info(
+                    f"Websocket connected to {self._uri}, response: {resp}"
+                )
             except Exception as err_msg:
                 self.logger.error(f"Websocket connect failed: {err_msg}")
                 self.websck = []
                 return
-            resp = await self.websck.recv()
-            if json.loads(resp)["type"] == "auth_required":
-                try:
-                    msg = WEBSOCK_MSG.auth_msg
-                    msg["access_token"] = self.token
-                    await self.websck.send(json.dumps(msg))
-                    resp = await self.websck.recv()
-                    self.logger.info(
-                        f"Websocket connected to {self._uri}, response: {resp}"
-                    )
-                except Exception as err_msg:
-                    self.logger.error(f"Websocket connect failed: {err_msg}")
-                    self.websck = []
-                    return
-            else:
-                self.logger.info(
-                    f"Websocket connected to {self._uri}, response: {resp}"
-                )
         else:
-            self.websck = None
+            self.logger.info(f"Websocket connected to {self._uri}, response: {resp}")
         return
 
     def extract_rest_msg(self, rt_event, msg_len):
