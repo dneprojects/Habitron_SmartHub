@@ -14,4 +14,4 @@ on:
 
 jobs:
   workflows:
-    uses: Habitron_SmartHub/.github/workflows/base-deploy.yaml@main
+    uses: dneprojects/Habitron_SmartHub/.github/workflows/base-deploy.yaml@main
