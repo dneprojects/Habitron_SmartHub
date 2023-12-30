@@ -2,7 +2,7 @@
 name: Deploy
 
 # yamllint disable-line rule:truthy
-# yamllint disable-line rule:line-length
+# yamllint disable rule:line-length
 on:
   workflow_call:
 
