@@ -16,7 +16,7 @@ gpio: true
 devices: ["dev/serial0"]
 devicetree: true
 hassio_role: admin
-full_access: true
+full_access: false
 image: "ghcr.io/dneprojects/smart_hub/{arch}"
 init: false
 host_pid: false
