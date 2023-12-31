@@ -83,7 +83,7 @@ class EventServer:
     async def open_websocket(self):
         """Opens web socket connection to home assistant."""
 
-        if self.websck == None | self.websck == []:
+        if (self.websck == None) | (self.websck == []):
             self.logger.info("Open websocket to home assistant.")
         else:
             return
