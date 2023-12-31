@@ -9,7 +9,7 @@ ports:
   7777/udp: 7777
   7780/tcp: 7780
 hassio_api: true
-hassio_role: default
+hassio_role: admin
 homeassistant_api: true
 host_network: true
 uart: true
