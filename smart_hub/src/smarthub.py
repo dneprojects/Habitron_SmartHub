@@ -28,7 +28,7 @@ from config_server import ConfigServer
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "0.9.5"
+    SW_VERSION = "0.9.8"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
@@ -341,13 +341,16 @@ async def init_serial(logger):
         new_query = True
         while router_booting:
             if new_query:
-                rt_cmd = calc_CRC(RT_CMDS.STOP_MIRROR.replace("<rtr>", chr(RT_DEF_ADDR)))
+                rt_cmd = calc_CRC(
+                    RT_CMDS.STOP_MIRROR.replace("<rtr>", chr(RT_DEF_ADDR))
+                )
                 rt_serial[1].write(rt_cmd.encode("iso8859-1"))
             reading = asyncio.ensure_future(rt_serial[0].read(1024))
             await asyncio.sleep(0.2)
             if reading._state == "FINISHED":
                 resp_buf = reading.result()
                 if len(resp_buf) < 4:
+                    # sometimes just 0xff comes, needs another read
                     logger.warning(f"Unexpected short test response: {resp_buf}")
                     new_query = False
                 elif new_query & (resp_buf[4] == 0x87):
