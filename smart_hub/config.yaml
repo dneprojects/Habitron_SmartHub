@@ -1,23 +1,24 @@
 ---
 name: "Smart Hub"
 description: "Habitron Smart Hub as Home Assistant Add-on"
-version: 0.9.8
+version: edge
 slug: "smart_hub"
 arch:
   - aarch64
 ports:
   7777/udp: 7777
   7780/tcp: 7780
+environment:
+  SUPERVISOR_TOKEN: SUPERVISOR_TOKEN
 hassio_api: true
 homeassistant_api: true
 host_network: true
 uart: true
-gpio: true
+# gpio: true
 devices: ["dev/serial0"]
 devicetree: true
 hassio_role: admin
-full_access: true
-image: "ghcr.io/dneprojects/smart_hub/{arch}"
+full_access: false
 init: false
-host_pid: false
+image: "ghcr.io/dneprojects/smart_hub/{arch}"
 webui: http://[HOST]:[PORT:7780]/
