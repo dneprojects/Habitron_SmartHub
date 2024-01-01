@@ -8,6 +8,8 @@ arch:
 ports:
   7777/udp: 7777
   7780/tcp: 7780
+environment:
+  SUPERVISOR_TOKEN: SUPERVISOR_TOKEN
 hassio_api: true
 homeassistant_api: true
 host_network: true
