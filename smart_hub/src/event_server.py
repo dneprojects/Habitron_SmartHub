@@ -60,6 +60,7 @@ class EventServer:
         self._uri = ""
         self.logger = logging.getLogger(__name__)
         self.websck = []
+        self.token = None
         self.notify_id = 1
         self.evnt_running = False
         self.msg_appended = False
@@ -94,18 +95,17 @@ class EventServer:
         if self.api_srv.is_addon:
             # SmartHub running with Home Assistant, use internal websocket
             self._uri = "ws://supervisor/core/websocket"
-            self.logger.info(f"URI: {self._uri}")
+            self.logger.debug(f"URI: {self._uri}")
             self.token = os.environ["SUPERVISOR_TOKEN"]
         else:
             if self._client_ip == "":
                 self._client_ip = self.api_srv._client_ip
             self._uri = "ws://<ip>:8123/api/websocket".replace("<ip>", self._client_ip)
-            self.logger.info(f"URI: {self._uri}")
+            self.logger.debug(f"URI: {self._uri}")
             # token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjMWI1ZjgyNmUxMDg0MjFhYWFmNTZlYWQ0ZThkZGNiZSIsImlhdCI6MTY5NDUzNTczOCwiZXhwIjoyMDA5ODk1NzM4fQ.0YZWyuQn5DgbCAfEWZXbQZWaViNBsR4u__LjC4Zf2lY"
             # token for 192.168.178.133: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJlYjQ2MTA4ZjUxOTU0NTY3Yjg4ZjUxM2Q5ZjBkZWRlYSIsImlhdCI6MTY5NDYxMDEyMywiZXhwIjoyMDA5OTcwMTIzfQ.3LtGwhonmV2rAbRnKqEy3WYRyqiS8DTh3ogx06pNz1g"
             # token for 192.168.178.140: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI4OTNlZDJhODU2ZmY0ZDQ3YmVlZDE2MzIyMmU1ODViZCIsImlhdCI6MTcwMjgyMTYxNiwiZXhwIjoyMDE4MTgxNjE2fQ.NT-WSwkG9JN8f2cCt5fXlP4A8FEOAgDTrS1sdhB0ioo"
             self.token = self.get_ident()
-        self.logger.info(f"Token: {self.token}")
 
         if self.token == None:
             if self.api_srv.is_addon:
