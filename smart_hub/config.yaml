@@ -16,6 +16,7 @@ host_network: true
 devices: ["dev/serial0"]
 devicetree: true
 hassio_role: admin
-full_access: true
+full_access: false
+init: false
 image: "ghcr.io/dneprojects/smart_hub/{arch}"
 webui: http://[HOST]:[PORT:7780]/
