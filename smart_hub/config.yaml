@@ -11,11 +11,11 @@ ports:
 hassio_api: true
 homeassistant_api: true
 host_network: true
-uart: true
-gpio: true
+# uart: true
+# gpio: true
 devices: ["dev/serial0"]
 devicetree: true
 hassio_role: admin
-full_access: false
+full_access: true
 image: "ghcr.io/dneprojects/smart_hub/{arch}"
 webui: http://[HOST]:[PORT:7780]/
