@@ -11,7 +11,7 @@ ports:
 hassio_api: true
 homeassistant_api: true
 host_network: true
-# uart: true
+uart: true
 # gpio: true
 devices: ["dev/serial0"]
 devicetree: true
