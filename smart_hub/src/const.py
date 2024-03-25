@@ -1,5 +1,7 @@
 """Constants for SmartIP2"""
+
 from typing import Final
+
 
 OWN_IP = "192.168.178.110"
 ANY_IP = "0.0.0.0"
@@ -13,16 +15,34 @@ RT_TIMEOUT = 5
 MIRROR_CYC_TIME = 1
 RD_DELAY = 0.1
 DATA_FILES_DIR = "./"
+DATA_FILES_ADDON_DIR = "/config/"
 FWD_TABLE_FILE = "ip_table.fwd"
 WEB_FILES_DIR = "./web/"
+LOGGING_DEF_FILE = "logging_def.yaml"
+HOMEPAGE = "configurator.html"
+HUB_HOMEPAGE = "hub.html"
+CONF_HOMEPAGE = "home.html"
 SIDE_MENU_FILE = "side-menu.html"
+LICENSE_PAGE = "licenses.html"
+LICENSE_TABLE = "license_table.html"
+LICENSE_PATH = "web/license_files/"
 CONFIG_TEMPLATE_FILE = "config_template.html"
 SETTINGS_TEMPLATE_FILE = "settings_template.html"
 AUTOMATIONS_TEMPLATE_FILE = "automations_template.html"
+AUTOMATIONEDIT_TEMPLATE_FILE = "automation_edit_template.html"
+
+
+class SMHUB_INFO:
+    """Holds information."""
+
+    SW_VERSION = "1.1.4"
+    TYPE = "Smart Hub"
+    TYPE_CODE = "20"
+    SERIAL = "RBPI"
 
 
 class API_CATEGS:
-    "Categries of PAI handlers"
+    "Categries of API handlers"
     DATA = 10
     SETTINGS = 20
     ACTIONS = 30
@@ -67,7 +87,7 @@ class API_DATA:
 
     SMHUB_BOOTQUEST = 256 * 6 + 1
     SMHUB_GETINFO = 256 * 6 + 2
-    SMHUB_GETVERSION = 256 * 6 + 3
+    SMHUB_UPDATE = 256 * 6 + 3
 
     DESC_PCREAD = 256 * 7 + 1
 
@@ -116,6 +136,10 @@ class API_ACTIONS:
     OUTP_RBG_TOGL = 256 * 12 + 2
     OUTP_RBG_TIME = 256 * 12 + 3
     OUTP_RBG_VAL = 256 * 12 + 4
+    OUTP_RBG_RD = 256 * 12 + 5
+    OUTP_RBG_GN = 256 * 12 + 6
+    OUTP_RBG_BL = 256 * 12 + 7
+    OUTP_RBG_WH = 256 * 12 + 10
 
     MODLIGHT_OFF = 256 * 13 + 0
     MODLIGHT_ON = 256 * 13 + 1
@@ -216,7 +240,7 @@ class API_SETUP:
 class API_ADMIN:
     """Command descriptors for admin API."""
 
-    SMHUB_READY = 256 * 0 + 0
+    SMHUB_REINIT = 256 * 0 + 0
     SMHUB_INFO = 256 * 0 + 1
     SMHUB_RESTART = 256 * 0 + 2
     SMHUB_REBOOT = 256 * 0 + 3
@@ -346,20 +370,30 @@ class RT_CMDS:
 
     SET_OUT_ON = "\x2a<rtr>\x0c\x44<mod>\x08\x0a\x45<outl><outm><outh>\xff"
     SET_OUT_OFF = "\x2a<rtr>\x0c\x44<mod>\x08\x0b\x41<outl><outm><outh>\xff"
+    SET_FLAG_ON = "\x2a<rtr>\x0b\x44<mod>\x07\x0a\x4d<flgl><flgh>\xff"
+    SET_FLAG_OFF = "\x2a<rtr>\x0b\x44<mod>\x07\x0b\x4e<flgl><flgh>\xff"
+    SET_GLB_FLAG_ON = "\x2a<rtr>\x08\x0a\x1e<flgl><flgh>\xff"
+    SET_GLB_FLAG_OFF = "\x2a<rtr>\x08\x0b\x1f<flgl><flgh>\xff"
     SET_DIMM_VAL = "\x2a<rtr>\x0a\x44<mod>\x06\x0f<out><val>\xff"
     SET_COVER_POS = "\x2a<rtr>\x0c\x44<mod>\x08\x12\x45<sob><out><val>\xff"
     SET_TEMP = "\x2a<rtr>\x0b\x44<mod>\x07\xdc<sel><tmpl><tmph>\xff"
-    CALL_VIS_CMD = "\x2a<rtr>\x0d\x44<mod>\x09\x1f\xc7\x00\x1f<cmdl><cmdh>\xff"
+    CALL_VIS_CMD = "\x2a<rtr>\x0d\x44<mod>\x09\x1f\xc7\x00\x1f<cmdh><cmdl>\xff"  # hi/lo
     CALL_COLL_CMD = "\x2a<rtr>\x06\x32<cmd>\xff"
 
     SET_LOGIC_UNIT = "\x2a<rtr>\x0d\x44<mod>\x09\x06\x01\x53<lno><md><act>\xff"
-    SET_LOGIC_INP = "\x2a<rtr>\x0b\x44<mod>\x07\x04\x00<sr><inp>\xff"
+    # SET_LOGIC_INP = "\x2a<rtr>\x0b\x44<mod>\x07\x04\x00<sr><inp>\xff"
     SET_COUNTER_VAL = "\x2a<rtr>\x0d\x44<mod>\x09\x06\x00<lno>\x05<val>\x00\xff"
-    # SET_LOGIC_INP = "\x2a<rtr>\x0c\x44<mod>\x08\x09\x45\x00<sr><inp>\xff"
+    SET_LOGIC_INP = "\x2a<rtr>\x0c\x44<mod>\x08\x09\x45\x00<sr><inp>\xff"
     # SET_COUNTER_VAL = "\x2a<rtr>\x0e\x44<mod>\x0a\x09\x45\x00<lno>\x05<val>\x00\xff"
 
-    SWITCH_RGB_LED = "\x2a<rtr>\x0b\x44<mod>\x07\x23<tsk>\x01\xc8\xff"
-    SET_RGB_LED = "\x2a<rtr>\x10\x44<mod>\x0c\x23<tsk>\x01<inp><r><g><b><tl><th>\xff"
+    SET_RGB_AMB_COL = "\x2a<rtr>\x10\x44<mod>\x0c\x23\x01\x02\x64<r><g><b>\x03\x00\xff"
+    SWOFF_RGB_AMB = "\x2a<rtr>\x10\x44<mod>\x0c\x23\x02\x02\x64\x00\x00\x00\x03\x00\xff"
+    SET_RGB_CORNR = "\x2a<rtr>\x10\x44<mod>\x0c\x23\x01\x01<cnr><r><g><b>\x01\x01\xff"
+    SWOFF_RGB_CORNR = (
+        "\x2a<rtr>\x10\x44<mod>\x0c\x23\x02\x01<cnr>\x00\x00\x00\x01\x01\xff"
+    )
+    SET_RGB_LED = "\x2a<rtr>\x10\x44<mod>\x0c\x23<tsk><md><inp><r><g><b><tl><th>\xff"
+
     SET_COVER_SETTGS = "\x2a<rtr>\x0a\x44<mod>\x06\x15\x4f<set>\xff"
     SET_COVER_TIME = "\x2a<rtr>\x0d\x44<mod>\x09\x11<sob><int><out><vala><valb>\xff"
     SET_INP_TIMES = "\x2a<rtr>\x0a\x44<mod>\x06\x02<tshrt><tlng>\xff"

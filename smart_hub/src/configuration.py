@@ -1,26 +1,21 @@
 import logging
 from copy import deepcopy as dpcopy
-from pymodbus.utilities import checkCRC as ModbusCheckCRC
-from pymodbus.utilities import computeCRC as ModbusComputeCRC
 from const import (
     IfDescriptor,
     MirrIdx,
-    MirrIdx,
-    SMGIdx,
-    MODULE_CODES,
-    CStatBlkIdx,
-    RtStatIIdx,
     FingerNames,
 )
-from automation import AutomationDefinition, AutomationsSet
+from automation import AutomationsSet
 
 
 class ModuleSettings:
-    """Object with all module settings."""
+    """Object with all module settings, including automations."""
 
-    def __init__(self, module, rtr):
+    def __init__(self, module):
         """Fill all properties with module's values."""
-        self.id = module._id
+        self.id: int = module._id
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug("Initialzing module settings object")
         self.module = module
         self.name = dpcopy(module._name)
         self.typ = module._typ
@@ -28,22 +23,29 @@ class ModuleSettings:
         self.list = dpcopy(module.list)
         self.status = dpcopy(module.status)
         self.smg = dpcopy(module.build_smg())
-        self.desc = dpcopy(rtr.descriptions)
-        self.logger = logging.getLogger(__name__)
+        self.desc = dpcopy(module.get_rtr().descriptions)
         self.properties: dict = module.io_properties
         self.prop_keys = module.io_prop_keys
-        self.cover_times = [0, 0, 0, 0, 0]
-        self.blade_times = [0, 0, 0, 0, 0]
+        self.cover_times: list[int] = [0, 0, 0, 0, 0]
+        self.blade_times: list[int] = [0, 0, 0, 0, 0]
+        self.user1_name: str = (
+            module.get_rtr().user_modes[1:11].decode("iso8859-1").strip()
+        )
+        self.user2_name: str = (
+            module.get_rtr().user_modes[12:].decode("iso8859-1").strip()
+        )
+        self.group = dpcopy(module.get_rtr().groups[self.id])
         self.get_io_interfaces()
         self.get_names()
         self.get_settings()
         self.get_descriptions()
         self.automtns_def = AutomationsSet(self)
-        self.group = dpcopy(rtr.groups[self.id])
 
     def get_io_interfaces(self):
         """Parse config files to extract names, etc."""
-        self.leds = [IfDescriptor("", i + 1, 1) for i in range(self.properties["leds"])]
+        self.leds = [
+            IfDescriptor("", i, 1) for i in range(self.properties["leds"])
+        ]  # 0 for ambient light (sc mini) / night light led (sc)
         self.buttons = [
             IfDescriptor("", i + 1, 1) for i in range(self.properties["buttons"])
         ]
@@ -72,6 +74,8 @@ class ModuleSettings:
 
     def get_settings(self) -> bool:
         """Get settings of Habitron module."""
+
+        self.logger.debug("Getting module settings from module status")
         conf = self.status
         if conf == "":
             return False
@@ -109,28 +113,20 @@ class ModuleSettings:
             conf[MirrIdx.COVER_POL : MirrIdx.COVER_POL + 2], "little"
         )
         for c_idx in range(len(self.covers)):
-            cm_idx = c_idx
-            if self.type[:16] == "Smart Controller":
-                cm_idx -= 2
-                if cm_idx < 0:
-                    cm_idx += 5
+            o_idx = self.cvr_2_out(c_idx)
             if (
-                conf[MirrIdx.COVER_SETTINGS] & (0x01 << cm_idx) > 0
+                conf[MirrIdx.COVER_SETTINGS] & (0x01 << c_idx) > 0
             ):  # binary flag for shutters
-                self.cover_times[c_idx] = int(conf[MirrIdx.COVER_T + cm_idx]) / 10
-                self.blade_times[c_idx] = int(conf[MirrIdx.BLAD_T + cm_idx]) / 10
+                self.cover_times[c_idx] = round(int(conf[MirrIdx.COVER_T + c_idx]) / 10)
+                self.blade_times[c_idx] = round(int(conf[MirrIdx.BLAD_T + c_idx]) / 10)
                 # polarity defined per output, 2 per cover
-                polarity = (covr_pol & (0x01 << (2 * cm_idx)) == 0) * 2 - 1
+                polarity = (covr_pol & (0x01 << (2 * c_idx)) == 0) * 2 - 1
                 tilt = 1 + (self.blade_times[c_idx] > 0)
                 pol = polarity * tilt  # +-1 for shutters, +-2 for blinds
-                cname = self.outputs[2 * c_idx].name.strip()
-                cname = cname.replace("auf", "")
-                cname = cname.replace("ab", "")
-                cname = cname.replace("auf", "")
-                cname = cname.replace("zu", "")
+                cname = set_cover_name(self.outputs[o_idx].name.strip())
                 self.covers[c_idx] = IfDescriptor(cname.strip(), c_idx + 1, pol)
-                self.outputs[2 * c_idx].type = -10  # disable light output
-                self.outputs[2 * c_idx + 1].type = -10
+                self.outputs[o_idx].type = -10  # disable light output
+                self.outputs[o_idx + 1].type = -10
         for l_idx in range(10):
             if conf[MirrIdx.LOGIC + 3 * l_idx] == 5:
                 # counter found
@@ -138,7 +134,7 @@ class ModuleSettings:
         return True
 
     def set_module_settings(self, status: bytes) -> bytes:
-        """Restore settings to module."""
+        """Restore settings to module status."""
         status = replace_bytes(
             status,
             (self.name + " " * (32 - len(self.name))).encode("iso8859-1"),
@@ -206,28 +202,23 @@ class ModuleSettings:
         outp_state = 0
         covr_pol = 0
         for c_idx in range(len(self.covers)):
-            cm_idx = c_idx
-            if self.type[:16] == "Smart Controller":
-                cm_idx -= 2
-                if cm_idx < 0:
-                    cm_idx += 5
-            if self.outputs[2 * c_idx].type == -10:
-                outp_state = outp_state | (0x01 << cm_idx)
+            o_idx = self.cvr_2_out(c_idx)
+            if self.outputs[o_idx].type == -10:
+                outp_state = outp_state | (0x01 << int(c_idx))
             status = replace_bytes(
                 status,
                 int.to_bytes(int(self.cover_times[c_idx] * 10)),
-                MirrIdx.COVER_T + cm_idx,
+                MirrIdx.COVER_T + c_idx,
             )
             status = replace_bytes(
                 status,
                 int.to_bytes(int(self.blade_times[c_idx] * 10)),
-                MirrIdx.BLAD_T + cm_idx,
+                MirrIdx.BLAD_T + c_idx,
             )
-            # Todo: Polaritiy bei RC, Cover 0 kommt nicht an, Cover 2-4 OK
             if self.covers[c_idx].type < 0:
-                covr_pol = covr_pol | (0x01 << (2 * cm_idx))
+                covr_pol = covr_pol | (0x01 << (2 * c_idx))
             else:
-                covr_pol = covr_pol | (0x01 << (2 + cm_idx + 1))
+                covr_pol = covr_pol | (0x01 << (2 * c_idx + 1))
 
         outp_bytes = (chr(outp_state & 0xFF)).encode("iso8859-1")
         status = replace_bytes(
@@ -259,6 +250,7 @@ class ModuleSettings:
     def get_names(self) -> bool:
         """Get summary of Habitron module."""
 
+        self.logger.debug("Getting module names from list")
         self.all_fingers = {}
         list = self.list
         no_lines = int.from_bytes(list[:2], "little")
@@ -281,7 +273,7 @@ class ModuleSettings:
                     user_id = int(line[1])
                     f_map = int(line[4]) * 256 + int(line[3])
                     self.users.append(IfDescriptor(text, user_id, f_map))
-                    self.all_fingers[user_id]: list[IfDescriptor] = []
+                    self.all_fingers[user_id] = []
                     for fi in range(10):
                         if f_map & (1 << fi):
                             self.all_fingers[user_id].append(
@@ -291,8 +283,8 @@ class ModuleSettings:
                     # Description of commands
                     self.dir_cmds.append(IfDescriptor(text, arg_code, 0))
                 elif int(line[0]) == 254:
-                    # Description of messages
-                    self.messages.append(IfDescriptor(text, arg_code, 0))
+                    # Description of messages with lang code
+                    self.messages.append(IfDescriptor(text, arg_code, line[4]))
                 elif int(line[0]) == 255:
                     try:
                         if arg_code in range(10, 18):
@@ -311,10 +303,9 @@ class ModuleSettings:
                                 self.inputs[arg_code - 10].nmbr = arg_code - 9
                         elif arg_code in range(18, 26):
                             # Description of module LEDs
-                            if self.type[0:9] != "Smart Out":
-                                self.leds[arg_code - 18] = IfDescriptor(
-                                    text, arg_code - 17, 0
-                                )
+                            self.leds[arg_code - 17] = IfDescriptor(
+                                text, arg_code - 17, 0
+                            )
                         elif arg_code in range(40, 50):
                             # Description of Inputs
                             if self.type == "Smart Controller Mini":
@@ -333,6 +324,13 @@ class ModuleSettings:
                         elif arg_code in range(120, 136):
                             # Description of flags
                             self.flags.append(IfDescriptor(text, arg_code - 119, 0))
+                        elif arg_code in range(140, 173):
+                            # Description of vis commands (max 32)
+                            self.vis_cmds.append(
+                                IfDescriptor(
+                                    text[2:], ord(text[1]) * 256 + ord(text[0]), 0
+                                )
+                            )
                         elif self.type[0:9] == "Smart Out":
                             # Description of outputs in Out modules
                             self.outputs[arg_code - 60] = IfDescriptor(
@@ -349,12 +347,26 @@ class ModuleSettings:
             list = list[line_len : len(list)]  # Strip processed line
 
         if self.type == "Smart Controller Mini":
+            self.leds[0].name = "Ambient"
+            self.leds[0].nmbr = 0
             return True
         if self.type[:16] == "Smart Controller":
             self.dimmers[0].name = self.outputs[10].name
             self.dimmers[1].name = self.outputs[11].name
             self.outputs[10].type = 2
             self.outputs[11].type = 2
+            self.leds[0].name = "Nachtlicht"
+            self.leds[0].nmbr = 0
+            return True
+        if self.type[:10] == "Smart Dimm":
+            self.dimmers[0].name = self.outputs[0].name
+            self.dimmers[1].name = self.outputs[1].name
+            self.dimmers[2].name = self.outputs[2].name
+            self.dimmers[3].name = self.outputs[3].name
+            self.outputs[0].type = 2
+            self.outputs[1].type = 2
+            self.outputs[2].type = 2
+            self.outputs[3].type = 2
             return True
         if self.type == "Fanekey":
             self.users_sel = 0
@@ -364,9 +376,12 @@ class ModuleSettings:
             if len(self.users) > 0:
                 self.fingers = self.all_fingers[self.users[self.users_sel].nmbr]
             return True
+        return False
 
     def get_descriptions(self) -> str | None:
         """Get descriptions of commands, etc."""
+
+        self.logger.debug("Getting module descriptions")
         resp = self.desc.encode("iso8859-1")
 
         no_lines = int.from_bytes(resp[:2], "little")
@@ -389,11 +404,13 @@ class ModuleSettings:
                 # entry for local module
                 if int(line[2]) == 1:
                     # local flag (Merker)
-                    self.flags.append(IfDescriptor(entry_name, entry_no, 0))
+                    if self.unit_not_exists(self.flags, entry_name):
+                        self.flags.append(IfDescriptor(entry_name, entry_no, 0))
                 elif int(line[2]) == 4:
-                    # local visualization command
+                    # local visualization command, needed if not stored in smc
                     entry_no = int.from_bytes(resp[3:5], "little")
-                    self.vis_cmds.append(IfDescriptor(entry_name, entry_no, 0))
+                    if self.unit_not_exists(self.vis_cmds, entry_name):
+                        self.vis_cmds.append(IfDescriptor(entry_name, entry_no, 0))
                 elif int(line[2]) == 5:
                     # logic element, needed if not stored in smc
                     for lgc in self.logic:
@@ -404,26 +421,41 @@ class ModuleSettings:
                 # elif int(line[2]) == 7:
                 # Group name
             resp = resp[line_len:]
-        if (len(self.logic) > 0) & (not ("logic" in self.prop_keys)):
+        if (len(self.logic) > 0) & ("logic" not in self.prop_keys):
             self.properties["logic"] = len(self.logic)
             self.properties["no_keys"] += 1
             self.prop_keys.append("logic")
-        if (len(self.flags) > 0) & (not ("flags" in self.prop_keys)):
+        if (len(self.flags) > 0) & ("flags" not in self.prop_keys):
             self.properties["flags"] = len(self.flags)
             self.properties["no_keys"] += 1
             self.prop_keys.append("flags")
-        if (len(self.dir_cmds) > 0) & (not ("dir_cmds" in self.prop_keys)):
+        if (len(self.dir_cmds) > 0) & ("dir_cmds" not in self.prop_keys):
             self.properties["dir_cmds"] = len(self.dir_cmds)
             self.properties["no_keys"] += 1
             self.prop_keys.append("dir_cmds")
-        if (len(self.vis_cmds) > 0) & (not ("vis_cmds" in self.prop_keys)):
+        if (len(self.vis_cmds) > 0) & ("vis_cmds" not in self.prop_keys):
             self.properties["vis_cmds"] = len(self.vis_cmds)
             self.properties["no_keys"] += 1
             self.prop_keys.append("vis_cmds")
-        if (len(self.users) > 0) & (not ("users" in self.prop_keys)):
+        if (len(self.users) > 0) & ("users" not in self.prop_keys):
             self.properties["users"] = len(self.users)
             self.properties["no_keys"] += 1
             self.prop_keys.append("users")
+
+    def get_modes(self):
+        """Return all mode strings as list."""
+        modes_list1 = [
+            "Immer",
+            "Abwesend",
+            "Anwesend",
+            "Schlafen",
+            f"{self.module.rt.user_modes[1:11].decode('iso8859-1').strip()}",
+            f"{self.module.rt.user_modes[12:].decode('iso8859-1').strip()}",
+            "Urlaub",
+            "'Tag'/'Nacht'/'Alarm'",
+        ]
+        mode_list2 = ["Immer", "Tag", "Nacht", "Alarm"]
+        return modes_list1, mode_list2
 
     def format_smc(self, buf: bytes) -> str:
         """Parse line structure and add ';' and linefeeds."""
@@ -443,7 +475,7 @@ class ModuleSettings:
 
     async def update_ekey_entries(self):
         """Check for differences in users/fingers and delete if needed."""
-        if not ("org_fingers" in dir(self.module)):
+        if "org_fingers" not in dir(self.module):
             self.module.org_fingers = {}
         org_fingers = self.module.org_fingers
         new_fingers = self.all_fingers
@@ -451,7 +483,7 @@ class ModuleSettings:
         for u_i in range(len(self.users)):
             usr_nmbrs.append(self.users[u_i].nmbr)
         for usr_id in org_fingers.keys():
-            if not usr_id in new_fingers.keys():
+            if usr_id not in new_fingers.keys():
                 self.response = await self.module.hdlr.del_ekey_entry(usr_id, 255)
                 self.logger.info(f"User {usr_id} deleted from ekey data base")
         for usr_id in org_fingers.keys():
@@ -460,7 +492,7 @@ class ModuleSettings:
                 new_usr_fngr_ids.append(new_fingers[usr_id][fngr_id].nmbr)
             for fngr_id in range(len(org_fingers[usr_id])):
                 org_finger = org_fingers[usr_id][fngr_id].nmbr
-                if not org_finger in new_usr_fngr_ids:
+                if org_finger not in new_usr_fngr_ids:
                     self.response = await self.module.hdlr.del_ekey_entry(
                         usr_id, org_finger
                     )
@@ -473,17 +505,52 @@ class ModuleSettings:
                 f_msk = f_msk | 1 << (fngr.nmbr - 1)
             self.users[usr_nmbrs.index(usr_id)].type = f_msk
 
-    async def set_list(self):
-        """Store config entries to list and send to module."""
+    async def set_automations(self):
+        """Store automation entries to list and send to module."""
         list_lines = self.format_smc(self.list).split("\n")
-        if self.module._typ == b"\x1e\x01":
-            await self.update_ekey_entries()
 
         new_list = []
         new_line = ""
         for lchr in list_lines[0].split(";")[:-1]:
             new_line += chr(int(lchr))
         new_list.append(new_line)
+
+        # insert automations
+        automations = self.automtns_def
+        for atmn in automations.local:
+            if atmn.src_rt == 0:
+                new_list.append(atmn.make_definition())
+        for atmn in automations.external:
+            new_list.append(atmn.make_definition())
+        for atmn in automations.forward:
+            new_list.append(atmn.make_definition())
+        for atmn in automations.local:
+            if atmn.src_rt != 0:
+                new_list.append(atmn.make_definition())
+
+        # copy rest of list
+        for line in list_lines[1:]:
+            if len(line) > 0:
+                tok = line.split(";")
+                if (tok[0] == "252") | (tok[0] == "253") | (tok[0] == "255"):
+                    new_line = ""
+                    for lchr in line.split(";")[:-1]:
+                        new_line += chr(int(lchr))
+                    new_list.append(new_line)
+        return self.adapt_list_header(new_list)
+
+    async def set_list(self) -> bytes:
+        """Store config entries to new list, (await for ekey entries update)."""
+        list_lines = self.format_smc(self.list).split("\n")
+        if self.module._typ == b"\x1e\x01":
+            await self.update_ekey_entries()
+
+        new_list: list[str] = []
+        new_line = ""
+        for lchr in list_lines[0].split(";")[:-1]:
+            new_line += chr(int(lchr))
+        new_list.append(new_line)
+
         for line in list_lines[1:]:
             if len(line) > 0:
                 tok = line.split(";")
@@ -503,10 +570,13 @@ class ModuleSettings:
                 desc += " " * (32 - len(desc))
                 new_list.append(f"\xff\0\xeb{chr(9 + btn.nmbr)}\1\x23\0\xeb" + desc)
         for led in self.leds:
-            desc = led.name
-            if len(desc.strip()) > 0:
-                desc += " " * (32 - len(desc))
-                new_list.append(f"\xff\0\xeb{chr(17 + led.nmbr)}\1\x23\0\xeb" + desc)
+            if led.nmbr > 0:
+                desc = led.name
+                if len(desc.strip()) > 0:
+                    desc += " " * (32 - len(desc))
+                    new_list.append(
+                        f"\xff\0\xeb{chr(17 + led.nmbr)}\1\x23\0\xeb" + desc
+                    )
         for inpt in self.inputs:
             desc = inpt.name
             if len(desc.strip()) > 0:
@@ -525,6 +595,16 @@ class ModuleSettings:
             desc = flg.name
             desc += " " * (32 - len(desc))
             new_list.append(f"\xff\0\xeb{chr(119 + flg.nmbr)}\1\x23\0\xeb" + desc)
+        cnt = 0
+        for vis in self.vis_cmds:
+            desc = vis.name
+            desc += " " * (32 - len(desc))
+            n_high = chr(vis.nmbr >> 8)
+            n_low = chr(vis.nmbr & 0xFF)
+            new_list.append(
+                f"\xff\0\xeb{chr(140 + cnt)}\1\x23\0\xeb" + n_low + n_high + desc[:-2]
+            )
+            cnt += 1
         for uid in self.users:
             desc = uid.name
             fgr_low = abs(uid.type) & 0xFF
@@ -533,13 +613,17 @@ class ModuleSettings:
             new_list.append(
                 f"\xfc{chr(uid.nmbr)}\xeb{chr(fgr_low)}{chr(fgr_high)}\x23\0\xeb" + desc
             )
+        return self.adapt_list_header(new_list)
+
+    def adapt_list_header(self, new_list: list[str]) -> bytes:
+        """Adapt line and char numbers in header, return as byte."""
         no_lines = len(new_list) - 1
         no_chars = 0
         for line in new_list:
             no_chars += len(line)
-        new_list[
-            0
-        ] = f"{chr(no_lines & 0xFF)}{chr(no_lines >> 8)}{chr(no_chars & 0xFF)}{chr(no_chars >> 8)}"
+        new_list[0] = (
+            f"{chr(no_lines & 0xFF)}{chr(no_lines >> 8)}{chr(no_chars & 0xFF)}{chr(no_chars >> 8)}"
+        )
         list_bytes = ""
         for line in new_list:
             list_bytes += line
@@ -556,6 +640,33 @@ class ModuleSettings:
             )
             app["settings"] = settings
 
+    def out_2_cvr(self, o_no: int) -> int:
+        """Convert output to cover number based on module type, 0-based."""
+        c_no = int(o_no / 2)
+        if self.typ[0] != 1:
+            return c_no
+        c_no -= 2
+        if c_no < 0:
+            c_no += 5
+        return c_no
+
+    def cvr_2_out(self, c_no: int) -> int:
+        """Convert cover to output number based on module type, 0-based"""
+        o_no = c_no * 2
+        if self.typ[0] != 1:
+            return o_no
+        o_no += 4
+        if c_no > 2:
+            o_no -= 10
+        return o_no
+
+    def unit_not_exists(self, mod_units: list[IfDescriptor], entry_name: str) -> bool:
+        """Check for existing unit based on name."""
+        for exist_unit in mod_units:
+            if exist_unit.name == entry_name:
+                return False
+        return True
+
 
 class RouterSettings:
     """Object with all router settings."""
@@ -565,6 +676,7 @@ class RouterSettings:
         self.id = rtr._id
         self.name = rtr._name
         self.type = "Smart Router"
+        self.typ = b"\0\0"  # to distinguish from modules
         self.status = rtr.status
         self.smr = rtr.smr
         self.desc = rtr.descriptions
@@ -577,6 +689,8 @@ class RouterSettings:
         self.serial = rtr.serial
         self.day_night = rtr.day_night
         self.version = rtr.version
+        self.user1_name = rtr.user_modes[1:11].decode("iso8859-1").strip()
+        self.user2_name = rtr.user_modes[12:].decode("iso8859-1").strip()
         self.glob_flags: list[IfDescriptor] = []
         self.groups: list[IfDescriptor] = []
         self.coll_cmds: list[IfDescriptor] = []
@@ -627,7 +741,7 @@ class RouterSettings:
         str_len = self.smr[ptr]
         self.version = self.smr[ptr + 1 : ptr + 1 + str_len].decode("iso8859-1").strip()
 
-    def get_glob_descriptions(self) -> str | None:
+    def get_glob_descriptions(self) -> None:
         """Get descriptions of commands, etc."""
         resp = self.desc.encode("iso8859-1")
 
@@ -651,7 +765,7 @@ class RouterSettings:
                 pass
             resp = resp[line_len:]
 
-    def set_glob_descriptions(self) -> str | None:
+    def set_glob_descriptions(self) -> str:
         """Add new descriptions into description string."""
         resp = self.desc.encode("iso8859-1")
         desc = resp[:4].decode("iso8859-1")
@@ -666,7 +780,7 @@ class RouterSettings:
             line_len = int(resp[8]) + 9
             line = resp[:line_len]
             content_code = int.from_bytes(line[1:3], "little")
-            if not (content_code in [767, 1023, 2047]):
+            if content_code not in [767, 1023, 2047]:
                 desc += line.decode("iso8859-1")
                 line_no += 1
             resp = resp[line_len:]
@@ -682,6 +796,72 @@ class RouterSettings:
         return chr(line_no & 0xFF) + chr(line_no >> 8) + desc[2:]
 
 
+class ModuleSettingsLight(ModuleSettings):
+    """Object with all module settings, without automations."""
+
+    def __init__(self, module):
+        """Fill all properties with module's values."""
+        self.id = module._id
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug("Initialzing module settings object")
+        self.module = module
+        self.name = dpcopy(module._name)
+        self.typ = module._typ
+        self.type = module._type
+        self.list = dpcopy(module.list)
+        self.status = dpcopy(module.status)
+        self.smg = dpcopy(module.build_smg())
+        self.desc = dpcopy(module.get_rtr().descriptions)
+        self.properties: dict = module.io_properties
+        self.prop_keys = module.io_prop_keys
+        self.cover_times = [0, 0, 0, 0, 0]
+        self.blade_times = [0, 0, 0, 0, 0]
+        self.user1_name = module.get_rtr().user_modes[1:11].decode("iso8859-1").strip()
+        self.user2_name = module.get_rtr().user_modes[12:].decode("iso8859-1").strip()
+        self.group = dpcopy(module.get_rtr().groups[self.id])
+        self.get_io_interfaces()
+        self.get_names()
+        self.get_settings()
+        self.get_descriptions()
+
+
 def replace_bytes(in_bytes: bytes, repl_bytes: bytes, idx: int) -> bytes:
     """Replaces bytes array from idx:idx+len(in_bytes)."""
     return in_bytes[:idx] + repl_bytes + in_bytes[idx + len(repl_bytes) :]
+
+
+def set_cover_output_name(old_name, new_name, state):
+    """ "Set output name accdording to cover's name."""
+    up_names = ["auf", "auf", "hoch", "öffnen", "up", "open"]
+    dwn_names = ["ab", "zu", "runter", "schließen", "down", "close"]
+    if len(old_name.split()) > 1:
+        pf = old_name.split()[-1]
+        base = old_name.replace(pf, "").strip()
+        if pf in up_names:
+            pf_idx = up_names.index(pf)
+        elif pf in dwn_names:
+            pf_idx = dwn_names.index(pf)
+        else:
+            pf_idx = 0
+            base = old_name
+    else:
+        pf_idx = 0
+        base = old_name
+    pf_names = [up_names[pf_idx], dwn_names[pf_idx]]
+    if new_name is not None:
+        base = new_name
+    if state == "up":
+        return base + f" {pf_names[0]}"
+    return base + f" {pf_names[1]}"
+
+
+def set_cover_name(out_name):
+    """Strip postfix from output name."""
+    up_names = ["auf", "auf", "hoch", "öffnen", "up", "open"]
+    dwn_names = ["ab", "zu", "runter", "schließen", "down", "close"]
+    base = out_name
+    for pf in up_names:
+        base = base.replace(pf, "")
+    for pf in dwn_names:
+        base = base.replace(pf, "")
+    return base.strip()

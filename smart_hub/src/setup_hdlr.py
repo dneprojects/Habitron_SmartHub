@@ -7,10 +7,10 @@ from hdlr_class import HdlrBase
 class SetupHdlr(HdlrBase):
     """Handling of all setup messages."""
 
-    async def process_message(self):
+    async def process_message(self) -> None:
         """Parse message, prepare and send router command"""
 
-        rt, mod = self.get_router_module()
+        (rt, mod) = self.get_router_module()
 
         match self._spec:
             case spec.KEY_TEACH:

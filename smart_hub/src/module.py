@@ -1,21 +1,20 @@
 import logging
-from pymodbus.utilities import checkCRC as ModbusCheckCRC
 from pymodbus.utilities import computeCRC as ModbusComputeCRC
-from const import MirrIdx, SMGIdx, MStatIdx, MODULE_CODES, CStatBlkIdx, HA_EVENTS
-from configuration import ModuleSettings
+from const import MirrIdx, SMGIdx, MODULE_CODES, CStatBlkIdx, HA_EVENTS
+from configuration import ModuleSettings, ModuleSettingsLight
 
 
 class HbtnModule:
     """Habitron module object, holds complete status."""
 
-    def __init__(self, mod_id: int, hdlr, rt) -> None:
+    def __init__(self, mod_id: int, rt_id: int, hdlr, api_srv) -> None:
         self._id: int = mod_id
+        self.rt_id = rt_id
         self.logger = logging.getLogger(__name__)
         self._name = ""
         self._typ: bytes = b""
         self._type = ""
-        self.rt = rt
-        self.api_srv = rt.api_srv
+        self.api_srv = api_srv
         self.hdlr = hdlr
 
         self.status: bytes = b""  # full mirror, holds module settings
@@ -24,6 +23,7 @@ class HbtnModule:
         self.smg_crc = 0
         self.list: bytes = b""  # SMC information: labels, commands
         self.list_upload: bytes = b""  # buffer for SMC upload
+        self.settings = None
 
     async def initialize(self):
         """Get full module status"""
@@ -65,6 +65,10 @@ class HbtnModule:
             .strip()
         )
 
+    def get_rtr(self):
+        """Return router object."""
+        return self.api_srv.routers[self.rt_id - 1]
+
     def get_smc_crc(self) -> int:
         """Return smc crc from status."""
         return int.from_bytes(self.status[MirrIdx.SMC_CRC : MirrIdx.SMC_CRC + 2], "big")
@@ -96,12 +100,8 @@ class HbtnModule:
         return self.status[MirrIdx.T_SHORT : MirrIdx.T_SHORT + 17]
 
     def has_automations(self) -> bool:
-        """Return True if local automations available."""
-        if len(self.list) > 5:
-            # atms = self.settings.automtns_def
-            # return len(atms.local) + len(atms.external) + len(atms.forward) > 0
-            return (self.list[4] == 0) | (self.list[4] == 1)
-        return False
+        """Return True if automations are allowed."""
+        return (self._typ[0] in [1, 10]) | (self._typ == b"\x32\x01")
 
     def swap_mirr_cover_idx(self, mirr_idx: int) -> int:
         """Return cover index from mirror index (0..2 -> 2..4)."""
@@ -113,7 +113,7 @@ class HbtnModule:
             cvr_idx -= 5
         return cvr_idx
 
-    def compare_status(self, stat1: str, stat2: str, diff_idx, idx) -> list:
+    def compare_status(self, stat1: bytes, stat2: bytes, diff_idx, idx) -> list:
         """Find updates fields."""
         for x, y in zip(stat1, stat2):
             if x != y:
@@ -137,7 +137,7 @@ class HbtnModule:
             "Smart In 8/230V",
             "Fanekey",
         ]:
-            pass
+            pass  # Don't track update changes for these modules
         else:
             if self._type in [
                 "Smart Detect 180",
@@ -172,39 +172,38 @@ class HbtnModule:
                 i0 = MirrIdx.DIM_1
                 i1 = MirrIdx.T_SHORT
                 i2 = MirrIdx.LOGIC
-                i3 = MirrIdx.LOGIC_OUT
+                i3 = MirrIdx.FLAG_LOC + 2
                 i_diff = self.compare_status(
-                    self.status[i2:i3], new_status[i2:i3], i_diff, i2 - i0
+                    self.status[i2:i3], new_status[i2:i3], i_diff, i2
                 )
             i_diff = self.compare_status(
-                self.status[i0:i1], new_status[i0:i1], i_diff, 0
+                self.status[i0:i1], new_status[i0:i1], i_diff, i0
             )
             for i_d in i_diff:
-                idx = i_d + i0
-                if not (idx in block_list):
+                if i_d not in block_list:
                     ev_type = 0
                     ev_str = "-"
-                    val = new_status[idx]
-                    if idx in range(MirrIdx.MOV, MirrIdx.MOV + 1):
+                    val = new_status[i_d]
+                    if i_d in range(MirrIdx.MOV, MirrIdx.MOV + 1):
                         ev_type = HA_EVENTS.MOVE
                         ev_str = "Movement"
                         idv = 0
-                    elif idx in range(MirrIdx.COVER_POS, MirrIdx.COVER_POS + 8):
+                    elif i_d in range(MirrIdx.COVER_POS, MirrIdx.COVER_POS + 8):
                         ev_type = HA_EVENTS.COV_VAL
-                        idv = self.swap_mirr_cover_idx(idx - MirrIdx.COVER_POS)
+                        idv = self.swap_mirr_cover_idx(i_d - MirrIdx.COVER_POS)
                         ev_str = f"Cover {idv + 1} pos"
-                    elif idx in range(MirrIdx.BLAD_POS, MirrIdx.BLAD_POS + 8):
+                    elif i_d in range(MirrIdx.BLAD_POS, MirrIdx.BLAD_POS + 8):
                         ev_type = HA_EVENTS.BLD_VAL
-                        idv = self.swap_mirr_cover_idx(idx - MirrIdx.BLAD_POS)
+                        idv = self.swap_mirr_cover_idx(i_d - MirrIdx.BLAD_POS)
                         ev_str = f"Blade {idv + 1} pos"
-                    elif idx in range(MirrIdx.DIM_1, MirrIdx.DIM_4 + 1):
+                    elif i_d in range(MirrIdx.DIM_1, MirrIdx.DIM_4 + 1):
                         ev_type = HA_EVENTS.DIM_VAL
-                        idv = idx - MirrIdx.DIM_1
+                        idv = i_d - MirrIdx.DIM_1
                         ev_str = f"Dimmmer {idv + 1}"
-                    elif idx in range(MirrIdx.FLAG_LOC, MirrIdx.FLAG_LOC + 2):
+                    elif i_d in range(MirrIdx.FLAG_LOC, MirrIdx.FLAG_LOC + 2):
                         ev_type = HA_EVENTS.FLAG
-                        old_val = self.status[idx]
-                        new_val = new_status[idx]
+                        old_val = self.status[i_d]
+                        new_val = new_status[i_d]
                         chg_msk = old_val ^ new_val
                         val = new_val & chg_msk
                         for i in range(8):
@@ -214,18 +213,18 @@ class HbtnModule:
                         if idv != chg_msk:
                             # more than one flag changed, return mask and byte
                             idv = chg_msk + 1000
-                            if idx > MirrIdx.FLAG_LOC:  # upper byte
+                            if i_d > MirrIdx.FLAG_LOC:  # upper byte
                                 idv = idv + 1000
                         else:
                             # single change, return flag no and value 0/1
                             idv = i
-                            if idx > MirrIdx.FLAG_LOC:  # upper byte
+                            if i_d > MirrIdx.FLAG_LOC:  # upper byte
                                 idv = idv + 8
                             val = int(val > 0)
                         ev_str = f"Flag {idv + 1}"
-                    elif idx in range(MirrIdx.COUNTER_VAL, MirrIdx.COUNTER_VAL + 28):
+                    elif i_d in range(MirrIdx.COUNTER_VAL, MirrIdx.COUNTER_VAL + 28):
                         ev_type = HA_EVENTS.CNT_VAL
-                        idv = int((idx - MirrIdx.COUNTER_VAL) / 3)
+                        idv = int((i_d - MirrIdx.COUNTER_VAL) / 3)
                         ev_str = f"Counter {idv + 1}"
                     if ev_type > 0:
                         update_info.append(
@@ -237,7 +236,7 @@ class HbtnModule:
                             ]
                         )
                         self.logger.debug(
-                            f"Update in module status {self._id}: {self._name}: Event {ev_str}, Byte {idx} - new: {val}"
+                            f"Update in module status {self._id}: {self._name}: Event {ev_str}, Byte {i_d} - new: {val}"
                         )
         if len(new_status) > 100:
             self.status = new_status
@@ -258,6 +257,44 @@ class HbtnModule:
             smg_data += self.status[si : si + 1]
         return smg_data
 
+    def build_status(self, smg: bytes):
+        """Insert SMG values into status"""
+        for idx in range(len(SMGIdx)):
+            self.status = (
+                self.status[: SMGIdx[idx]]
+                + smg[idx : idx + 1]
+                + self.status[SMGIdx[idx] + 1 :]
+            )
+        polarity = 0
+        for c_i in range(8):
+            ta, tb, interp = self.encode_cover_settings(
+                smg[4 + 2 * c_i], smg[4 + 2 * c_i + 1]
+            )
+            if ta > tb:
+                polarity = polarity | (1 << (2 * c_i))
+            else:
+                polarity = polarity | (1 << (2 * c_i + 1))
+            self.status = (
+                self.status[: MirrIdx.COVER_T + c_i]
+                + int.to_bytes(ta + tb)
+                + self.status[MirrIdx.COVER_T + c_i + 1 :]
+            )
+            self.status = (
+                self.status[: MirrIdx.BLAD_T + c_i]
+                + int.to_bytes(smg[20 + 2 * c_i] + smg[20 + 2 * c_i + 1])
+                + self.status[MirrIdx.BLAD_T + c_i + 1 :]
+            )
+            self.status = (
+                self.status[: MirrIdx.COVER_INTERP + c_i]
+                + int.to_bytes(interp)
+                + self.status[MirrIdx.COVER_INTERP + c_i + 1 :]
+            )
+        self.status = (
+            self.status[: MirrIdx.COVER_POL]
+            + int.to_bytes(polarity, 2, "little")
+            + self.status[MirrIdx.COVER_POL + 2 :]
+        )
+
     def different_smg_crcs(self) -> bool:
         """Performs comparison, equals lengths of smg buffers."""
         # Replace "______" strings in SW_VERSION and PWR_VERSION
@@ -277,7 +314,7 @@ class HbtnModule:
         bl_times = ""
         try:
             prop_range = self.io_properties["covers"]
-        except:
+        except Exception:
             prop_range = 8
         for ci in range(8):
             try:
@@ -312,7 +349,7 @@ class HbtnModule:
 
         return cv_times.encode("iso8859-1") + bl_times.encode("iso8859-1")
 
-    def encode_cover_settings(self, t_a: int, t_b: int) -> (int, int, int):
+    def encode_cover_settings(self, t_a: int, t_b: int) -> tuple[int, int, int]:
         """Create cover settings from cover times"""
         pos_polarity = (t_a >= 0) & (t_b == 0)
         neg_polarity = (t_a == 0) & (t_b >= 0)
@@ -340,15 +377,19 @@ class HbtnModule:
         """Calculate and store crc of SMC data."""
         self.set_smc_crc(ModbusComputeCRC(smc_buf))
 
-    def calc_SMG_crc(self, smg_buf: bytes) -> None:
+    def calc_SMG_crc(self, smg_buf: bytes) -> int:
         """Calculate and store crc of SMG data."""
         self.smg_crc = ModbusComputeCRC(smg_buf)
         return self.smg_crc
 
     def get_module_settings(self):
         """Collect all settings and prepare for config server."""
-        self.settings = ModuleSettings(self, self.rt)
+        self.settings = ModuleSettings(self)
         return self.settings
+
+    def get_settings_def(self):
+        """Return settings object."""
+        return ModuleSettingsLight(self)
 
     async def set_settings(self, settings: ModuleSettings):
         """Restore changed settings from config server into module and re-initialize."""
@@ -357,9 +398,10 @@ class HbtnModule:
         self.list = await settings.set_list()
         self.list_upload = self.list
         self.smg_upload = self.build_smg()
-        await self.hdlr.send_module_smg(self._id)
-        await self.hdlr.send_module_list(self._id)
-        await self.hdlr.get_module_status(self._id)
+        if not self.api_srv.is_offline:
+            await self.hdlr.send_module_smg(self._id)
+            await self.hdlr.send_module_list(self._id)
+            await self.hdlr.get_module_status(self._id)
         self.comp_status = self.get_status(False)
         self.calc_SMG_crc(self.build_smg())
         self._name = (
@@ -370,16 +412,41 @@ class HbtnModule:
         # self.list = await self.hdlr.get_module_list(self._id)
         self.calc_SMC_crc(self.list)
 
-    def get_io_properties(self) -> dict:
+    async def set_automations(self, settings: ModuleSettings):
+        """Restore changed automations from config server into module."""
+        self.settings = settings
+        self.list = await settings.set_automations()
+        self.list_upload = self.list
+        if not self.api_srv.is_offline:
+            await self.hdlr.send_module_list(self._id)
+        self.comp_status = self.get_status(False)
+        # self.list = await self.hdlr.get_module_list(self._id)
+        self.calc_SMC_crc(self.list)
+
+    def get_io_properties(self) -> tuple[dict[str, int], list[str]]:
         """Return number of inputs, outputs, etc."""
         type_code = self._typ
         props: dict = {}
+        props["buttons"] = 0
+        props["inputs"] = 0
+        props["inputs_230V"] = 0
+        props["inputs_24V"] = 0
+        props["outputs"] = 0
+        props["outputs_230V"] = 0
+        props["outputs_dimm"] = 0
+        props["outputs_24V"] = 0
+        props["outputs_relais"] = 0
+        props["leds"] = 0
+        props["covers"] = 0
+        props["logic"] = 0
+        props["flags"] = 0
+        props["dir_cmds"] = 0
+        props["vis_cmds"] = 0
         props["users"] = 0
         props["fingers"] = 0
         match type_code[0]:
             case 1:
                 props["buttons"] = 8
-                props["leds"] = 8
                 props["inputs"] = 10
                 props["inputs_230V"] = 4
                 props["inputs_24V"] = 6
@@ -388,166 +455,57 @@ class HbtnModule:
                 props["outputs_dimm"] = 2
                 props["outputs_24V"] = 2
                 props["outputs_relais"] = 1
-                props["leds"] = 8
+                props["leds"] = 9
                 props["covers"] = 5
                 props["logic"] = 10
                 props["flags"] = 16
                 props["dir_cmds"] = 25
-                props["vis_cmds"] = 16
+                props["vis_cmds"] = 65280
             case 10:
                 match type_code[1]:
                     case 1 | 50 | 51:
-                        props["buttons"] = 0
-                        props["leds"] = 0
-                        props["inputs"] = 0
-                        props["inputs_230V"] = 0
-                        props["inputs_24V"] = 0
                         props["outputs"] = 8
-                        props["outputs_230V"] = 0
-                        props["outputs_dimm"] = 0
-                        props["outputs_24V"] = 0
                         props["outputs_relais"] = 8
                         props["covers"] = 4
                         props["logic"] = 10
                         props["flags"] = 16
-                        props["dir_cmds"] = 0
                         props["vis_cmds"] = 16
                     case 2:
-                        props["buttons"] = 0
-                        props["leds"] = 0
-                        props["inputs"] = 0
-                        props["inputs_230V"] = 0
-                        props["inputs_24V"] = 0
                         props["outputs"] = 8
                         props["outputs_230V"] = 8
-                        props["outputs_dimm"] = 0
-                        props["outputs_24V"] = 0
-                        props["outputs_relais"] = 0
                         props["covers"] = 4
                         props["logic"] = 10
                         props["flags"] = 16
-                        props["dir_cmds"] = 0
-                        props["vis_cmds"] = 16
+                        props["vis_cmds"] = 65280
                     case 20 | 21 | 22:
-                        props["buttons"] = 0
-                        props["leds"] = 0
-                        props["inputs"] = 0
-                        props["inputs_230V"] = 0
-                        props["inputs_24V"] = 0
                         props["outputs"] = 4
-                        props["outputs_230V"] = 0
                         props["outputs_dimm"] = 4
-                        props["outputs_24V"] = 0
-                        props["outputs_relais"] = 0
-                        props["covers"] = 0
                         props["logic"] = 10
                         props["flags"] = 16
-                        props["dir_cmds"] = 0
-                        props["vis_cmds"] = 16
+                        props["vis_cmds"] = 65280
             case 11:
                 match type_code[1]:
                     case 1:
-                        props["buttons"] = 0
-                        props["leds"] = 0
                         props["inputs"] = 8
                         props["inputs_230V"] = 8
-                        props["inputs_24V"] = 0
-                        props["outputs"] = 0
-                        props["outputs_230V"] = 0
-                        props["outputs_dimm"] = 0
-                        props["outputs_24V"] = 0
-                        props["outputs_relais"] = 0
-                        props["covers"] = 0
-                        props["logic"] = 0
-                        props["flags"] = 0
-                        props["dir_cmds"] = 0
-                        props["vis_cmds"] = 0
                     case 30 | 31:
-                        props["buttons"] = 0
-                        props["leds"] = 0
                         props["inputs"] = 8
-                        props["inputs_230V"] = 0
                         props["inputs_24V"] = 8
-                        props["outputs"] = 0
-                        props["outputs_230V"] = 0
-                        props["outputs_dimm"] = 0
-                        props["outputs_24V"] = 0
-                        props["outputs_relais"] = 0
-                        props["covers"] = 0
-                        props["logic"] = 0
-                        props["flags"] = 0
-                        props["dir_cmds"] = 0
-                        props["vis_cmds"] = 0
-            case 20:
-                props["buttons"] = 0
-                props["leds"] = 0
-                props["inputs"] = 0
-                props["inputs_230V"] = 0
-                props["inputs_24V"] = 0
-                props["outputs"] = 0
-                props["outputs_230V"] = 0
-                props["outputs_dimm"] = 0
-                props["outputs_24V"] = 0
-                props["outputs_relais"] = 0
-                props["covers"] = 0
-                props["logic"] = 0
-                props["flags"] = 0
-                props["dir_cmds"] = 0
-                props["vis_cmds"] = 0
             case 30:
-                props["buttons"] = 0
-                props["leds"] = 0
-                props["inputs"] = 0
-                props["inputs_230V"] = 0
-                props["inputs_24V"] = 0
-                props["outputs"] = 0
-                props["outputs_230V"] = 0
-                props["outputs_dimm"] = 0
-                props["outputs_24V"] = 0
-                props["outputs_relais"] = 0
-                props["covers"] = 0
-                props["logic"] = 0
                 props["users"] = 256
                 props["fingers"] = props["users"] * 10
-                props["flags"] = 0
-                props["dir_cmds"] = 0
-                props["vis_cmds"] = 0
             case 50:
                 props["buttons"] = 2
-                props["leds"] = 4
                 props["inputs"] = 4
                 props["inputs_230V"] = 0
                 props["inputs_24V"] = 4
                 props["outputs"] = 2
-                props["outputs_230V"] = 0
-                props["outputs_dimm"] = 0
                 props["outputs_24V"] = 2
-                props["outputs_relais"] = 0
-                props["covers"] = 0
+                props["leds"] = 5
                 props["logic"] = 10
                 props["flags"] = 16
-                props["dir_cmds"] = 0
-                props["vis_cmds"] = 16
-            case 80:
-                props["buttons"] = 0
-                props["leds"] = 0
-                props["inputs"] = 0
-                props["inputs_230V"] = 0
-                props["inputs_24V"] = 0
-                props["outputs"] = 0
-                props["outputs_230V"] = 0
-                props["outputs_dimm"] = 0
-                props["outputs_24V"] = 0
-                props["outputs_relais"] = 0
-                props["covers"] = 0
-                props["logic"] = 0
-                props["flags"] = 0
-                props["dir_cmds"] = 0
-                props["vis_cmds"] = 0
-                props["logic"] = 0
-                props["flags"] = 0
-                props["dir_cmds"] = 0
-                props["vis_cmds"] = 0
+                props["dir_cmds"] = 25
+                props["vis_cmds"] = 65280
 
         keys = [
             "buttons",
@@ -560,6 +518,7 @@ class HbtnModule:
             "fingers",
             "flags",
             "dir_cmds",
+            "vis_cmds",
         ]
         no_keys = 0
         for key in keys:

@@ -21,8 +21,9 @@
   <meta http-equiv="Content-Script-Type" content="text/javascript">
   <meta name="description" content="">
   <meta name="keywords" content="">
-  <link href="./configurator_files/style.css" rel="stylesheet" type="text/css" media="screen">
-  <link href="./configurator_files/nav.css" rel="stylesheet" type="text/css" media="screen">
+  <link href="/configurator_files/style.css" rel="stylesheet" type="text/css" media="screen">
+  <link href="/configurator_files/nav.css" rel="stylesheet" type="text/css" media="screen">
+  <link href="/configurator_files/popup.css" rel="stylesheet" type="text/css" media="screen">
   <!--[if IE]>
 <link href="tl_files/habitron/style_ie.css" rel="stylesheet" type="text/css" media="screen"  />
 <![endif]-->
@@ -34,12 +35,9 @@
   <![CDATA[/*><!--*/
 /*]]>*/-->
   </style>
-  <link rel="stylesheet" href="./configurator_files/contao.css" type="text/css" media="screen">
+  <link rel="stylesheet" href="/configurator_files/contao.css" type="text/css" media="screen">
   <!--[if lte IE 7]><link rel="stylesheet" href="system/iefixes.css" type="text/css" media="screen" /><![endif]-->
-  <link rel="stylesheet" href="./configurator_files/tinymce.css" type="text/css" media="screen">
-  <script type="text/javascript" async="" src="./configurator_files/ga.js.Download"></script>
-  <script type="text/javascript" src="./configurator_files/mootools-yui-compressed.js.Download"></script>
-  <script type="text/javascript" src="./configurator_files/mootools-more.js.Download"></script>
+  <link rel="stylesheet" href="/configurator_files/tinymce.css" type="text/css" media="screen">
 </head>
 
 <body id="top" class="modules">
@@ -47,26 +45,21 @@
     <div id="content">
       <div id="header">
         <div class="inside">
-          <div style="height:20px; text-align: right; padding-top: 35px; padding-right: 60px;">
-            <a href="http://habitron.de/habitron.html"><img id="logo_habitron" src="./configurator_files/logo.png"
+          <div style="height:20px; text-align: right; padding-top: 35px; padding-right: 60px;"><a
+              href="http://habitron.de/habitron.html"><img id="logo_habitron" src="/configurator_files/logo.png"
                 width="267" height="47"></a>
-
-            <h0>Smart Configurator</h0>
+            <a href="/">
+              <div>
+                <h0>Smart Configurator</h0>
+              </div>
+            </a>
           </div>
-          <!--
-<form id="suche" action="http://habitron.de/suche-habitron.html" method="get" enctype="text/html">
-        <div class="formbody">
-          <input type="text" name="keywords" id="keywords" class="text" value="Suche">
-        </div>
-</form> 
--->
           <div class="mod_article block" id="pic">
-
 
             <div class="ce_image block">
 
               <div class="image_container">
-                <img src="./configurator_files/configuration.jpg" width="980" height="200" alt="Habitron GmbH">
+                <img src="/configurator_files/configuration.jpg" width="980" height="200" alt="Habitron GmbH">
               </div>
 
             </div>
@@ -85,7 +78,7 @@
                 überspringen</a>
 
               <ul class="level_1">
-                <li class="submenu modules first"><a href="hub" title="Hub" class="submenu modules first">Hub</a></li>
+                <li class="submenu modules first"><a href="hub" title="Hub" class="submenu modules">Hub</a></li>
               </ul>
               <ul class="level_1">
                 <li class="submenu modules"><a href="router" title="Router" class="submenu modules">Router</a></li>
@@ -114,7 +107,7 @@
             <div class="mod_article block" id="bild-rechts">
               <div class="ce_image block">
                 <div class="image_container">
-                  <img src="./configurator_files/controller.jpg" width="216" height="217" alt="Habitron GmbH">
+                  <img src="/configurator_files/controller.jpg" width="216" height="217" alt="Habitron GmbH">
                 </div>
 
               </div>
@@ -133,6 +126,8 @@
 
                 <h2>Smart Configurator</h2>
                 <h3>Passen Sie hier die Grundeinstellungen des Systems an.</h3>
+                <br><br><br><br><br><br><br><br><br><br>
+                <a href="/licenses">Lizenzinformation</a>
                 <!-- MainContentEnd -->
               </div>
 
@@ -141,14 +136,19 @@
         </div>
         <div id="clear"></div>
       </div>
-      <div id="footer">
-        <div class="inside">
+      <div id="footer"><div class="inside">
+        <div id="confbutton" style="position: relative;">
+          <!--button name="ConfigFiles" id="files_button"
+            style="float: right; position: absolute; top: 0; left: 560px;">Systemkonfiguration</button-->
         </div>
       </div>
-
-    </div>
-  </div>
-
-</body>
-
-</html>
+      </div>
+      
+      </div>
+           
+      </div>
+      
+      
+      </body>
+      
+      </html>

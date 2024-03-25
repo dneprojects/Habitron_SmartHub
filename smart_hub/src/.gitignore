@@ -1,0 +1,17 @@
+requirements.txt
+*.code-workspace
+*.bin
+*.pem
+*.log
+*.set
+*.smb
+*.smc
+*.smg
+*.smr
+*.fwd
+*.1
+*.2
+*.3
+__pycache__/
+nul
+launch.json

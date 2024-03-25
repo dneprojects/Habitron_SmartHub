@@ -1,10 +1,8 @@
 import logging
 import asyncio
 from math import ceil
-from const import MirrIdx, SMGIdx, RT_CMDS, MODULE_CODES, API_RESPONSE
+from const import MirrIdx, SMGIdx, RT_CMDS
 from hdlr_class import HdlrBase
-from messages import RtResponse
-from module import HbtnModule
 
 
 class ModHdlr(HdlrBase):
@@ -14,15 +12,17 @@ class ModHdlr(HdlrBase):
         """Creates module handler object with serial interface"""
         self.mod_id = mod_id
         self.api_srv = api_srv
-        self.msg = api_srv.hdlr.msg
+        if api_srv.hdlr == []:
+            self.msg = None
+        else:
+            self.msg = api_srv.hdlr.msg
         self.ser_if = self.api_srv._rt_serial
         self.logger = logging.getLogger(__name__)
-        self.mod: HbtnModule = []
 
     def initialize(self, mod):
         """Set module properties."""
         self.mod = mod
-        self.rt_id = mod.rt._id
+        self.rt_id = mod.rt_id
 
     async def mod_reboot(self):
         """Initiates a module reboot"""
@@ -30,9 +30,9 @@ class ModHdlr(HdlrBase):
         await self.handle_router_cmd(self.rt_id, RT_CMDS.MD_REBOOT)
         return "OK"
 
-    async def get_module_status(self, mod_addr: int) -> bytes:
+    async def get_module_status(self, mod_addr: int) -> None:
         """Get all module settings."""
-        await self.api_srv.stop_opr_mode(self.rt_id)
+        await self.api_srv.set_server_mode(self.rt_id)
         await self.handle_router_cmd_resp(
             self.rt_id, RT_CMDS.GET_MOD_MIRROR.replace("<mod>", chr(mod_addr))
         )
@@ -40,7 +40,7 @@ class ModHdlr(HdlrBase):
 
     async def send_module_smg(self, mod_addr: int):
         """Send SMG data from Smart Hub to router/module."""
-        await self.set_config_mode(True)
+        await self.api_srv.set_server_mode()
         await self.set_module_name()
         await self.set_buttons_times()
         if int(self.mod._typ[0]) in [1, 0x32, 0x0B]:
@@ -82,16 +82,15 @@ class ModHdlr(HdlrBase):
             # GSM specific settings
             await self.set_pin()
             await self.set_logic_units()
-        await self.set_config_mode(False)
+        await self.api_srv.set_operate_mode()
 
     async def get_module_list(self, mod_addr: int) -> bytes:
         """Get the module description and command list."""
 
-        await self.api_srv.stop_opr_mode(self.rt_id)
+        await self.api_srv.set_server_mode(self.rt_id)
         pckg = 1
         area = 50
         cnt = 1
-        mod_code = self.mod.get_module_code()
         smc_buffer = b""
         rt_command = (
             RT_CMDS.GET_MOD_SMC.replace("<rtr>", chr(self.rt_id))
@@ -110,7 +109,6 @@ class ModHdlr(HdlrBase):
             len_SMC_file = int.from_bytes(resp[3:5], "little")
             pckg_cnt = int(ceil(len_SMC_file / 31))
             while cnt < pckg_cnt:
-                await asyncio.sleep(0.2)
                 cnt += 1
                 pckg = resp[0]
                 pckg += 1
@@ -136,10 +134,11 @@ class ModHdlr(HdlrBase):
 
     async def send_module_list(self, mod_addr: int):
         """Send SMC data from Smart Hub to router/module."""
-        await self.handle_router_cmd_resp(self.rt_id, RT_CMDS.STOP_MIRROR)
+        await self.api_srv.set_server_mode(self.rt_id)
         mod_list = self.mod.list_upload
         resp_flg = 0
         l_len = len(mod_list)
+        no_lines = int.from_bytes(mod_list[0:2], "little")
         l_cnt = 0
         flg = chr(6)
         cnt = 1
@@ -156,20 +155,38 @@ class ModHdlr(HdlrBase):
             await self.handle_router_cmd_resp(self.rt_id, cmd)
             flg = chr(7)
             resp_cnt = self.rt_msg._resp_buffer[-2]
-            resp_flg = self.rt_msg._resp_buffer[-3]
+            resp_flg = self.rt_msg._resp_buffer[8]
             if resp_cnt == cnt:
-                cnt += 1
+                if cnt < 255:
+                    cnt += 1
+                else:
+                    cnt = 0
                 l_cnt += l_p
             elif resp_flg == 8:
                 cnt += 1
                 l_cnt += l_p
+            elif resp_flg == 250:
+                self.logger.debug(
+                    f"List upload (SMC) returned unexpected flag, repeat flag 6: Count {resp_cnt} Flag {resp_flg}"
+                )
+                flg = chr(6)
+            elif resp_flg == 255:
+                self.logger.error(
+                    f"List upload (SMC) returned error flag: Count {resp_cnt} Flag {resp_flg}"
+                )
+                l_cnt += l_p
             self.logger.debug(
-                f"List upload (SMC) returned: Count {cnt} Flag {resp_flg}"
+                f"List upload (SMC) returned: Count {resp_cnt} Flag {resp_flg}"
             )
-            await asyncio.sleep(0.5)
-        self.logger.info(
-            f"List upload (SMC) terminated: Count {resp_cnt} Flag {resp_flg}"
-        )
+            # await asyncio.sleep(0.1)
+        if (resp_flg == 8) & (resp_cnt == 0):
+            self.logger.info(
+                f"List upload terminated successfully, transferred {l_len} bytes of {no_lines} definitions to module"
+            )
+        else:
+            self.logger.info(
+                f"List upload (SMC) terminated: Count {resp_cnt} Flag {resp_flg}"
+            )
         return
 
     async def set_module_language(self):
@@ -457,11 +474,11 @@ class ModHdlr(HdlrBase):
         p3_idx = p1_idx + 3  # 2b
         p4_idx = p1_idx + 6  # 4a
         p2_idx = p3_idx + 3  # 5b
-        p1 = (self.mod.smg_upload[p1_idx] / 9) - 9
-        p2 = (((self.mod.smg_upload[p2_idx] / 2) + 88) / 10) - 10
-        p3 = (self.mod.smg_upload[p3_idx] / 7) - 4
-        p4 = self.mod.smg_upload[p4_idx]
-        if p1 >= 10 | p2 >= 10 | p3 >= 10 | p4 >= 10:
+        p1 = int((self.mod.smg_upload[p1_idx] / 9) - 9)
+        p2 = int((((self.mod.smg_upload[p2_idx] / 2) + 88) / 10) - 10)
+        p3 = int((self.mod.smg_upload[p3_idx] / 7) - 4)
+        p4 = int(self.mod.smg_upload[p4_idx])
+        if (p1 >= 10) | (p2 >= 10) | (p3 >= 10) | (p4 >= 10):
             self.logger.error(f"Error decoding pin for module {self.mod._id}.")
             return "ERROR"
         cmd = (
@@ -523,9 +540,9 @@ class ModHdlr(HdlrBase):
             await self.handle_router_cmd_resp(
                 self.rt_id, cmd.replace("<pkg>", chr(pkg_cnt))
             )
-            pkg_resp = self.rt_msg._resp_buffer[10]
+            # pkg_resp = self.rt_msg._resp_buffer[10]
             db_size = self.rt_msg._resp_buffer[12] * 256 + self.rt_msg._resp_buffer[11]
-            buf_len = self.rt_msg._resp_buffer[7] - 7
+            # buf_len = self.rt_msg._resp_buffer[7] - 7
             db_buffer += self.rt_msg._resp_buffer[13:-1]
             db_upload_ready = len(db_buffer) >= db_size - 24
             pkg_cnt += 1
@@ -552,7 +569,7 @@ class ModHdlr(HdlrBase):
         if no_users > 1:
             return "ERROR"
         user_id = list[1]
-        no_fingers = list[2]
+        # no_fingers = list[2]
         fingers = list[3:]
         for fngr in fingers:
             cmd = (
@@ -625,11 +642,11 @@ class ModHdlr(HdlrBase):
 
     async def get_air_quality(self):
         """Read module air quality values."""
-        await self.set_config_mode(True)
+        await self.api_srv.set_server_mode()
         cmd = RT_CMDS.GET_AIR_QUAL.replace("<mod>", chr(self.mod_id))
         await self.handle_router_cmd_resp(self.rt_id, cmd)
         resp = self.rt_msg._resp_buffer[-10:-1]
-        await self.set_config_mode(False)
+        await self.api_srv.set_operate_mode()
         if resp[-5:] == f"\x44{chr(self.mod_id)}\x05\xfa\x02".encode("iso8859-1"):
             resp = "ERROR_250_2"
         return resp
@@ -638,7 +655,7 @@ class ModHdlr(HdlrBase):
         self, perc_good: int, val_good: int, perc_bad: int, val_bad: int
     ):
         """Read module air quality values."""
-        await self.set_config_mode(True)
+        await self.api_srv.set_server_mode()
         cmd = (
             RT_CMDS.CAL_AIR_QUAL.replace("<mod>", chr(self.mod_id))
             .replace("<prc_good>", chr(perc_good))
@@ -648,11 +665,12 @@ class ModHdlr(HdlrBase):
         )
         await self.handle_router_cmd_resp(self.rt_id, cmd)
         resp = self.rt_msg._resp_buffer[-10:-1]
-        await self.set_config_mode(False)
+        await self.api_srv.set_operate_mode()
         if resp[-5:] == f"\x44{chr(self.mod_id)}\x05\xfa\x02".encode("iso8859-1"):
             resp = "ERROR_250_2"
         return resp
 
     async def set_config_mode(self, flg: bool):
         """Forward to own router."""
-        await self.api_srv.routers[self.rt_id - 1].set_config_mode(flg)
+        if not self.api_srv.is_offline:
+            await self.api_srv.routers[self.rt_id - 1].set_config_mode(flg)

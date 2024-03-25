@@ -3,7 +3,7 @@ import asyncio
 
 from const import API_DATA as spec
 from hdlr_class import HdlrBase
-from const import RT_CMDS, MirrIdx, MStatIdx, RD_DELAY
+from const import MirrIdx, MStatIdx, RD_DELAY
 
 
 class DataHdlr(HdlrBase):
@@ -17,11 +17,11 @@ class DataHdlr(HdlrBase):
             case spec.SMHUB_BOOTQUEST:
                 self.response = b"\x01"  # bool True
 
-            case spec.SMHUB_GETVERSION:
-                self.response = self.api_srv.sm_hub.get_version()
-
             case spec.SMHUB_GETINFO:
                 self.response = self.api_srv.sm_hub.get_info()
+
+            case spec.SMHUB_UPDATE:
+                self.response = self.api_srv.sm_hub.get_update()
 
             case spec.RT_NAME_FW_NM_PCREAD:
                 rt_id = chr(rt).encode("iso8859-1")
@@ -42,7 +42,7 @@ class DataHdlr(HdlrBase):
                 self.check_router_no(rt)
                 if self.args_err:
                     return
-                await self.api_srv.stop_opr_mode(rt)
+                await self.api_srv.set_server_mode(rt)
                 for module in self.api_srv.routers[rt - 1].modules:
                     await module.initialize()
                 self.response = "OK"
@@ -70,7 +70,7 @@ class DataHdlr(HdlrBase):
                     mod_list = [mod]
                 if self.args_err:
                     return
-                await self.api_srv.stop_opr_mode(rt)
+                await self.api_srv.set_server_mode(rt)
                 self.response = b""
                 if mod == 255:
                     rd_delay = RD_DELAY
@@ -147,16 +147,21 @@ class DataHdlr(HdlrBase):
                     return
                 if self.api_srv._opr_mode:
                     # return previously stored status and trigger to get update
+                    self.logger.debug(
+                        "Query router and return previously stored status"
+                    )
                     await self.api_srv.routers[rt - 1].hdlr.query_rt_status()
                     self.response = (
                         chr(rt).encode("iso8859-1")
                         + self.api_srv.routers[rt - 1].chan_status
                     )
                 else:
+                    self.logger.debug("Get router status")
                     self.response = (
                         chr(rt).encode("iso8859-1")
                         + await self.api_srv.routers[rt - 1].get_status()
                     )
+                self.logger.debug(f"Length of response: {len(self.response)}")
 
             case spec.DESC_PCREAD:
                 self.response = self.api_srv.routers[rt - 1].descriptions

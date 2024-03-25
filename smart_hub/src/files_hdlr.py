@@ -3,17 +3,17 @@ from pymodbus.utilities import computeCRC as ModbusComputeCRC
 import math
 import os
 from const import API_FILES as spec
-from const import API_RESPONSE, MODULE_CODES, DATA_FILES_DIR
+from const import API_RESPONSE, DATA_FILES_DIR
 from hdlr_class import HdlrBase
 
 
 class FilesHdlr(HdlrBase):
     """Handling of all files messages."""
 
-    async def process_message(self):
+    async def process_message(self) -> None:
         """Parse message, prepare and send router command"""
 
-        rt, mod = self.get_router_module()
+        (rt, mod) = self.get_router_module()
         match self._spec:
             case spec.SMB_SEND:
                 self.check_router_no(rt)
@@ -36,12 +36,12 @@ class FilesHdlr(HdlrBase):
                 self.check_router_module_no(rt, mod)
                 if self.args_err:
                     return
-                self.api_srv.routers[rt - 1].get_module(
-                    mod
-                ).smg_upload = self.msg._cmd_data[:156]
-                self.api_srv.routers[rt - 1].get_module(
-                    mod
-                ).smc_upload = self.msg._cmd_data[156:]
+                self.api_srv.routers[rt - 1].get_module(mod).smg_upload = (
+                    self.msg._cmd_data[:156]
+                )
+                self.api_srv.routers[rt - 1].get_module(mod).smc_upload = (
+                    self.msg._cmd_data[156:]
+                )
                 self.response = "OK"
                 return
             case spec.SMM_TO_MOD:
@@ -202,14 +202,14 @@ class FilesHdlr(HdlrBase):
                 for module in rtr.modules:
                     m_typ = module._typ
                     i_typ = int.from_bytes(m_typ, "little")
-                    if not (i_typ in type_list):
+                    if i_typ not in type_list:
                         mod_list = []
                         type_list.append(i_typ)
                         for mod in rtr.modules:
                             if mod._typ == m_typ:
                                 mod_list.append(mod.id)
                         await rtr.set_config_mode(True)
-                        self.update_module_type(rtr, m_typ, mod_list)
+                        await self.update_module_type(rtr, m_typ, mod_list)
                         await rtr.set_config_mode(False)
                 self.response = "OK"
                 return
@@ -265,9 +265,9 @@ class FilesHdlr(HdlrBase):
                     self._p5 != 0
                 ):
                     await rtr.set_config_mode(True)
-                    stat_msg = API_RESPONSE.smc_upload_stat.replace(
-                        "<rtr>", chr(rt)
-                    ).replace("<mod>", chr(module._id))
+                    # stat_msg = API_RESPONSE.smc_upload_stat.replace(
+                    #     "<rtr>", chr(rt)
+                    # ).replace("<mod>", chr(module._id))
 
                     await module.hdlr.send_module_list(module._id)
                     # = bytes, content changed
@@ -296,6 +296,10 @@ class FilesHdlr(HdlrBase):
     async def update_module_type(self, rtr, mod_type, mod_list) -> bool:
         """Upload and flash firmware for one module type"""
         if rtr.load_firmware(mod_type):
-            if await rtr.hdlr.upload_module_firmware(mod_type):
-                return await rtr.hdlr.flash_module_firmware(mod_list)
+            if await rtr.hdlr.upload_module_firmware(
+                mod_type, rtr.hdlr.send_mod_fw_upload_protocol
+            ):
+                return await rtr.hdlr.flash_module_firmware(
+                    mod_list, rtr.hdlr.send_mod_fw_update_protocol
+                )
         return False
