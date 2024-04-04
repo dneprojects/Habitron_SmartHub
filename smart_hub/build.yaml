@@ -1,16 +1,8 @@
 ---
 build_from:
-  aarch64: ghcr.io/hassio-addons/base:14.3.3
+  aarch64: ghcr.io/home-assistant/aarch64-base:3.19
 codenotary:
-  signer: codenotary@frenck.dev
-labels:
-  org.opencontainers.image.title: \
-    "Home Assistant Add-on - Habitron SmartHub"
-  org.opencontainers.image.description: \
-    "Habitron Smart Hub as Home Assistant Add-on"
-  org.opencontainers.image.source: \
-    "https://github.com/dneprojects/Habitron_SmartHub"
-  org.opencontainers.image.licenses: \
-    "Apache License 2.0"
+  signer: notary@home-assistant.io
+  base_image: notary@home-assistant.io
 args:
-  TEMPIO_VERSION: "2021.09.0"
+  SMHUB_VERSION: "1.1.6"

@@ -35,7 +35,7 @@ AUTOMATIONEDIT_TEMPLATE_FILE = "automation_edit_template.html"
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.1.4"
+    SW_VERSION = "1.1.6"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
