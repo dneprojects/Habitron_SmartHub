@@ -6,7 +6,7 @@ slug: "smart_hub"
 arch:
   - aarch64
 startup: services
-init: true
+init: false
 ports:
   7777/udp: 7777
   7780/tcp: 7780
