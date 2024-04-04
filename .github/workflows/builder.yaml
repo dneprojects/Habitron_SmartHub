@@ -4,7 +4,7 @@ name: Build add-on
 
 env:
   BUILD_ARGS: "--test"
-  MONITORED_FILES: "apparmor.txt build.yaml config.yaml Dockerfile data rootfs"
+  MONITORED_FILES: "apparmor.txt build.yaml config.yaml Dockerfile src"
 
 on:
   pull_request:
