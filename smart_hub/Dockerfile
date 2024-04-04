@@ -27,7 +27,7 @@ RUN \
 
 COPY /src/requirements.txt /
 
-RUN pip install --no-cache-dir --requirement requirements.txt
+RUN pip install --no-cache-dir --break-system-packages --requirement requirements.txt
 
 # Add src
 COPY /src /src
