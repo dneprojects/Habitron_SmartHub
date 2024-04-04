@@ -138,7 +138,7 @@ class EventServer:
                     # Normal behaviour, read prefix of 4 bytes
                     prefix = await rt_rd.readexactly(4)
 
-                if (prefix[3] == 0) | (prefix[0] != 0xFF) | (prefix[1] != 0x23):
+                if (prefix[3] == 0) or (prefix[0] != 0xFF) or (prefix[1] != 0x23):
                     # Something went wrong, start reading until sequence 0xFF 0x23 found
                     self.logger.warning("API mode router message with length=0, resync")
                     resynced = False
@@ -198,7 +198,7 @@ class EventServer:
 
         m_len = 0  # Correct length of parsed message, will be returned
 
-        if (rt_event[4] == 133) & (rt_event[5] == 1):
+        if (rt_event[4] == 133) and (rt_event[5] == 1):
             # Response should have been received before, not in event watcher
             self.logger.debug(
                 "Warning, router event message: Operate mode started, should have been received in Srv mode"
@@ -207,7 +207,7 @@ class EventServer:
             self.api_srv._opr_mode = True
             m_len = 9
 
-        elif (rt_event[4] == 133) & (rt_event[5] == 0):
+        elif (rt_event[4] == 133) and (rt_event[5] == 0):
             # Last response in Opr mode, shut down event watcher
             self.logger.debug(
                 "API mode router message: Mirror/events stopped, stopping router event watcher"
@@ -262,13 +262,13 @@ class EventServer:
             mirr_events = self.api_srv.routers[rtr_id - 1].hdlr.parse_event(
                 rt_event[1:]
             )
-            if (mirr_events is not None) & (mirr_events != []):
+            if (mirr_events is not None) and (mirr_events != []):
                 # send event to IP client
                 await self.notify_mirror_events(mirr_events, rtr_id)
             m_len = 232
 
         elif rt_event[4] == 137:  # System mode
-            if (rt_event[3] == 6) & (rt_event[5] != 75):
+            if (rt_event[3] == 6) and (rt_event[5] != 75):
                 self.api_srv.routers[rtr_id - 1].mode0 = rt_event[5]
                 self.logger.debug(
                     f"API mode router message, system mode: {rt_event[5]}"
@@ -290,7 +290,7 @@ class EventServer:
     async def notify_mirror_events(self, mirr_events, rtr_id):
         """Check for multiple events and call notify."""
         for m_event in mirr_events:
-            if (m_event[1] == HA_EVENTS.FLAG) & (m_event[2] > 999):
+            if (m_event[1] == HA_EVENTS.FLAG) and (m_event[2] > 999):
                 # Multiple events
                 hi_byte = False
                 msk = m_event[2] - 1000
@@ -485,7 +485,7 @@ class EventServer:
             self._client_ip = self.api_srv._client_ip
             self._uri = "ws://<ip>:8123/api/websocket".replace("<ip>", self._client_ip)
             self.logger.debug(f"URI: {self._uri}")
-            # token for local docker:    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2YjI4YmEyZWQ0MjA0MDBlOGMzZDU4NjhlNDMwYmYxZiIsImlhdCI6MTcwOTgyNjM0NCwiZXhwIjoyMDI1MTg2MzQ0fQ.Yu3RZ5eArn-9L17YX1Td7hG9VzxFkqyyVBbwjoEX4_U"
+            # token for local docker:    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxZDZkZWY4MjZmYzI0Yzg0OGUwMTAxYTUyMWE1ZTI0ZSIsImlhdCI6MTcxMDk1MTQ2MSwiZXhwIjoyMDI2MzExNDYxfQ.CG3kAoZSPHexOkztWk15Z3lg9v3avxbXJVb_PNXXU1I"
             # token for 192.168.178.133: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJlYjQ2MTA4ZjUxOTU0NTY3Yjg4ZjUxM2Q5ZjBkZWRlYSIsImlhdCI6MTY5NDYxMDEyMywiZXhwIjoyMDA5OTcwMTIzfQ.3LtGwhonmV2rAbRnKqEy3WYRyqiS8DTh3ogx06pNz1g"
             # token for 192.168.178.160: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI4OTNlZDJhODU2ZmY0ZDQ3YmVlZDE2MzIyMmU1ODViZCIsImlhdCI6MTcwMjgyMTYxNiwiZXhwIjoyMDE4MTgxNjE2fQ.NT-WSwkG9JN8f2cCt5fXlP4A8FEOAgDTrS1sdhB0ioo"
 
@@ -577,7 +577,7 @@ class EventServer:
         if not self.running():
             self.logger.debug("No EventSrv running, already stopped")
         else:
-            while (self.ev_srv_task._state != "FINISHED") & (t_wait < t_max):
+            while (self.ev_srv_task._state != "FINISHED") and (t_wait < t_max):
                 await asyncio.sleep(0.1)
                 t_wait += 0.1
             if t_wait < t_max:

@@ -594,7 +594,7 @@ class AutomationTrigger:
                 opt_str += f'<option value="{butt.nmbr}">{butt.name}</option>\n'
         no_buttons = len(self.settings.buttons)
         for inp in self.settings.inputs:
-            if (inp.type == 1) & (len(inp.name.strip()) > 0):
+            if (inp.type == 1) and (len(inp.name.strip()) > 0):
                 opt_str += (
                     f'<option value="{inp.nmbr+no_buttons}">{inp.name}</option>\n'
                 )
@@ -603,7 +603,7 @@ class AutomationTrigger:
         opt_str = '<option value="">-- Schalter wählen --</option>'
         no_switches = 0
         for inp in self.settings.inputs:
-            if (inp.type > 1) & (len(inp.name.strip()) > 0):
+            if (inp.type > 1) and (len(inp.name.strip()) > 0):
                 no_switches += 1
                 opt_str += (
                     f'<option value="{inp.nmbr+no_buttons}">{inp.name}</option>\n'
@@ -640,12 +640,12 @@ class AutomationTrigger:
         page = page.replace('<option value="">-- TrModus wählen --</option>', opt_str)
         opt_str = '<option value="">-- Merker wählen --</option>'
         for flg in self.settings.flags:
-            if (self.event_code == 6) & (self.event_arg1 + self.event_arg2 == flg.nmbr):
+            if (self.event_code == 6) and (self.event_arg1 + self.event_arg2 == flg.nmbr):
                 opt_str += f'<option value="{flg.nmbr}" selected>{flg.name}</option>\n'
             else:
                 opt_str += f'<option value="{flg.nmbr}">{flg.name}</option>\n'
         for flg in self.settings.glob_flags:
-            if (self.event_code == 6) & (
+            if (self.event_code == 6) and (
                 self.event_arg1 + self.event_arg2 == flg.nmbr + 32
             ):
                 opt_str += (
@@ -667,7 +667,7 @@ class AutomationTrigger:
                 )
 
         opt_str = '<option value="">-- Befehl wählen --</option>'
-        if (len(self.settings.vis_cmds) > 0) & (step == 0):
+        if (len(self.settings.vis_cmds) > 0) and (step == 0):
             for cmd in self.settings.vis_cmds:
                 opt_str += f'<option value="{cmd.nmbr}">{cmd.name}</option>\n'
             page = page.replace(
@@ -721,21 +721,15 @@ class AutomationTrigger:
         max_cnt = []
         no_counters = 0
         for cnt in self.settings.logic:
-            if cnt.type == 5:
-                no_counters += 1
-                max_cnt.append(self.settings.status[MirrIdx.LOGIC - 2 + cnt.nmbr * 3])
-                if self.unit == cnt.nmbr:
-                    opt_str += (
-                        f'<option value="{cnt.nmbr}" selected>{cnt.name}</option>\n'
-                    )
-                else:
-                    opt_str += f'<option value="{cnt.nmbr}">{cnt.name}</option>\n'
+            no_counters += 1
+            max_cnt.append(self.settings.status[MirrIdx.LOGIC - 2 + cnt.nmbr * 3])
+            opt_str += f'<option value="{cnt.nmbr}">{cnt.name}</option>\n'
         page = page.replace('<option value="">-- TrZähler wählen --</option>', opt_str)
         page = page.replace(
             "max_count = [16, 16, 16, 16, 16, 16, 16, 16, 16, 16]",
             f"max_count = {max_cnt}",
         )
-        if (no_counters == 0) & (SelTrgCodes["count"] in self.triggers_dict.keys()):
+        if (no_counters == 0) and (SelTrgCodes["count"] in self.triggers_dict.keys()):
             page = page.replace(
                 f'<option value="{SelTrgCodes["count"]}">{self.triggers_dict[SelTrgCodes["count"]]}',
                 f'<option value="{SelTrgCodes["count"]}" disabled>{self.triggers_dict[SelTrgCodes["count"]]}',

@@ -1,4 +1,5 @@
 import logging
+from copy import deepcopy as dpcopy
 from pymodbus.utilities import computeCRC as ModbusComputeCRC
 from const import MirrIdx, SMGIdx, MODULE_CODES, CStatBlkIdx, HA_EVENTS
 from configuration import ModuleSettings, ModuleSettingsLight
@@ -43,6 +44,7 @@ class HbtnModule:
         self.list = await self.hdlr.get_module_list(self._id)
         self.calc_SMC_crc(self.list)
         self.io_properties, self.io_prop_keys = self.get_io_properties()
+        await self.cleanup_descriptions()
 
         self.logger.debug(f"Module {self._name} at {self._id} initialized")
 
@@ -101,7 +103,7 @@ class HbtnModule:
 
     def has_automations(self) -> bool:
         """Return True if automations are allowed."""
-        return (self._typ[0] in [1, 10]) | (self._typ == b"\x32\x01")
+        return (self._typ[0] in [1, 10]) or (self._typ == b"\x32\x01")
 
     def swap_mirr_cover_idx(self, mirr_idx: int) -> int:
         """Return cover index from mirror index (0..2 -> 2..4)."""
@@ -113,7 +115,9 @@ class HbtnModule:
             cvr_idx -= 5
         return cvr_idx
 
-    def compare_status(self, stat1: bytes, stat2: bytes, diff_idx, idx) -> list:
+    def compare_status(
+        self, stat1: bytes, stat2: bytes, diff_idx: list[int], idx: int
+    ) -> list[int]:
         """Find updates fields."""
         for x, y in zip(stat1, stat2):
             if x != y:
@@ -123,6 +127,9 @@ class HbtnModule:
 
     def update_status(self, new_status: bytes):
         """Saves new mirror status and returns differences."""
+
+        if self.status == new_status:
+            return []
         block_list = []
         update_info = []
         i_diff = []
@@ -351,9 +358,9 @@ class HbtnModule:
 
     def encode_cover_settings(self, t_a: int, t_b: int) -> tuple[int, int, int]:
         """Create cover settings from cover times"""
-        pos_polarity = (t_a >= 0) & (t_b == 0)
-        neg_polarity = (t_a == 0) & (t_b >= 0)
-        if not (pos_polarity | neg_polarity):
+        pos_polarity = (t_a >= 0) and (t_b == 0)
+        neg_polarity = (t_a == 0) and (t_b >= 0)
+        if not (pos_polarity or neg_polarity):
             self.logger.error(
                 f"Error with cover times in module {self._id}, one value must be zero!"
             )
@@ -388,7 +395,7 @@ class HbtnModule:
         return self.settings
 
     def get_settings_def(self):
-        """Return settings object."""
+        """Return default settings object without automations."""
         return ModuleSettingsLight(self)
 
     async def set_settings(self, settings: ModuleSettings):
@@ -527,3 +534,19 @@ class HbtnModule:
         props["no_keys"] = no_keys
 
         return props, keys
+
+    async def cleanup_descriptions(self) -> None:
+        """If descriptions in desc file, store them into module and remove them from file."""
+        if self.api_srv.is_offline:
+            return
+        if self._typ[0] not in [1, 10, 50]:
+            return
+        # Instantiate settings and parse descriptions
+        self.settings = self.get_settings_def()
+        if self.settings.save_desc_file_needed:
+            self.get_rtr().descriptions = dpcopy(self.settings.desc)
+            self.get_rtr().save_descriptions()
+        if self.settings.upload_desc_info_needed:
+            self.list = await self.settings.set_list()
+            self.list_upload = self.list
+            await self.hdlr.send_module_list(self._id)

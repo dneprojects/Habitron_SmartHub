@@ -27,7 +27,13 @@ class ModHdlr(HdlrBase):
     async def mod_reboot(self):
         """Initiates a module reboot"""
         self.logger.info(f"Module {self.mod_id} will be rebooted, please wait...")
-        await self.handle_router_cmd(self.rt_id, RT_CMDS.MD_REBOOT)
+        await self.handle_router_cmd_resp(
+            self.rt_id, RT_CMDS.MD_REBOOT.replace("<mod>", chr(self.mod_id))
+        )
+        await asyncio.sleep(0.7)
+        await self.handle_router_cmd_resp(
+            self.rt_id, RT_CMDS.MD_REBOOT.replace("<mod>", chr(self.mod_id))
+        )
         return "OK"
 
     async def get_module_status(self, mod_addr: int) -> None:
@@ -135,6 +141,7 @@ class ModHdlr(HdlrBase):
     async def send_module_list(self, mod_addr: int):
         """Send SMC data from Smart Hub to router/module."""
         await self.api_srv.set_server_mode(self.rt_id)
+        flg_250 = False
         mod_list = self.mod.list_upload
         resp_flg = 0
         l_len = len(mod_list)
@@ -167,9 +174,14 @@ class ModHdlr(HdlrBase):
                 l_cnt += l_p
             elif resp_flg == 250:
                 self.logger.debug(
-                    f"List upload (SMC) returned unexpected flag, repeat flag 6: Count {resp_cnt} Flag {resp_flg}"
+                    f"List upload (SMC) returned unexpected flag, repeat flag 6 or 7: Count {resp_cnt} Flag {resp_flg}"
                 )
-                flg = chr(6)
+                if not flg_250:
+                    flg = chr(6)  # first time: retry with flag 6
+                    flg_250 = True
+                else:
+                    flg = chr(7)  # retry with flag 7
+                    flg_250 = False
             elif resp_flg == 255:
                 self.logger.error(
                     f"List upload (SMC) returned error flag: Count {resp_cnt} Flag {resp_flg}"
@@ -179,7 +191,7 @@ class ModHdlr(HdlrBase):
                 f"List upload (SMC) returned: Count {resp_cnt} Flag {resp_flg}"
             )
             # await asyncio.sleep(0.1)
-        if (resp_flg == 8) & (resp_cnt == 0):
+        if (resp_flg == 8) and (resp_cnt == 0):
             self.logger.info(
                 f"List upload terminated successfully, transferred {l_len} bytes of {no_lines} definitions to module"
             )
@@ -478,7 +490,7 @@ class ModHdlr(HdlrBase):
         p2 = int((((self.mod.smg_upload[p2_idx] / 2) + 88) / 10) - 10)
         p3 = int((self.mod.smg_upload[p3_idx] / 7) - 4)
         p4 = int(self.mod.smg_upload[p4_idx])
-        if (p1 >= 10) | (p2 >= 10) | (p3 >= 10) | (p4 >= 10):
+        if (p1 >= 10) or (p2 >= 10) or (p3 >= 10) or (p4 >= 10):
             self.logger.error(f"Error decoding pin for module {self.mod._id}.")
             return "ERROR"
         cmd = (

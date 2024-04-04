@@ -27,6 +27,7 @@ import logging
 import pathlib
 from const import (
     MODULE_CODES,
+    SMHUB_INFO,
     WEB_FILES_DIR,
     HOMEPAGE,
     LICENSE_PAGE,
@@ -196,6 +197,7 @@ class ConfigServer:
             # router upload
             app.logger.info("Router configuration file uploaded")  # noqa: F541
             await send_to_router(app, content_str)
+            init_side_menu(app)
             return show_router_overview(app)
         else:
             mod_addr = int(str(data["ModUpload"]))
@@ -208,6 +210,7 @@ class ConfigServer:
                 app.logger.warning(
                     f"Module configuration file does not fit to module number {mod_addr}, upload aborted"
                 )
+            init_side_menu(app)
             return show_module_overview(app, mod_addr)  # web.HTTPNoContent()
 
     @routes.post("/upd_upload")
@@ -369,7 +372,9 @@ def show_hub_overview(app) -> web.Response:
     hub_name = smhub._host
     if api_srv.is_offline:
         pic_file, subtitle = get_module_image(b"\xc9\x00")
-        html_str = get_html(CONF_HOMEPAGE)
+        html_str = get_html(CONF_HOMEPAGE).replace(
+            "Version: x.y.z", f"Version: {SMHUB_INFO.SW_VERSION}"
+        )
     elif api_srv.is_addon:
         pic_file, subtitle = get_module_image(b"\xca\x00")
         html_str = get_html(HUB_HOMEPAGE).replace(
@@ -501,7 +506,7 @@ async def send_to_module(app, content: str, mod_addr: int):
     module.smg_upload, module.list_upload = seperate_upload(content)
     list_update = ModbusComputeCRC(module.list_upload) != module.get_smc_crc()
     stat_update = module.different_smg_crcs()
-    if list_update | stat_update:
+    if list_update or stat_update:
         await rtr.api_srv.block_network_if(rtr._id, True)
     try:
         if list_update:
@@ -510,7 +515,7 @@ async def send_to_module(app, content: str, mod_addr: int):
                 mod_addr
             )  # module.list_upload
             module.calc_SMC_crc(module.list)
-            app.logger.debug("Module list upload from configuration server finished")
+            app.logger.info("Module list upload from configuration server finished")
         else:
             app.logger.info(
                 "Module list upload from configuration server skipped: Same CRC"
@@ -518,14 +523,14 @@ async def send_to_module(app, content: str, mod_addr: int):
         if stat_update:
             await module.hdlr.send_module_smg(module._id)
             await module.hdlr.get_module_status(module._id)
-            app.logger.debug("Module status upload from configuration server finished")
+            app.logger.info("Module status upload from configuration server finished")
         else:
             app.logger.info(
                 "Module status upload from configuration server skipped: Same CRC"
             )
     except Exception as err_msg:
         app.logger.error(f"Error while uploading module settings: {err_msg}")
-    if list_update | stat_update:
+    if list_update or stat_update:
         await rtr.api_srv.block_network_if(rtr._id, False)
     module.smg_upload = b""
     module.list_upload = b""

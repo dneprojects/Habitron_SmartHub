@@ -34,8 +34,11 @@ class ModuleSettings:
         self.user2_name: str = (
             module.get_rtr().user_modes[12:].decode("iso8859-1").strip()
         )
+        self.save_desc_file_needed: bool = False
+        self.upload_desc_info_needed: bool = False
         self.group = dpcopy(module.get_rtr().groups[self.id])
         self.get_io_interfaces()
+        self.get_counters()
         self.get_names()
         self.get_settings()
         self.get_descriptions()
@@ -72,8 +75,25 @@ class ModuleSettings:
         self.glob_flags: list[IfDescriptor] = []
         self.coll_cmds: list[IfDescriptor] = []
 
+    def get_counters(self) -> None:
+        """Get module counters from status."""
+        self.logger.debug("Getting module settings from module status")
+        conf = self.status
+        if conf == "":
+            return
+        for l_idx in range(10):
+            if conf[MirrIdx.LOGIC + 3 * l_idx] == 5:
+                # counter found
+                self.logic.append(
+                    IfDescriptor(
+                        f"Counter_{l_idx + 1}",
+                        l_idx + 1,
+                        conf[MirrIdx.LOGIC + 3 * l_idx + 1],
+                    )
+                )
+
     def get_settings(self) -> bool:
-        """Get settings of Habitron module."""
+        """Get module settings from status."""
 
         self.logger.debug("Getting module settings from module status")
         conf = self.status
@@ -127,10 +147,6 @@ class ModuleSettings:
                 self.covers[c_idx] = IfDescriptor(cname.strip(), c_idx + 1, pol)
                 self.outputs[o_idx].type = -10  # disable light output
                 self.outputs[o_idx + 1].type = -10
-        for l_idx in range(10):
-            if conf[MirrIdx.LOGIC + 3 * l_idx] == 5:
-                # counter found
-                self.logic.append(IfDescriptor(f"Counter_{l_idx + 1}", l_idx + 1, 5))
         return True
 
     def set_module_settings(self, status: bytes) -> bytes:
@@ -233,22 +249,21 @@ class ModuleSettings:
         )
 
         # Clear all logic entries mode
-        for l_idx in range(10):
-            status = replace_bytes(
-                status,
-                b"\0",
-                MirrIdx.LOGIC + 3 * l_idx,
-            )
+        status = replace_bytes(
+            status,
+            b"\x00\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\x00\x00\xff\x00",
+            MirrIdx.LOGIC,
+        )
         for lgk in self.logic:
             status = replace_bytes(
                 status,
-                int.to_bytes(lgk.type),
+                b"\x05" + int.to_bytes(lgk.type),  # type 5 counter + max_count
                 MirrIdx.LOGIC + 3 * (lgk.nmbr - 1),
             )
         return status
 
     def get_names(self) -> bool:
-        """Get summary of Habitron module."""
+        """Get names of entities from list, initialize interfaces."""
 
         self.logger.debug("Getting module names from list")
         self.all_fingers = {}
@@ -381,63 +396,119 @@ class ModuleSettings:
     def get_descriptions(self) -> str | None:
         """Get descriptions of commands, etc."""
 
+        self.save_desc_file_needed = False
+        self.upload_desc_info_needed = False
+
         self.logger.debug("Getting module descriptions")
         resp = self.desc.encode("iso8859-1")
 
         no_lines = int.from_bytes(resp[:2], "little")
+        no_chars = int.from_bytes(resp[2:4], "little")
+        new_no_lines = no_lines
+        new_no_chars = no_chars
         resp = resp[4:]
         for _ in range(no_lines):
             if resp == b"":
                 break
             line_len = int(resp[8]) + 9
             line = resp[:line_len]
-            content_code = int.from_bytes(line[1:3], "little")
+            mod_addr = int(line[1])
+            content_code = int(line[2])
             entry_no = int(line[3])
             entry_name = line[9:line_len].decode("iso8859-1").strip()
-            if content_code == 767:  # FF 02: global flg (Merker)
-                self.glob_flags.append(IfDescriptor(entry_name, entry_no, 0))
-            elif content_code == 1023:  # FF 03: collective commands (Sammelbefehle)
-                self.coll_cmds.append(IfDescriptor(entry_name, entry_no, 0))
-            elif content_code == 2303:  # FF 08: alarm commands
-                pass
-            elif self.id == line[1]:
-                # entry for local module
-                if int(line[2]) == 1:
-                    # local flag (Merker)
-                    if self.unit_not_exists(self.flags, entry_name):
-                        self.flags.append(IfDescriptor(entry_name, entry_no, 0))
-                elif int(line[2]) == 4:
-                    # local visualization command, needed if not stored in smc
-                    entry_no = int.from_bytes(resp[3:5], "little")
-                    if self.unit_not_exists(self.vis_cmds, entry_name):
-                        self.vis_cmds.append(IfDescriptor(entry_name, entry_no, 0))
-                elif int(line[2]) == 5:
-                    # logic element, needed if not stored in smc
-                    for lgc in self.logic:
-                        if lgc.nmbr == entry_no:
+            if mod_addr != self.id:  # global description or other module
+                resp = resp[line_len:]
+                continue
+            # entry for local module
+            if content_code == 1:
+                # local flag (Merker)
+                if self.unit_not_exists(self.flags, entry_no):
+                    self.flags.append(IfDescriptor(entry_name, entry_no, 0))
+                    self.logger.info(
+                        f"Description entry of local flag '{entry_name}' found, will be stored in module {self.id}."
+                    )
+                    self.upload_desc_info_needed = True
+                else:
+                    # remove line
+                    self.desc = self.desc.replace(line.decode("iso8859-1"), "")
+                    self.logger.info(
+                        f"Description entry of local flag '{entry_name}' already stored in module {self.id}, will be removed."
+                    )
+                    new_no_lines -= 1
+                    new_no_chars -= len(line)
+                    self.save_desc_file_needed = True
+            elif content_code == 4:
+                # local visualization command, needed if not stored in smc
+                entry_no = int.from_bytes(resp[3:5], "little")
+                if self.unit_not_exists(self.vis_cmds, entry_no):
+                    self.vis_cmds.append(IfDescriptor(entry_name, entry_no, 0))
+                    self.logger.info(
+                        f"Description entry of visualization command '{entry_name}' found, will be stored in module {self.id}."
+                    )
+                    self.upload_desc_info_needed = True
+                else:
+                    # remove line
+                    self.desc = self.desc.replace(line.decode("iso8859-1"), "")
+                    self.logger.info(
+                        f"Description entry of visualization command '{entry_name}' already stored in module {self.id}, will be removed."
+                    )
+                    new_no_lines -= 1
+                    new_no_chars -= len(line)
+                    self.save_desc_file_needed = True
+            elif content_code == 5:
+                # logic element, overwrite default name, if not stored in smc
+                for lgc in self.logic:
+                    if lgc.nmbr == entry_no:
+                        if lgc.name == entry_name:
+                            # remove line
+                            self.desc = self.desc.replace(line.decode("iso8859-1"), "")
+                            self.logger.info(
+                                f"Description entry of counter '{entry_name}' already stored in module {self.id}, will be removed."
+                            )
+                            new_no_lines -= 1
+                            new_no_chars -= len(line)
+                            self.save_desc_file_needed = True
+                        else:
                             lgc.name = entry_name
-                            break
-                # 6: Logik input: line[3] logic unit, line[4] input no
-                # elif int(line[2]) == 7:
-                # Group name
+                            self.logger.info(
+                                f"Description entry of counter '{entry_name}' found, will be stored in module {self.id}."
+                            )
+                            self.upload_desc_info_needed = True
+                        break
+            elif content_code == 6:
+                # Logik input: line[3] logic unit, line[4] input no
+                # remove line
+                self.desc = self.desc.replace(line.decode("iso8859-1"), "")
+                self.logger.info(
+                    f"Description entry of logic input '{entry_name}' not needed anymore, will be removed."
+                )
+                new_no_lines -= 1
+                new_no_chars -= len(line)
+                self.save_desc_file_needed = True
             resp = resp[line_len:]
-        if (len(self.logic) > 0) & ("logic" not in self.prop_keys):
+        self.desc = (
+            chr(new_no_lines & 0xFF)
+            + chr(new_no_lines >> 8)
+            + chr(new_no_chars & 0xFF)
+            + chr(new_no_chars >> 8)
+        ) + self.desc[4:]
+        if (len(self.logic) > 0) and ("logic" not in self.prop_keys):
             self.properties["logic"] = len(self.logic)
             self.properties["no_keys"] += 1
             self.prop_keys.append("logic")
-        if (len(self.flags) > 0) & ("flags" not in self.prop_keys):
+        if (len(self.flags) > 0) and ("flags" not in self.prop_keys):
             self.properties["flags"] = len(self.flags)
             self.properties["no_keys"] += 1
             self.prop_keys.append("flags")
-        if (len(self.dir_cmds) > 0) & ("dir_cmds" not in self.prop_keys):
+        if (len(self.dir_cmds) > 0) and ("dir_cmds" not in self.prop_keys):
             self.properties["dir_cmds"] = len(self.dir_cmds)
             self.properties["no_keys"] += 1
             self.prop_keys.append("dir_cmds")
-        if (len(self.vis_cmds) > 0) & ("vis_cmds" not in self.prop_keys):
+        if (len(self.vis_cmds) > 0) and ("vis_cmds" not in self.prop_keys):
             self.properties["vis_cmds"] = len(self.vis_cmds)
             self.properties["no_keys"] += 1
             self.prop_keys.append("vis_cmds")
-        if (len(self.users) > 0) & ("users" not in self.prop_keys):
+        if (len(self.users) > 0) and ("users" not in self.prop_keys):
             self.properties["users"] = len(self.users)
             self.properties["no_keys"] += 1
             self.prop_keys.append("users")
@@ -532,7 +603,7 @@ class ModuleSettings:
         for line in list_lines[1:]:
             if len(line) > 0:
                 tok = line.split(";")
-                if (tok[0] == "252") | (tok[0] == "253") | (tok[0] == "255"):
+                if (tok[0] == "252") or (tok[0] == "253") or (tok[0] == "255"):
                     new_line = ""
                     for lchr in line.split(";")[:-1]:
                         new_line += chr(int(lchr))
@@ -554,7 +625,7 @@ class ModuleSettings:
         for line in list_lines[1:]:
             if len(line) > 0:
                 tok = line.split(";")
-                if (tok[0] != "252") & (tok[0] != "253") & (tok[0] != "255"):
+                if (tok[0] != "252") and (tok[0] != "253") and (tok[0] != "255"):
                     new_line = ""
                     for lchr in line.split(";")[:-1]:
                         new_line += chr(int(lchr))
@@ -563,17 +634,20 @@ class ModuleSettings:
             desc = dir_cmd.name
             if len(desc.strip()) > 0:
                 desc += " " * (32 - len(desc))
+                desc = desc[:32]
                 new_list.append(f"\xfd\0\xeb{chr(dir_cmd.nmbr)}\1\x23\0\xeb" + desc)
         for btn in self.buttons:
             desc = btn.name
             if len(desc.strip()) > 0:
                 desc += " " * (32 - len(desc))
+                desc = desc[:32]
                 new_list.append(f"\xff\0\xeb{chr(9 + btn.nmbr)}\1\x23\0\xeb" + desc)
         for led in self.leds:
             if led.nmbr > 0:
                 desc = led.name
                 if len(desc.strip()) > 0:
                     desc += " " * (32 - len(desc))
+                    desc = desc[:32]
                     new_list.append(
                         f"\xff\0\xeb{chr(17 + led.nmbr)}\1\x23\0\xeb" + desc
                     )
@@ -581,28 +655,33 @@ class ModuleSettings:
             desc = inpt.name
             if len(desc.strip()) > 0:
                 desc += " " * (32 - len(desc))
+                desc = desc[:32]
                 new_list.append(f"\xff\0\xeb{chr(39 + inpt.nmbr)}\1\x23\0\xeb" + desc)
         for outpt in self.outputs:
             desc = outpt.name
             if len(desc.strip()) > 0:
                 desc += " " * (32 - len(desc))
+                desc = desc[:32]
                 new_list.append(f"\xff\0\xeb{chr(59 + outpt.nmbr)}\1\x23\0\xeb" + desc)
         for lgc in self.logic:
             desc = lgc.name
             desc += " " * (32 - len(desc))
+            desc = desc[:32]
             new_list.append(f"\xff\0\xeb{chr(109 + lgc.nmbr)}\1\x23\0\xeb" + desc)
         for flg in self.flags:
             desc = flg.name
             desc += " " * (32 - len(desc))
+            desc = desc[:32]
             new_list.append(f"\xff\0\xeb{chr(119 + flg.nmbr)}\1\x23\0\xeb" + desc)
         cnt = 0
         for vis in self.vis_cmds:
             desc = vis.name
-            desc += " " * (32 - len(desc))
+            desc += " " * (30 - len(desc))
+            desc = desc[:30]
             n_high = chr(vis.nmbr >> 8)
             n_low = chr(vis.nmbr & 0xFF)
             new_list.append(
-                f"\xff\0\xeb{chr(140 + cnt)}\1\x23\0\xeb" + n_low + n_high + desc[:-2]
+                f"\xff\0\xeb{chr(140 + cnt)}\1\x23\0\xeb" + n_low + n_high + desc
             )
             cnt += 1
         for uid in self.users:
@@ -610,13 +689,17 @@ class ModuleSettings:
             fgr_low = abs(uid.type) & 0xFF
             fgr_high = abs(uid.type) >> 8
             desc += " " * (32 - len(desc))
+            desc = desc[:32]
             new_list.append(
                 f"\xfc{chr(uid.nmbr)}\xeb{chr(fgr_low)}{chr(fgr_high)}\x23\0\xeb" + desc
             )
         return self.adapt_list_header(new_list)
 
     def adapt_list_header(self, new_list: list[str]) -> bytes:
-        """Adapt line and char numbers in header, return as byte."""
+        """Adapt line and char numbers in header, sort, and return as byte."""
+        sort_list = new_list[1:]
+        sort_list.sort()
+        new_list[1:] = sort_list
         no_lines = len(new_list) - 1
         no_chars = 0
         for line in new_list:
@@ -660,10 +743,10 @@ class ModuleSettings:
             o_no -= 10
         return o_no
 
-    def unit_not_exists(self, mod_units: list[IfDescriptor], entry_name: str) -> bool:
-        """Check for existing unit based on name."""
+    def unit_not_exists(self, mod_units: list[IfDescriptor], entry_no: int) -> bool:
+        """Check for existing unit based on number."""
         for exist_unit in mod_units:
-            if exist_unit.name == entry_name:
+            if exist_unit.nmbr == entry_no:
                 return False
         return True
 
@@ -818,15 +901,18 @@ class ModuleSettingsLight(ModuleSettings):
         self.blade_times = [0, 0, 0, 0, 0]
         self.user1_name = module.get_rtr().user_modes[1:11].decode("iso8859-1").strip()
         self.user2_name = module.get_rtr().user_modes[12:].decode("iso8859-1").strip()
+        self.save_desc_file_needed: bool = False
+        self.upload_desc_info_needed: bool = False
         self.group = dpcopy(module.get_rtr().groups[self.id])
         self.get_io_interfaces()
+        self.get_counters()
         self.get_names()
         self.get_settings()
         self.get_descriptions()
 
 
 def replace_bytes(in_bytes: bytes, repl_bytes: bytes, idx: int) -> bytes:
-    """Replaces bytes array from idx:idx+len(in_bytes)."""
+    """Replaces bytes array from idx:idx+len(repl_bytes)."""
     return in_bytes[:idx] + repl_bytes + in_bytes[idx + len(repl_bytes) :]
 
 

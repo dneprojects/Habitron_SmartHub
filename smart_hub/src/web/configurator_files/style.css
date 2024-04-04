@@ -785,7 +785,7 @@ body.produkte.sub #right h1 {
 
 }
 
-#config_button.new_button {
+#config_button.new_button, #config_button.new_cntr_button {
    height: 21.78px;
    width: 70px;
    margin-left: 5px;
@@ -1098,7 +1098,7 @@ select:focus {
 #group_dep,
 select {
    background: url(design/input_shadow.gif) no-repeat left top;
-   width: 110px;
+   width: 150px;
 }
 
 form.select,
