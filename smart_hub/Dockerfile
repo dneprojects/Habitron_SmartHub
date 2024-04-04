@@ -10,7 +10,6 @@ FROM ${BUILD_FROM}
 ENV \
     PATH="/usr/local/bin:$PATH" \
     GPG_KEY="7169605F62C751356D054A26A821E680E5FA6305"
-	SUPERVISOR_TOKEN
 
 # Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
