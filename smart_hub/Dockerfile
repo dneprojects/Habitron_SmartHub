@@ -16,38 +16,11 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Install base system
 ARG PYTHON_VERSION="v3.12.2"
-ARG PYTHON_PIP_VERSION="24.0.0"
+ARG PYTHON_PIP_VERSION="24.0"
 ARG PYTHON_SETUPTOOLS_VERSION="69.0.3"
 # hadolint ignore=DL3003,DL4006,SC2155
 RUN \
     apk add --no-cache --virtual .build-dependencies \
-        bzip2-dev=1.0.8-r5 \
-        dpkg-dev=1.21.21-r1 \
-        dpkg=1.21.21-r1 \
-        expat-dev=2.5.0-r1 \
-        findutils=4.9.0-r5 \
-        gcc=12.2.1_git20220924-r10 \
-        gdbm-dev=1.23-r1 \
-        gnupg=2.4.3-r0 \
-        libc-dev=0.7.2-r5 \
-        libffi-dev=3.4.4-r2 \
-        libnsl-dev=2.0.0-r0 \
-        libtirpc-dev=1.3.3-r2 \
-        linux-headers=6.3-r0 \
-        make=4.4.1-r1 \
-        ncurses-dev=6.4_p20230506-r0 \
-        openssl-dev=3.1.4-r1 \
-        pax-utils=1.3.7-r1 \
-        readline-dev=8.2.1-r1 \
-        sqlite-dev=3.41.2-r2 \
-        tar=1.34-r3 \
-        tcl-dev=8.6.13-r1 \
-        tk-dev=8.6.13-r1 \
-        tk=8.6.13-r1 \
-        util-linux-dev=2.38.1-r8 \
-        xz-dev=5.4.3-r0 \
-        xz=5.4.3-r0 \
-        zlib-dev=1.2.13-r1 \
     \
     && curl -J -L -o /tmp/python.tar.xz \
         "https://www.python.org/ftp/python/${PYTHON_VERSION#v}/Python-${PYTHON_VERSION#v}.tar.xz" \
@@ -131,7 +104,7 @@ RUN \
 
 COPY /src/requirements.txt /
 
-RUN pip install --no-cache-dir --upgrade pip==23.3.2 \
+RUN pip install --no-cache-dir --upgrade pip==24.0 \
     && pip install --no-cache-dir --requirement requirements.txt
 
 # Add src
