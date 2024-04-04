@@ -1,2 +1,2 @@
-printenv SUPERVISOR_TOKEN > /src/def_token.set
+printenv SUPERVISOR_TOKEN > def_token.set
 python smarthub.py
