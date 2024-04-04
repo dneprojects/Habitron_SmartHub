@@ -4,7 +4,7 @@ SmartHub for Habitron systems based on Raspberry Pi.
 
 ![Supports aarch64 Architecture][aarch64-shield]
 
-![Smart Configurator for Habitron modules][screenshot]
+![Smart Configurator for Habitron modules](images/configurator.png)
 
 ## About
 
@@ -32,4 +32,3 @@ connected Habitron modules.
 - Update router and modules.
 
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
-[screenshot]: https://github.com/dneprojects/Habitron_SmartHub/blob/main/images/configurator.png
