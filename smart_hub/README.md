@@ -4,7 +4,7 @@ SmartHub for Habitron systems based on Raspberry Pi.
 
 ![Supports aarch64 Architecture][aarch64-shield]
 
-![Smart Configurator for Habitron modules](images/configurator.png)
+![Smart Configurator for Habitron modules](src/web/configurator_files/configurator.png)
 
 ## About
 
