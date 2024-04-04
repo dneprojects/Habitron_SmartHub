@@ -24,7 +24,6 @@ RUN \
     && apk add --no-cache \
         py3-pip \
         python3 \
-    && pip3 install
 
 COPY /src/requirements.txt /
 
