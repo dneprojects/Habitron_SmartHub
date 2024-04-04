@@ -27,8 +27,7 @@ RUN \
 
 COPY /src/requirements.txt /
 
-RUN pip install --no-cache-dir --upgrade pip==24.0 \
-    && pip install --no-cache-dir --requirement requirements.txt
+RUN pip install --no-cache-dir --requirement requirements.txt
 
 # Add src
 COPY /src /src
