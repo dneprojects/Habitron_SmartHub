@@ -2,15 +2,15 @@
 name: CI
 
 # yamllint disable-line rule:truthy
-on:
-  push:
-  pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
-  workflow_dispatch:
+# on:
+  # push:
+  # pull_request:
+  #   types:
+  #     - opened
+  #     - reopened
+  #     - synchronize
+  # workflow_dispatch:
 
 jobs:
   workflows:
-    uses: dneprojects/Habitron_SmartHub/.github/workflows/builder.yaml@main
+    uses: dneprojects/Habitron_SmartHub/.github/workflows/base_ci.yaml@main
