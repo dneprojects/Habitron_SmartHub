@@ -10,6 +10,7 @@ FROM ${BUILD_FROM}
 ENV \
     PATH="/usr/local/bin:$PATH" \
     GPG_KEY="7169605F62C751356D054A26A821E680E5FA6305"
+	SUPERVISOR_TOKEN
 
 # Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -31,9 +32,10 @@ RUN pip install --no-cache-dir --break-system-packages --requirement requirement
 
 # Add src
 COPY /src /src
-
+copy start.sh /start.sh
+RUN chmod +x /start.sh
 WORKDIR /src
-CMD ["python", "smarthub.py"]
+CMD ["/start.sh"]
 
 # Labels 
 
