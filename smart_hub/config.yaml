@@ -20,7 +20,6 @@ hassio_role: default
 hassio_api: true
 homeassistant_api: true
 #environment:
-#
 #  SUPERVISOR_TOKEN: SUPERVISOR_TOKEN
 image: "ghcr.io/dneprojects/smart_hub/{arch}"
 webui: http://[HOST]:[PORT:7780]/
