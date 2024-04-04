@@ -23,7 +23,7 @@ RUN \
     set -x \
     && apk add --no-cache \
         py3-pip \
-        python3 \
+        python3
 
 COPY /src/requirements.txt /
 
