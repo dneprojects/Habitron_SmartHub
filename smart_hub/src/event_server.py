@@ -69,6 +69,19 @@ class EventServer:
         self.busy_starting = False
         self.websck_is_closed = True
 
+    def get_default_token(self) -> str | None:
+        """Get default supervisor token from file."""
+        try:
+            with open(DATA_FILES_DIR + "def_token.set", mode="rb") as fid:
+                id_str = fid.read().decode("iso8859-1")
+            fid.close()
+            return id_str
+        except Exception as err_msg:
+            self.logger.error(
+                f"Failed to open {DATA_FILES_DIR + 'settings.set'}: {err_msg}; event server can't transmit events"
+            )
+            return None
+
     def get_ident(self) -> str | None:
         """Return token"""
         try:
@@ -481,6 +494,7 @@ class EventServer:
                 "SUPERVISOR_TOKEN",
                 "2f428d27e04db95b4c844b451af4858fba585aac82f70ee6259cf8ec1834a00abf6a448f49ee18d3fc162f628ce6f479fe4647c6f8624f88",
             )
+            self.logger.info(f"Default token: {self.get_default_token()}")
         else:
             # Stand-alone SmartHub, use external websocket connection to host ip
             self.logger.info("Open websocket to home assistant.")
