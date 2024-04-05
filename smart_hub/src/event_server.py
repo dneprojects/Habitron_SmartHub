@@ -5,7 +5,7 @@ import json
 import os
 import websockets
 from websockets import ConnectionClosedOK, WebSocketClientProtocol
-from const import DATA_FILES_DIR, HA_EVENTS
+from const import DATA_FILES_ADDON_DIR, DATA_FILES_DIR, HA_EVENTS
 from forward_hdlr import ForwardHdlr
 
 
@@ -72,13 +72,13 @@ class EventServer:
     def get_default_token(self) -> str | None:
         """Get default supervisor token from file."""
         try:
-            with open("/config/" + "def_token.set", mode="rb") as fid:
+            with open(DATA_FILES_ADDON_DIR + "def_token.set", mode="rb") as fid:
                 id_str = fid.read().decode("iso8859-1")
             fid.close()
             return id_str
         except Exception as err_msg:
             self.logger.error(
-                f"Failed to open {DATA_FILES_DIR + 'settings.set'}: {err_msg}; event server can't transmit events"
+                f"Failed to open {DATA_FILES_ADDON_DIR + 'settings.set'}: {err_msg}; event server can't transmit events"
             )
             return None
 
@@ -492,9 +492,8 @@ class EventServer:
             self.logger.debug(f"URI: {self._uri}")
             self.token = os.getenv(
                 "SUPERVISOR_TOKEN",
-                "2f428d27e04db95b4c844b451af4858fba585aac82f70ee6259cf8ec1834a00abf6a448f49ee18d3fc162f628ce6f479fe4647c6f8624f88",
+                self.get_default_token(),
             )
-            self.logger.info(f"Default token: {self.get_default_token()}")
         else:
             # Stand-alone SmartHub, use external websocket connection to host ip
             self.logger.info("Open websocket to home assistant.")
