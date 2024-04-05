@@ -72,7 +72,7 @@ class EventServer:
     def get_default_token(self) -> str | None:
         """Get default supervisor token from file."""
         try:
-            with open(DATA_FILES_DIR + "def_token.set", mode="rb") as fid:
+            with open("/config/" + "def_token.set", mode="rb") as fid:
                 id_str = fid.read().decode("iso8859-1")
             fid.close()
             return id_str
