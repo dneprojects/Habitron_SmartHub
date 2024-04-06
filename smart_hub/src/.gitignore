@@ -4,6 +4,7 @@ requirements.txt
 *.pem
 *.log
 *.set
+*.smb
 *.smc
 *.smg
 *.smr
