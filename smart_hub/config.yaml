@@ -19,5 +19,6 @@ full_access: false
 hassio_role: default
 hassio_api: true
 homeassistant_api: false
+environment: {'SUPERVISOR_TOKEN': '', 'TEST_KEY': "test"}
 image: "ghcr.io/dneprojects/smart_hub/{arch}"
 webui: http://[HOST]:[PORT:7780]/
