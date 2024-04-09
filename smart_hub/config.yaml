@@ -16,8 +16,8 @@ devicetree: true
 devices: ["dev/serial0"]
 map: [addon_config:rw]
 full_access: false
-hassio_role: default
+hassio_role: homeassistant
 hassio_api: true
-homeassistant_api: true
+homeassistant_api: false
 image: "ghcr.io/dneprojects/smart_hub/{arch}"
 webui: http://[HOST]:[PORT:7780]/
