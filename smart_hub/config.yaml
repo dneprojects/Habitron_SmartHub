@@ -16,6 +16,7 @@ devicetree: true
 devices: ["dev/serial0"]
 map: [addon_config:rw]
 full_access: false
+privileged: SYS_RESOURCE 
 hassio_role: homeassistant
 hassio_api: true
 homeassistant_api: false
