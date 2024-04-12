@@ -51,6 +51,7 @@ class ApiServer:
         self.token = os.getenv("SUPERVISOR_TOKEN")
         if self.token is None:
             self.logger.warning("SUPERVISOR_TOKEN is None")
+        self.logger.warning(f"Env. Variables: {os.environ.keys()}")
 
     async def get_initial_status(self):
         """Starts router object and reads complete system status"""
