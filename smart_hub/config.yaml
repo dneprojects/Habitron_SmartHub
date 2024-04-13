@@ -20,6 +20,5 @@ devices: ["dev/serial0"]
 uart: true
 devicetree: true
 ingress: true
-ingress_port: 7780
 image: "ghcr.io/dneprojects/smart_hub/{arch}"
 webui: http://[HOST]:[PORT:7780]/
