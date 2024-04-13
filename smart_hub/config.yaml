@@ -21,4 +21,3 @@ uart: true
 devicetree: true
 ingress: true
 image: "ghcr.io/dneprojects/smart_hub/{arch}"
-webui: http://[HOST]:[PORT:7780]/
