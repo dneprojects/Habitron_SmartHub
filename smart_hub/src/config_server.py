@@ -60,7 +60,10 @@ class ConfigServer:
 
     def __init__(self, api_srv):
         self.api_srv = api_srv
-        self._ip = api_srv.sm_hub._host_ip
+        if api_srv.is_addon:
+            self._ip = "172.30.32.1"
+        else:
+            self._ip = api_srv.sm_hub._host_ip
         self._port = CONF_PORT
         self.conf_running = False
 
