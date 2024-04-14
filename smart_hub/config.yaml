@@ -1,18 +1,16 @@
 ---
 name: "Smart Hub"
 description: "Habitron Smart Hub as Home Assistant Add-on"
-version: 1.1.6
+version: 1.1.7
 slug: "smart_hub"
 arch:
   - aarch64
 ports:
   7777/udp: 7777
-  7780/tcp: 7780
 startup: services
 init: false
 full_access: false
 hassio_api: true
-hassio_role: default
 homeassistant_api: false
 host_network: true
 map: [addon_config:rw]

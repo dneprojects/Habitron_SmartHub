@@ -7,7 +7,7 @@ OWN_IP = "192.168.178.110"
 ANY_IP = "0.0.0.0"
 SMHUB_PORT = 7777
 EVENT_PORT = 7778
-CONF_PORT = 8099
+CONF_PORT = 7780
 QUERY_PORT = 30718
 RT_DEF_ADDR = 1
 RT_BAUDRATE = 19200
@@ -22,6 +22,7 @@ LOGGING_DEF_FILE = "logging_def.yaml"
 HOMEPAGE = "configurator.html"
 HUB_HOMEPAGE = "hub.html"
 CONF_HOMEPAGE = "home.html"
+NOT_AUTH_PAGE = "not_auth.html"
 SIDE_MENU_FILE = "side-menu.html"
 LICENSE_PAGE = "licenses.html"
 LICENSE_TABLE = "license_table.html"
@@ -30,6 +31,7 @@ CONFIG_TEMPLATE_FILE = "config_template.html"
 SETTINGS_TEMPLATE_FILE = "settings_template.html"
 AUTOMATIONS_TEMPLATE_FILE = "automations_template.html"
 AUTOMATIONEDIT_TEMPLATE_FILE = "automation_edit_template.html"
+ALLOWED_INGRESS_IPS = ["172.30.32.2"]
 
 
 class SMHUB_INFO:
