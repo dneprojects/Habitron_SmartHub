@@ -1,10 +1,9 @@
-# Home Assistant Add-on: SmartHub
+# Home Assistant Add-on: Smart Hub
 
-SmartHub for Habitron systems based on Raspberry Pi.
+Smart Hub for Habitron systems based on Raspberry Pi.
 
 ![Supports aarch64 Architecture][aarch64-shield]
 
-![Smart Configurator for Habitron modules](images/configurator.png)
 
 ## About
 
