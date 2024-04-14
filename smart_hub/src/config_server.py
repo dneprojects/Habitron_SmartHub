@@ -37,6 +37,7 @@ from const import (
     LICENSE_TABLE,
     CONF_HOMEPAGE,
     HUB_HOMEPAGE,
+    OWN_INGRESS_IP,
     CONF_PORT,
     MirrIdx,
 )
@@ -61,9 +62,9 @@ class ConfigServer:
     def __init__(self, api_srv):
         self.api_srv = api_srv
         if api_srv.is_addon:
-            self._ip = "172.30.32.1"
+            self._ip = OWN_INGRESS_IP
         else:
-            self._ip = "172.30.32.1"  # api_srv.sm_hub._host_ip
+            self._ip = OWN_INGRESS_IP  # api_srv.sm_hub._host_ip
         self._port = CONF_PORT
         self.conf_running = False
 
