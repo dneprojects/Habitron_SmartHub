@@ -63,7 +63,7 @@ class ConfigServer:
         if api_srv.is_addon:
             self._ip = "172.30.32.1"
         else:
-            self._ip = api_srv.sm_hub._host_ip
+            self._ip = "172.30.32.1"  # api_srv.sm_hub._host_ip
         self._port = CONF_PORT
         self.conf_running = False
 
