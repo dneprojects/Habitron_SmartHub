@@ -77,8 +77,13 @@ class ConfigServer:
             )
             response = await handler(request)
             if request.headers["Accept"].find("text/html") > 0:
-                response = response.replace(
-                    "/configurator_files/", f"{ingress_path}/configurator_files/"
+                request.app.logger.info("Replace path")
+                response.body = (
+                    response.body.decode()
+                    .replace(
+                        "/configurator_files/", f"{ingress_path}/configurator_files/"
+                    )
+                    .encode()
                 )
             return response
 
