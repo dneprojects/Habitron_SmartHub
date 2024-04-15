@@ -75,7 +75,7 @@ class ConfigServer:
             # if client_not_authorized(request):
             #     return show_not_authorized(request.app)
             response = await handler(request)
-            # request.app.logger.info(response.body)
+            #  request.app.logger.info(response.body)
             return response
 
         self.app = web.Application(middlewares=[ingress_middleware])
