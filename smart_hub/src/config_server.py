@@ -71,8 +71,9 @@ class ConfigServer:
         @web.middleware
         async def ingress_middleware(request: web.Request, handler) -> web.Response:  # type: ignore
             request.app.logger.info(request.headers)
+            request.app.logger.info(request.path_qs)
             response = await handler(request)
-            request.app.logger.info(response.headers)
+            request.app.logger.info(response.body)
             return response
 
         self.app = web.Application(middlewares=[ingress_middleware])
