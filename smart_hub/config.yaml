@@ -18,7 +18,7 @@ devices: ["dev/serial0"]
 uart: true
 devicetree: true
 ingress: true
-ingress_entry: "/"
+ingress_entry: "/web/"
 legacy: true
 panel_title: Habitron Smart Hub
 panel_icon: hbt:habitron-logo
