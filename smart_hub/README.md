@@ -4,8 +4,6 @@ Smart Hub for Habitron systems based on Raspberry Pi.
 
 ![Supports aarch64 Architecture][aarch64-shield]
 
-![Smart Configurator for Habitron modules](images/configurator.png)
-
 ## About
 
 Smart Hub performs as gateway between network clients, 
