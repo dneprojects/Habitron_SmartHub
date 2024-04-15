@@ -61,16 +61,21 @@ class ConfigServer:
 
     def __init__(self, api_srv):
         self.api_srv = api_srv
-        if api_srv.is_addon:
-            self._ip = OWN_INGRESS_IP
-        else:
-            self._ip = OWN_INGRESS_IP  # api_srv.sm_hub._host_ip
+        self._ip = api_srv.sm_hub._host_ip
         self._port = CONF_PORT
         self.conf_running = False
 
     async def initialize(self):
         """Initialize config server."""
-        self.app = web.Application()
+
+        @web.middleware
+        async def ingress_middleware(request: web.Request, handler) -> web.Response:  # type: ignore
+            request.app.logger.info(request.headers)
+            response = await handler(request)
+            request.app.logger.info(response.headers)
+            return response
+
+        self.app = web.Application(middlewares=[ingress_middleware])
         self.app.logger = logging.getLogger(__name__)
         self.settings_srv = ConfigSettingsServer(self.app, self.api_srv)
         self.app.add_subapp("/settings", self.settings_srv.app)
