@@ -368,7 +368,7 @@ def prepare_basic_settings(main_app, mod_addr, mod_type):
     settings = main_app["settings"]
     tbl = (
         indent(4)
-        + '<form id="settings_table" action="/settings/settings" method="post">\n'
+        + '<form id="settings_table" action="settings" method="post">\n'
     )
     tbl += "\n" + indent(5) + "<table>\n"
     id_name = "mname"

@@ -323,10 +323,7 @@ def prepare_automations_list(main_app, step):
     else:
         automations = main_app["automations_def"].external
         last_source_header = ""
-    tbl = (
-        indent(4)
-        + '<form id="automations_table" action="/automations/automtns" method="post">\n'
-    )
+    tbl = indent(4) + '<form id="automations_table" action="automtns" method="post">\n'
     for at_i in range(len(automations)):
         if step > 0:
             src_mod = automations[at_i].src_mod
