@@ -71,11 +71,12 @@ class ConfigServer:
         @web.middleware
         async def ingress_middleware(request: web.Request, handler) -> web.Response:  # type: ignore
             request.app.logger.info(request.headers)
-            request.app.logger.info(request.path_qs)
-            # if client_not_authorized(request):
-            #     return show_not_authorized(request.app)
+            ingress_path = request.headers["X-Ingress-Path"]
+            request.app.logger.info(
+                f"Request: {request.path_qs} , Ingress path: {ingress_path}"
+            )
             response = await handler(request)
-            #  request.app.logger.info(response.body)
+            response = response.replace("/configurator_files/", f"{ingress_path}/configurator_files/")
             return response
 
         self.app = web.Application(middlewares=[ingress_middleware])
