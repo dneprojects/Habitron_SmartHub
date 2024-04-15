@@ -76,7 +76,10 @@ class ConfigServer:
                 f"Request: {request.path_qs} , Ingress path: {ingress_path}"
             )
             response = await handler(request)
-            response = response.replace("/configurator_files/", f"{ingress_path}/configurator_files/")
+            if request.headers["Accept"].find("text/html") > 0:
+                response = response.replace(
+                    "/configurator_files/", f"{ingress_path}/configurator_files/"
+                )
             return response
 
         self.app = web.Application(middlewares=[ingress_middleware])
