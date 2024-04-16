@@ -72,22 +72,22 @@ class ConfigServer:
         async def ingress_middleware(request: web.Request, handler) -> web.Response:  # type: ignore
 
             response = await handler(request)
-            # if (
-            #     request.app["api_srv"].is_addon
-            #     and request.headers["Accept"].find("text/html") >= 0
-            #     and "body" in response.__dir__()
-            #     and response.status == 200
-            # ):
-            #     ingress_path = request.headers["X-Ingress-Path"]
-            #     request.app.logger.info("Replace path")
-            #     response.body = (
-            #         response.body.decode("utf_8")
-            #         .replace(
-            #             '<base href="/">',
-            #             f'<base href="{ingress_path}/">',
-            #         )
-            #         .encode("utf_8")
-            #     )
+            if (
+                request.app["api_srv"].is_addon
+                and request.headers["Accept"].find("text/html") >= 0
+                and "body" in response.__dir__()
+                and response.status == 200
+            ):
+                ingress_path = request.headers["X-Ingress-Path"]
+                request.app.logger.info("Replace path")
+                response.body = (
+                    response.body.decode("utf_8")
+                    .replace(
+                        '<base href="/">',
+                        f'<base href="{ingress_path}/">',
+                    )
+                    .encode("utf_8")
+                )
             return response
 
         self.app = web.Application(middlewares=[ingress_middleware])
