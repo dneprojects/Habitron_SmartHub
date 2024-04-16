@@ -164,8 +164,6 @@ class ConfigAutomationsServer:
 
     @routes.post("/automtn_def")
     async def post_automtn_def(request: web.Request) -> web.Response:  # type: ignore
-        if client_not_authorized(request):
-            return show_not_authorized(request.app)
         resp = await request.text()
         form_data = parse_qs(resp)
         main_app = request.app["parent"]
@@ -323,7 +321,10 @@ def prepare_automations_list(main_app, step):
     else:
         automations = main_app["automations_def"].external
         last_source_header = ""
-    tbl = indent(4) + '<form id="automations_table" action="automations/automtns" method="post">\n'
+    tbl = (
+        indent(4)
+        + '<form id="automations_table" action="automations/automtns" method="post">\n'
+    )
     for at_i in range(len(automations)):
         if step > 0:
             src_mod = automations[at_i].src_mod

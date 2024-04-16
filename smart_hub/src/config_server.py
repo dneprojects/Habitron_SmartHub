@@ -79,6 +79,7 @@ class ConfigServer:
             if (
                 request.headers["Accept"].find("text/html") >= 0
                 and "body" in response.__dir__()
+                and response.status != 204
             ):
                 request.app.logger.info("Replace path")
                 response.body = (
