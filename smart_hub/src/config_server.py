@@ -82,7 +82,7 @@ class ConfigServer:
                     response.body.decode("utf_8")
                     .replace(
                         '<base href="/">',
-                        f'<base href="{ingress_path}">',
+                        f'<base href="{ingress_path}/">',
                     )
                     .encode("utf_8")
                 )
