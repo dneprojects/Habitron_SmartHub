@@ -91,7 +91,9 @@ class ConfigServer:
                     .encode("utf_8")
                 )
             else:
-                request.app.logger.info(f"ReqHeader: {request.headers["Accept"].split(',')[0]} , Status: {response.status}")
+                request.app.logger.info(
+                    f"ReqHeader: {request.headers['Accept'].split(',')[0]} , Status: {response.status}"
+                )
             return response
 
         self.app = web.Application(middlewares=[ingress_middleware])
