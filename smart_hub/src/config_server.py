@@ -76,7 +76,7 @@ class ConfigServer:
                 f"Request: {request.path_qs} , Ingress path: {ingress_path}"
             )
             response = await handler(request)
-            if request.headers["Accept"].find("text/html") >= 0:
+            if request.headers["Accept"].find("text/html") >= 0 and response.has_body:
                 request.app.logger.info("Replace path")
                 response.body = (
                     response.body.decode("utf_8")
