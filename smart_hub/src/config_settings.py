@@ -545,7 +545,7 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
         covers = getattr(main_app["settings"], "covers")
     tbl_data = getattr(main_app["settings"], key)
     tbl = (
-        indent(4) + '<form id="settings_table" action="/settings/step" method="post">\n'
+        indent(4) + '<form id="settings_table" action="settings/step" method="post">\n'
     )
     tbl += "\n" + indent(5) + '<table id="set_tbl">\n'
 
