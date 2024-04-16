@@ -81,7 +81,8 @@ class ConfigServer:
                 response.body = (
                     response.body.decode("utf_8")
                     .replace(
-                        "/configurator_files/", f"{ingress_path}/configurator_files/"
+                        '<base href="/">',
+                        f'<base href="{ingress_path}">',
                     )
                     .encode("utf_8")
                 )
