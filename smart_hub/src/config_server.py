@@ -83,7 +83,7 @@ class ConfigServer:
                     f"Request path: {request.path_qs} , Query: {request.query}"
                 )
                 request.app.logger.info(
-                    f"Response status: {response.status} ,Type: {response.body.type()}"
+                    f"Response status: {response.status} , Type: {type(response.body)}"
                 )
                 if isinstance(response.body, bytes):
                     response.body = (
