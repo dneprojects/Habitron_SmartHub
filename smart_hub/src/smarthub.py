@@ -131,10 +131,6 @@ class SmartHub:
         else:
             get_all = False
 
-        if "hardware_raw" in self._cpu_info.keys():
-            hardware_raw = self._cpu_info["hardware_raw"]
-        else:
-            hardware_raw = "BCM2712"
         info_str = "hardware:\n  platform:\n"
         info_str = info_str + "    type: " + self._pi_model + "\n"
         info_str = info_str + "    serial: " + self._serial + "\n"
@@ -144,7 +140,7 @@ class SmartHub:
             + "    type: "
             + self._cpu_info["arch_string_raw"]
             + " "
-            + hardware_raw
+            + cpu_type
             + "\n"
         )
         info_str = (
