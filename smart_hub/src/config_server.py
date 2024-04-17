@@ -79,7 +79,10 @@ class ConfigServer:
                 and response.status == 200
             ):
                 ingress_path = request.headers["X-Ingress-Path"]
-                request.app.logger.info("Replace path")
+                request.app.logger.info(
+                    f"Request path: {request.path_qs} , Query: {request.query}"
+                )
+                request.app.logger.info(f"Replace path, body: {response.body}")
                 response.body = (
                     response.body.decode("utf_8")
                     .replace(

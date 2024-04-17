@@ -287,7 +287,7 @@ def disable_button(key: str, page) -> str:
     return page.replace(f">{key}<", f" disabled>{key}<")
 
 
-def client_not_authorized(request):
+def client_not_authorized(request) -> bool:
     """If addon, check allowed ingress internal IP address, return True if not authorized."""
     app = request.app
     if "parent" in app._state.keys():
