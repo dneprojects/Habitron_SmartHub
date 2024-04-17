@@ -82,15 +82,18 @@ class ConfigServer:
                 request.app.logger.info(
                     f"Request path: {request.path_qs} , Query: {request.query}"
                 )
-                request.app.logger.info(f"Replace path, body: {response.body}")
-                response.body = (
-                    response.body.decode("utf_8")
-                    .replace(
-                        '<base href="/">',
-                        f'<base href="{ingress_path}/">',
-                    )
-                    .encode("utf_8")
+                request.app.logger.info(
+                    f"Response status: {response.status} ,Type: {response.body.type()}"
                 )
+                if isinstance(response.body, bytes):
+                    response.body = (
+                        response.body.decode("utf_8")
+                        .replace(
+                            '<base href="/">',
+                            f'<base href="{ingress_path}/">',
+                        )
+                        .encode("utf_8")
+                    )
             return response
 
         self.app = web.Application(middlewares=[ingress_middleware])
