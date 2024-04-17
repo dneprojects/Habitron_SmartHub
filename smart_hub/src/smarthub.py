@@ -100,16 +100,24 @@ class SmartHub:
         if self._serial == "":
             get_all = True
             try:
-                with open("/sys/firmware/devicetree/base/model") as f:
+                with open("/proc/device-tree/model") as f:
                     self._pi_model = f.read()[:-1]
                     f.close()
-                with open("/sys/firmware/devicetree/base/serial-number") as f:
+                with open("/proc/device-tree/serial-number") as f:
                     self._serial = f.read()[:-1]
                     f.close()
             except Exception:
-                self.logger.info("Using default devicetree")
-                self._pi_model = "Raspberry Pi"
-                self._serial = "10000000e3d90xxx"
+                try:
+                    with open("/sys/firmware/devicetree/base/model") as f:
+                        self._pi_model = f.read()[:-1]
+                        f.close()
+                    with open("/sys/firmware/devicetree/base/serial-number") as f:
+                        self._serial = f.read()[:-1]
+                        f.close()
+                except Exception:
+                    self.logger.info("Using default devicetree")
+                    self._pi_model = "Raspberry Pi"
+                    self._serial = "10000000e3d90xxx"
             self._cpu_info = cpuinfo.get_cpu_info()
         else:
             get_all = False
