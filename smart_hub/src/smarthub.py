@@ -100,10 +100,10 @@ class SmartHub:
         if self._serial == "":
             get_all = True
             try:
-                with open("/proc/device-tree/model") as f:
+                with open("/device-tree/model") as f:
                     self._pi_model = f.read()[:-1]
                     f.close()
-                with open("/proc/device-tree/serial-number") as f:
+                with open("/device-tree/serial-number") as f:
                     self._serial = f.read()[:-1]
                     f.close()
             except Exception:
