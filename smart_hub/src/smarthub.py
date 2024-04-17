@@ -106,6 +106,9 @@ class SmartHub:
                 with open("/device-tree/serial-number") as f:
                     self._serial = f.read()[:-1]
                     f.close()
+                with open("/device-tree/base/cpus/cpu@0/compatible") as f:
+                    cpu_type = f.read()[:-1].split(",")[1]
+                    f.close()
             except Exception:
                 try:
                     with open("/sys/firmware/devicetree/base/model") as f:
@@ -114,10 +117,16 @@ class SmartHub:
                     with open("/sys/firmware/devicetree/base/serial-number") as f:
                         self._serial = f.read()[:-1]
                         f.close()
+                    with open(
+                        "/sys/firmware/devicetree/base/cpus/cpu@0/compatible"
+                    ) as f:
+                        cpu_type = f.read()[:-1].split(",")[1]
+                        f.close()
                 except Exception:
                     self.logger.info("Using default devicetree")
                     self._pi_model = "Raspberry Pi"
                     self._serial = "10000000e3d90xxx"
+                    cpu_type = "unknown"
             self._cpu_info = cpuinfo.get_cpu_info()
         else:
             get_all = False
