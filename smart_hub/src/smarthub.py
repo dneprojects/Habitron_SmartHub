@@ -106,7 +106,7 @@ class SmartHub:
                 with open("/device-tree/serial-number") as f:
                     self._serial = f.read()[:-1]
                     f.close()
-                with open("/device-tree/base/cpus/cpu@0/compatible") as f:
+                with open("/device-tree/cpus/cpu@0/compatible") as f:
                     cpu_type = f.read()[:-1].split(",")[1]
                     f.close()
             except Exception:
