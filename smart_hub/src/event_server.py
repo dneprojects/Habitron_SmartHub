@@ -535,7 +535,7 @@ class EventServer:
                 await self.websck.send(json.dumps(msg))
                 resp = await self.websck.recv()
                 self.logger.info(
-                    f"Websocket connected to {self._uri}, response: {resp}"
+                    f"Websocket connecting to {self._uri}, response: {resp}"
                 )
             except Exception as err_msg:
                 self.logger.error(f"Websocket authentification failed: {err_msg}")
