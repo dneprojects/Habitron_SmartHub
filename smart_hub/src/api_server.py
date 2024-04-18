@@ -303,7 +303,7 @@ class ApiServer:
             # no command received yet
             return False
         self._client_ip = self.ip_writer.get_extra_info("peername")[0]
-        self.is_addon = self._client_ip == self.sm_hub.get_host_ip()
+        self.is_addon = True  # self._client_ip == self.sm_hub.get_host_ip()
         return True
         # SmartHub running with Home Assistant, use internal websocket
 
