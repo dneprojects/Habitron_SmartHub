@@ -508,7 +508,7 @@ class EventServer:
                 )
             else:
                 self.logger.error(
-                    "Websocket stored token is none, open_websocket failed."
+                    "Websocket stored token is none, open_websocket failed"
                 )
             self.websck_is_closed = True
             return False
