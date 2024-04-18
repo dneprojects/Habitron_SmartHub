@@ -34,6 +34,7 @@ COPY /src /src
 copy start.sh /start.sh
 RUN chmod +x /start.sh
 WORKDIR /src
+ENTRYPOINT ["/init"]
 CMD ["/start.sh"]
 
 # Labels 
