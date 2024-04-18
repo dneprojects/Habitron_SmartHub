@@ -39,7 +39,7 @@ class ApiServer:
         self._running = True
         self._client_ip: str = ""
         self._hass_ip: str = ""
-        self.is_addon: bool = False
+        self.is_addon: bool = True
         self.mirror_mode_enabled: bool = True
         self.event_mode_enabled: bool = True
         self._api_cmd_processing: bool = False  # Blocking of config server io requests
