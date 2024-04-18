@@ -1,2 +1,2 @@
 printenv SUPERVISOR_TOKEN
-python smarthub.py
+ENV_PARAM='foo' ENV_PARAM2='bar' python smarthub.py
