@@ -40,6 +40,7 @@ class SmartHub:
         self.api_srv: ApiServer
         self._serial: str = ""
         self._pi_model: str = ""
+        self._cpu_type: str = ""
         self._cpu_info: dict
         self._host: str = ""
         self._host_ip: str = ""
@@ -107,7 +108,7 @@ class SmartHub:
                     self._serial = f.read()[:-1]
                     f.close()
                 with open("/device-tree/cpus/cpu@0/compatible") as f:
-                    cpu_type = f.read()[:-1].split(",")[1]
+                    self._cpu_type = f.read()[:-1].split(",")[1]
                     f.close()
             except Exception:
                 try:
@@ -120,13 +121,13 @@ class SmartHub:
                     with open(
                         "/sys/firmware/devicetree/base/cpus/cpu@0/compatible"
                     ) as f:
-                        cpu_type = f.read()[:-1].split(",")[1]
+                        self._cpu_type = f.read()[:-1].split(",")[1]
                         f.close()
                 except Exception:
                     self.logger.info("Using default devicetree")
                     self._pi_model = "Raspberry Pi"
                     self._serial = "10000000e3d90xxx"
-                    cpu_type = "unknown"
+                    self._cpu_type = "unknown"
             self._cpu_info = cpuinfo.get_cpu_info()
         else:
             get_all = False
@@ -140,7 +141,7 @@ class SmartHub:
             + "    type: "
             + self._cpu_info["arch_string_raw"]
             + " "
-            + cpu_type
+            + self._cpu_type
             + "\n"
         )
         info_str = (
