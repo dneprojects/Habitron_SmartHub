@@ -32,7 +32,7 @@ class EVENT_IDS:
 class WEBSOCK_MSG:
     """Predefined messages for websocket commands."""
 
-    auth_msg = {"type": "auth", "bearer_token": ""}
+    auth_msg = {"type": "auth", "access_token": ""}
     ping_msg = {"id": 1, "type": "ping"}
     call_service_msg = {
         "id": 1,
@@ -435,6 +435,7 @@ class EventServer:
             self.evnt_running = False
             await self.stop()
             await self.api_srv.set_server_mode(100)
+            self.websck = None
         except Exception as error_msg:
             # Use to get cancel event in api_server
             self.logger.error(f"Could not connect to event server: {error_msg}")
@@ -444,6 +445,7 @@ class EventServer:
                 await self.websck.send(json.dumps(event_cmd))  # Send command
                 resp = await self.websck.recv()
                 self.logger.debug(f"Notify returned {resp}")
+            self.websck = None
 
     async def ping_pong_reconnect(self) -> bool:
         """Check for living websocket connection, reconnect if needed."""
@@ -531,7 +533,7 @@ class EventServer:
         if json.loads(resp)["type"] == "auth_required":
             try:
                 msg = WEBSOCK_MSG.auth_msg
-                msg["bearer_token"] = self.token
+                msg["access_token"] = self.token
                 await self.websck.send(json.dumps(msg))
                 resp = await self.websck.recv()
                 self.logger.info(
@@ -559,6 +561,7 @@ class EventServer:
                 self.logger.debug("Websocket still closing")
             except Exception as err_msg:
                 self.logger.warning(f"Websocket close failed: {err_msg}")
+            self.websck = None
 
     async def start(self):
         """Start event server task."""
