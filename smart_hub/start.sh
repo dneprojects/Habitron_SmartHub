@@ -1,2 +1,2 @@
-export SUPERVISOR_TOKEN=$SUPERVISOR_TOKEN 
+export SUPERVISOR_TOKEN=$HASSIO_TOKEN 
 python smarthub.py

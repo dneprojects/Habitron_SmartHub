@@ -486,7 +486,7 @@ class EventServer:
             self.logger.debug(f"URI: {self._uri}")
             self.token = os.getenv("SUPERVISOR_TOKEN")
             if self.token is None:
-                self.logger.warning("SUPERVISOR_TOKEN is None, getting default token.")
+                self.logger.warning("SUPERVISOR_TOKEN is None, getting default token")
                 self.token = self.get_ident()
         else:
             # Stand-alone SmartHub, use external websocket connection to host ip
