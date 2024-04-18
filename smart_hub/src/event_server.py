@@ -32,7 +32,7 @@ class EVENT_IDS:
 class WEBSOCK_MSG:
     """Predefined messages for websocket commands."""
 
-    auth_msg = {"type": "auth", "access_token": ""}
+    auth_msg = {"type": "auth", "supervisor_token": ""}
     ping_msg = {"id": 1, "type": "ping"}
     call_service_msg = {
         "id": 1,
@@ -531,7 +531,7 @@ class EventServer:
         if json.loads(resp)["type"] == "auth_required":
             try:
                 msg = WEBSOCK_MSG.auth_msg
-                msg["access_token"] = self.token
+                msg["supervisor_token"] = self.token
                 await self.websck.send(json.dumps(msg))
                 resp = await self.websck.recv()
                 self.logger.info(
