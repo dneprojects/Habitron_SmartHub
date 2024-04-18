@@ -1,2 +1,2 @@
-export SUPERVISOR_TOKEN=$HASSIO_TOKEN 
+#!/usr/bin/with-contenv sh
 python smarthub.py
