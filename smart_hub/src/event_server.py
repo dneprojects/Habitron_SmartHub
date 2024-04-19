@@ -62,7 +62,8 @@ class EventServer:
         self.ev_srv_task: Task
         self.ev_srv_task_running = False
         self.websck: WebSocketClientProtocol
-        self.token = None
+        self.auth_token: str | None = None
+        self.bearer_token: str | None = None
         self.notify_id = 1
         self.evnt_running = False
         self.msg_appended = False
@@ -486,14 +487,14 @@ class EventServer:
             self.logger.info("Open internal add-on websocket to home assistant.")
             self._uri = "ws://supervisor/core/websocket"
             self.logger.debug(f"URI: {self._uri}")
-            self.token = os.getenv("SUPERVISOR_TOKEN")
-            if self.token is None:
+            self.bearer_token = os.getenv("SUPERVISOR_TOKEN")
+            if self.auth_token is None:
                 self.logger.warning("SUPERVISOR_TOKEN is None, getting default token.")
-                self.token = self.get_ident()
+                self.auth_token = self.get_ident()
         else:
             # Stand-alone SmartHub, use external websocket connection to host ip
             self.logger.info("Open websocket to home assistant.")
-            self.token = self.get_ident()
+            self.auth_token = self.get_ident()
             self._client_ip = self.api_srv._client_ip
             self._uri = "ws://<ip>:8123/api/websocket".replace("<ip>", self._client_ip)
             self.logger.debug(f"URI: {self._uri}")
@@ -502,11 +503,11 @@ class EventServer:
             # token for 192.168.178.133: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJlYjQ2MTA4ZjUxOTU0NTY3Yjg4ZjUxM2Q5ZjBkZWRlYSIsImlhdCI6MTY5NDYxMDEyMywiZXhwIjoyMDA5OTcwMTIzfQ.3LtGwhonmV2rAbRnKqEy3WYRyqiS8DTh3ogx06pNz1g"
             # token for 192.168.178.160: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI4OTNlZDJhODU2ZmY0ZDQ3YmVlZDE2MzIyMmU1ODViZCIsImlhdCI6MTcwMjgyMTYxNiwiZXhwIjoyMDE4MTgxNjE2fQ.NT-WSwkG9JN8f2cCt5fXlP4A8FEOAgDTrS1sdhB0ioo"
 
-        self.logger.info(f"Token is {self.token}")
-        if self.token is None:
+        self.logger.info(f"Token is {self.auth_token}")
+        if self.auth_token is None:
             if self.api_srv.is_addon:
                 self.logger.error(
-                    "Websocket supervisor token is none, open_websocket failed."
+                    "Websocket auth token is none, open_websocket failed."
                 )
             else:
                 self.logger.error(
@@ -519,7 +520,7 @@ class EventServer:
             if self.api_srv.is_addon:
                 self.websck = await websockets.connect(
                     self._uri,
-                    extra_headers={"Authorization": f"Bearer {self.token}"},
+                    extra_headers={"Authorization": f"Bearer {self.bearer_token}"},
                     open_timeout=1,
                 )
             else:
@@ -533,7 +534,7 @@ class EventServer:
         if json.loads(resp)["type"] == "auth_required":
             try:
                 msg = WEBSOCK_MSG.auth_msg
-                msg["access_token"] = self.token
+                msg["access_token"] = self.auth_token
                 await self.websck.send(json.dumps(msg))
                 resp = await self.websck.recv()
                 self.logger.info(
