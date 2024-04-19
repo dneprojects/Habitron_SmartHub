@@ -63,13 +63,14 @@ class EventServer:
         self.ev_srv_task_running = False
         self.websck: WebSocketClientProtocol
         self.auth_token: str | None = None
-        self.bearer_token: str | None = None
+        self.bearer_token: str = os.getenv("SUPERVISOR_TOKEN")
         self.notify_id = 1
         self.evnt_running = False
         self.msg_appended = False
         self.busy_starting = False
         self.websck_is_closed = True
         self.default_token: str
+        self.token_ok = False
 
     def get_ident(self) -> str | None:
         """Return token"""
@@ -487,10 +488,6 @@ class EventServer:
             self.logger.info("Open internal add-on websocket to home assistant.")
             self._uri = "ws://supervisor/core/websocket"
             self.logger.debug(f"URI: {self._uri}")
-            self.bearer_token = os.getenv("SUPERVISOR_TOKEN")
-            if self.auth_token is None:
-                self.logger.warning("SUPERVISOR_TOKEN is None, getting default token.")
-                self.auth_token = self.get_ident()
         else:
             # Stand-alone SmartHub, use external websocket connection to host ip
             self.logger.info("Open websocket to home assistant.")
@@ -502,8 +499,14 @@ class EventServer:
             # token for local docker:    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxZDZkZWY4MjZmYzI0Yzg0OGUwMTAxYTUyMWE1ZTI0ZSIsImlhdCI6MTcxMDk1MTQ2MSwiZXhwIjoyMDI2MzExNDYxfQ.CG3kAoZSPHexOkztWk15Z3lg9v3avxbXJVb_PNXXU1I"
             # token for 192.168.178.133: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJlYjQ2MTA4ZjUxOTU0NTY3Yjg4ZjUxM2Q5ZjBkZWRlYSIsImlhdCI6MTY5NDYxMDEyMywiZXhwIjoyMDA5OTcwMTIzfQ.3LtGwhonmV2rAbRnKqEy3WYRyqiS8DTh3ogx06pNz1g"
             # token for 192.168.178.160: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI4OTNlZDJhODU2ZmY0ZDQ3YmVlZDE2MzIyMmU1ODViZCIsImlhdCI6MTcwMjgyMTYxNiwiZXhwIjoyMDE4MTgxNjE2fQ.NT-WSwkG9JN8f2cCt5fXlP4A8FEOAgDTrS1sdhB0ioo"
+            # token for SmartCenter 5: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmN2UxMGFhNzcyZTE0ZWY0OGFmOTkzNDVlOTIwNTNlNiIsImlhdCI6MTcxMzUxNDM4MSwiZXhwIjoyMDI4ODc0MzgxfQ.9kpjxhElmWAqTY2zwSsTyLSZiJQZkaV5FX8Pyj9j8HQ"
 
-        self.logger.info(f"Token is {self.auth_token}")
+        if self.auth_token is None or not self.token_ok:
+            self.auth_token = self.get_ident()
+            self.logger.info(
+                f"Auth not valid, getting default token: {self.auth_token}"
+            )
+
         if self.auth_token is None:
             if self.api_srv.is_addon:
                 self.logger.error(
@@ -523,6 +526,7 @@ class EventServer:
                     extra_headers={"Authorization": f"Bearer {self.bearer_token}"},
                     open_timeout=1,
                 )
+                self.auth_token = self.bearer_token  # use bearer token first
             else:
                 self.websck = await websockets.connect(self._uri, open_timeout=1)
             resp = await self.websck.recv()
@@ -543,6 +547,8 @@ class EventServer:
             except Exception as err_msg:
                 self.logger.error(f"Websocket authentification failed: {err_msg}")
                 await self.close_websocket()
+                self.token_ok = False
+                self.bearer_token = self.auth_token  # use auth token next time
                 return False
         else:
             self.logger.info(f"Websocket connected to {self._uri}, response: {resp}")
