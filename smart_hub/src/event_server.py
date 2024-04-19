@@ -545,7 +545,9 @@ class EventServer:
                     f"Websocket connecting to {self._uri}, response: {resp}"
                 )
                 if json.loads(resp)["type"] == "auth_invalid":
-                    self.logger.error(f"Websocket authentification failed: {json.loads(resp)["message"]}")
+                    self.logger.error(
+                        f"Websocket authentification failed: {json.loads(resp)['message']}"
+                    )
                     await self.close_websocket()
                     self.token_ok = False
                     self.bearer_token = self.auth_token  # use auth token next time
