@@ -62,15 +62,14 @@ class EventServer:
         self.ev_srv_task: Task
         self.ev_srv_task_running = False
         self.websck: WebSocketClientProtocol
-        self.auth_token: str | None = os.getenv("HASSIO_TOKEN")
-        self.bearer_token: str = os.getenv("HASSIO_TOKEN")
+        self.auth_token: str | None = os.getenv("SUPERVISOR_TOKEN")
         self.notify_id = 1
         self.evnt_running = False
         self.msg_appended = False
         self.busy_starting = False
         self.websck_is_closed = True
         self.default_token: str
-        self.token_ok = False
+        self.token_ok = True
 
     def get_ident(self) -> str | None:
         """Return token"""
@@ -436,7 +435,7 @@ class EventServer:
             self.websck_is_closed = True
             self.evnt_running = False
             await self.stop()
-            await self.api_srv.set_server_mode(100)
+            await self.api_srv.set_server_mode(1)
             self.websck = None
         except Exception as error_msg:
             # Use to get cancel event in api_server
@@ -474,7 +473,7 @@ class EventServer:
         self.logger.error("Could not reconnect to event server")
         return False
 
-    async def open_websocket(self, retry=False) -> bool:
+    async def open_websocket(self, retry=True) -> bool:
         """Opens web socket connection to home assistant."""
 
         if not self.websck_is_closed:
@@ -502,8 +501,7 @@ class EventServer:
             # token for SmartCenter 5: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmN2UxMGFhNzcyZTE0ZWY0OGFmOTkzNDVlOTIwNTNlNiIsImlhdCI6MTcxMzUxNDM4MSwiZXhwIjoyMDI4ODc0MzgxfQ.9kpjxhElmWAqTY2zwSsTyLSZiJQZkaV5FX8Pyj9j8HQ"
 
         if self.auth_token is None or not self.token_ok:
-            self.auth_token = os.getenv("HASSIO_TOKEN")  # self.get_ident()
-            self.bearer_token = self.auth_token  # type: ignore
+            self.auth_token = self.get_ident()
             self.logger.info(
                 f"Auth not valid, getting default token: {self.auth_token}"
             )
@@ -518,16 +516,16 @@ class EventServer:
                     "Websocket stored token is none, open_websocket failed"
                 )
             self.websck_is_closed = True
+            self.token_ok = False
             return False
 
         try:
             if self.api_srv.is_addon:
                 self.websck = await websockets.connect(
                     self._uri,
-                    extra_headers={"Authorization": f"Bearer {self.bearer_token}"},
+                    extra_headers={"Authorization": f"Bearer {self.auth_token}"},
                     open_timeout=1,
                 )
-                self.auth_token = self.bearer_token  # use bearer token first
             else:
                 self.websck = await websockets.connect(self._uri, open_timeout=1)
             resp = await self.websck.recv()
@@ -535,6 +533,7 @@ class EventServer:
             await self.close_websocket()
             self.logger.error(f"Websocket connect failed: {err_msg}")
             self.websck_is_closed = True
+            self.token_ok = False
             return False
         if json.loads(resp)["type"] == "auth_required":
             try:
@@ -551,16 +550,17 @@ class EventServer:
                     )
                     await self.close_websocket()
                     self.token_ok = False
-                    self.bearer_token = self.auth_token  # use auth token next time
+                    if retry:
+                        await self.open_websocket(retry=False)
                     return False
             except Exception as err_msg:
                 self.logger.error(f"Websocket authentification failed: {err_msg}")
                 await self.close_websocket()
                 self.token_ok = False
-                self.bearer_token = self.auth_token  # use auth token next time
                 return False
         else:
             self.logger.info(f"Websocket connected to {self._uri}, response: {resp}")
+            self.token_ok = True
         self.websck_is_closed = False
         return True
 
