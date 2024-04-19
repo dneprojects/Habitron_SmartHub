@@ -418,7 +418,7 @@ def show_hub_overview(app) -> web.Response:
     """Show hub overview page."""
     api_srv = app["api_srv"]
     smhub = api_srv.sm_hub
-    smhub_info = smhub.info
+    smhub_info = smhub.get_info()
     hub_name = smhub._host
     if api_srv.is_offline:
         pic_file, subtitle = get_module_image(b"\xc9\x00")
