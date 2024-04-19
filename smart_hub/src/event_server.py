@@ -62,7 +62,7 @@ class EventServer:
         self.ev_srv_task: Task
         self.ev_srv_task_running = False
         self.websck: WebSocketClientProtocol
-        self.auth_token: str | None = None
+        self.auth_token: str | None = os.getenv("SUPERVISOR_TOKEN")
         self.bearer_token: str = os.getenv("SUPERVISOR_TOKEN")
         self.notify_id = 1
         self.evnt_running = False
@@ -503,6 +503,7 @@ class EventServer:
 
         if self.auth_token is None or not self.token_ok:
             self.auth_token = self.get_ident()
+            self.bearer_token = self.auth_token  # type: ignore
             self.logger.info(
                 f"Auth not valid, getting default token: {self.auth_token}"
             )
