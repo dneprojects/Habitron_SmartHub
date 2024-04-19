@@ -502,7 +502,7 @@ class EventServer:
             # token for SmartCenter 5: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmN2UxMGFhNzcyZTE0ZWY0OGFmOTkzNDVlOTIwNTNlNiIsImlhdCI6MTcxMzUxNDM4MSwiZXhwIjoyMDI4ODc0MzgxfQ.9kpjxhElmWAqTY2zwSsTyLSZiJQZkaV5FX8Pyj9j8HQ"
 
         if self.auth_token is None or not self.token_ok:
-            self.auth_token = self.get_ident()
+            self.auth_token = os.getenv("HASSIO_TOKEN")  # self.get_ident()
             self.bearer_token = self.auth_token  # type: ignore
             self.logger.info(
                 f"Auth not valid, getting default token: {self.auth_token}"
