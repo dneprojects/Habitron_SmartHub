@@ -62,8 +62,8 @@ class EventServer:
         self.ev_srv_task: Task
         self.ev_srv_task_running = False
         self.websck: WebSocketClientProtocol
-        self.auth_token: str | None = os.getenv("SUPERVISOR_TOKEN")
-        self.bearer_token: str = os.getenv("SUPERVISOR_TOKEN")
+        self.auth_token: str | None = os.getenv("HASSIO_TOKEN")
+        self.bearer_token: str = os.getenv("HASSIO_TOKEN")
         self.notify_id = 1
         self.evnt_running = False
         self.msg_appended = False
