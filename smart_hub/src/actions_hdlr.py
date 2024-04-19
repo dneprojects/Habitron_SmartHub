@@ -75,7 +75,7 @@ class ActionsHdlr(HdlrBase):
                     out_offs = 10  # on SC Dimm1 = Out 11
                 outp_bit = 1 << (self._args[2] + out_offs - 1)
                 self._rt_command = (
-                    RT_CMDS.SET_OUT_OFF.replace("<rtr>", chr(rt))
+                    RT_CMDS.SET_OUT_ON.replace("<rtr>", chr(rt))
                     .replace("<mod>", chr(mod))
                     .replace("<outl>", chr(outp_bit & 0xFF))
                     .replace("<outm>", chr((outp_bit >> 8) & 0xFF))
