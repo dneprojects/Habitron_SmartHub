@@ -542,7 +542,7 @@ class EventServer:
                 await self.websck.send(json.dumps(msg))
                 resp = await self.websck.recv()
                 self.logger.info(
-                    f"Websocket connecting to {self._uri}, response: {resp} "
+                    f"Websocket connecting to {self._uri}, response: {resp}"
                 )
                 if json.loads(resp)["type"] == "auth_invalid":
                     self.logger.error(

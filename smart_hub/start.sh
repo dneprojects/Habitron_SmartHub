@@ -1,2 +1,2 @@
-#!/usr/bin/env bashio
+#!/usr/bin/with-contenv sh
 python smarthub.py
