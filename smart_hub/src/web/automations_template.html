@@ -203,7 +203,7 @@
     var headers = []
     if (atm_tbl.rows[0].cells[0].innerText.search("Modul") > 0) {
       for (let r = 0; r < atm_tbl.rows.length; r++) {
-        if (atm_tbl.rows[r].search("columnheader") > 0) {
+        if (atm_tbl.rows[r].innerHTML.search("columnheader") > 0) {
           headers.push(r)
         }
       }
