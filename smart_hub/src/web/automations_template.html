@@ -210,7 +210,8 @@
           headers.push(r);
           header_positions.push(atm_tbl.rows[r].offsetTop);
         }
-        else if (atm_tbl.rows[r].cells[4].innerHTML.search(checked) > 0) {
+        else if (atm_tbl.rows[r].cells[4].innerHTML.search("checked") > 0) {
+          tbl_row = atm_tbl.rows[r]
           sel_position = atm_tbl.rows[r].offsetTop;
           break
         }
@@ -219,7 +220,7 @@
         if (sel_position < header_positions[hr])
           break
       }
-      desc_txt = atm_tbl.rows[headers[hr]].cells[0].innerText + ":<br>";
+      desc_txt = atm_tbl.rows[headers[hr - 1]].cells[0].innerText + ":<br>";
     }
     else {
       desc_txt = "";
