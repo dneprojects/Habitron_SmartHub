@@ -130,7 +130,7 @@
     <div class="popup-content">
       <h1>ContentTitle</h1>
       <h2>Löschen der ausgewählten Automatisierung</h2>
-      <p id="automtn_dec">automation_description</p>
+      <p id="automtn_desc">automation_description</p>
       <h3>Sind Sie sicher?</h3>
       <div id="del_buttons">
         <button id="close_del_popup">Abbruch</button>
@@ -191,12 +191,16 @@
     });
   function openDelPopup() {
     var sel = 0
+    const atm_desc = document.getElementById("automtn_desc")
+    const atm_tbl = document.getElementById("atm-table")
     for (let l = 0; l < frm.length; l++) {
       if (frm[l].checked) {
         sel = l;
       }
     }
     del_automtn.value = "del_automtn-" + sel;
+    tbl_row = atm_tbl.rows[sel+1]
+    atm_desc.innerText = tbl_row.cells[0].innerText + tbl_row.cells[1].innerText + tbl_row.cells[2].innerText + tbl_row.cells[3].innerText
     automtn_del_popup.classList.add("show");
   };
   function openNewPopup() {
