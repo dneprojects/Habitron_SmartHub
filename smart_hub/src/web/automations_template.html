@@ -200,7 +200,7 @@
     }
     del_automtn.value = "del_automtn-" + sel;
     tbl_row = atm_tbl.rows[sel+1]
-    atm_desc.innerText = tbl_row.cells[0].innerText + tbl_row.cells[1].innerText + tbl_row.cells[2].innerText + tbl_row.cells[3].innerText
+    atm_desc.innerText = tbl_row.cells[0].innerText + "&nbsp;(" + tbl_row.cells[1].innerText + ")<br>" + tbl_row.cells[2].innerText + tbl_row.cells[3].innerText
     automtn_del_popup.classList.add("show");
   };
   function openNewPopup() {
