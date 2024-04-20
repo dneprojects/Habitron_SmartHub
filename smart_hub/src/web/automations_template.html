@@ -199,8 +199,26 @@
       }
     }
     del_automtn.value = "del_automtn-" + sel;
-    tbl_row = atm_tbl.rows[sel+1]
-    atm_desc.innerHTML = tbl_row.cells[0].innerText + "&nbsp;(" + tbl_row.cells[1].innerText + ")<br>" + tbl_row.cells[2].innerText + tbl_row.cells[3].innerText
+    tbl_row = atm_tbl.rows[sel+1];
+    var headers = []
+    if (atm_tbl.rows[0].cells[0].innerText.search("Modul") > 0) {
+      for (let r = 0; r < atm_tbl.rows.length; r++) {
+        if (atm_tbl.rows[r].search("columnheader") > 0) {
+          headers.push(r)
+        }
+      }
+      headers.push[1000]
+      for (let hr = 0; hr < headers.length; hr++) {
+        if (sel + hr + 1 < headers[hr+1])
+          break
+      }
+      desc_txt = atm_tbl.rows[headers[hr]].cells[0].innerText + ":<br>";
+    }
+    else {
+      desc_txt = "";
+    }
+    desc_txt += tbl_row.cells[0].innerText + "&nbsp;(" + tbl_row.cells[1].innerText + ")<br>" + tbl_row.cells[2].innerText + tbl_row.cells[3].innerText
+    atm_desc.innerHTML = desc_txt;
     automtn_del_popup.classList.add("show");
   };
   function openNewPopup() {
