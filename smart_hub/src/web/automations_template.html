@@ -201,6 +201,7 @@
     del_automtn.value = "del_automtn-" + sel;
     tbl_row = atm_tbl.rows[sel+1];
     var headers = []
+    var hr = 0
     if (atm_tbl.rows[0].cells[0].innerText.search("Modul") > 0) {
       for (let r = 0; r < atm_tbl.rows.length; r++) {
         if (atm_tbl.rows[r].innerHTML.search("columnheader") > 0) {
@@ -208,7 +209,7 @@
         }
       }
       headers.push[1000]
-      for (let hr = 0; hr < headers.length; hr++) {
+      for (hr = 0; hr < headers.length; hr++) {
         if (sel + hr + 1 < headers[hr+1])
           break
       }
