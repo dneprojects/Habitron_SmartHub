@@ -215,11 +215,12 @@
           autom_rows.push(r)
         }
       }
+      tbl_row = atm_tbl.rows[autom_rows[sel]];
+      sel_position = atm_tbl.rows[autom_rows[sel]].offsetTop;
       for (hr = 0; hr < header_rows.length; hr++) {
         if (sel_position < header_positions[hr])
           break
       }
-      tbl_row = atm_tbl.rows[autom_rows[sel]]
       desc_txt = atm_tbl.rows[header_rows[hr - 1]].cells[0].innerText + ":<br>";
     }
     else {
