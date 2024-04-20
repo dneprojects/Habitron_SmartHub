@@ -201,16 +201,22 @@
     del_automtn.value = "del_automtn-" + sel;
     tbl_row = atm_tbl.rows[sel+1];
     var headers = []
+    var header_positions = []
     var hr = 0
+    var sel_position = 0
     if (atm_tbl.rows[0].cells[0].innerText.search("Modul") > 0) {
       for (let r = 0; r < atm_tbl.rows.length; r++) {
-        if (atm_tbl.rows[r].innerHTML.search("columnheader") > 0) {
-          headers.push(r)
+        if (atm_tbl.rows[r].id == "atm-th") {
+          headers.push(r);
+          header_positions.push(atm_tbl.rows[r].offsetTop);
+        }
+        else if (atm_tbl.rows[r].cells[4].innerHTML.search(checked) > 0) {
+          sel_position = atm_tbl.rows[r].offsetTop;
+          break
         }
       }
-      headers.push[1000]
       for (hr = 0; hr < headers.length; hr++) {
-        if (sel + hr + 1 < headers[hr+1])
+        if (sel_position < header_positions[hr])
           break
       }
       desc_txt = atm_tbl.rows[headers[hr]].cells[0].innerText + ":<br>";
