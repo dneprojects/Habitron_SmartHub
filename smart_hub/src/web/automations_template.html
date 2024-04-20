@@ -193,6 +193,7 @@
     var sel = 0
     const atm_desc = document.getElementById("automtn_desc")
     const atm_tbl = document.getElementById("atm-table")
+    var tbl_row
     for (let l = 0; l < frm.length; l++) {
       if (frm[l].checked) {
         sel = l;
@@ -216,7 +217,7 @@
         }
       }
       tbl_row = atm_tbl.rows[autom_rows[sel]];
-      sel_position = atm_tbl.rows[autom_rows[sel]].offsetTop;
+      sel_position = tbl_row.offsetTop;
       for (hr = 0; hr < header_rows.length; hr++) {
         if (sel_position < header_positions[hr])
           break
