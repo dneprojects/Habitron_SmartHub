@@ -1,4 +1,4 @@
-"""Constants for SmartIP2"""
+"""Constants for SmartHub"""
 
 from typing import Final
 
@@ -38,7 +38,7 @@ ALLOWED_INGRESS_IP = ["172.30.32.2"]
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.1.7"
+    SW_VERSION = "1.1.9"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
