@@ -79,8 +79,8 @@ class ConfigServer:
                 and response.status == 200
             ):
                 ingress_path = request.headers["X-Ingress-Path"]
-                request.app.logger.info(f"Request path: {request.path_qs}")
-                request.app.logger.info(
+                request.app.logger.debug(f"Request path: {request.path_qs}")
+                request.app.logger.debug(
                     f"Response status: {response.status} , Body type: {type(response.body)}"
                 )
                 if isinstance(response.body, bytes):
