@@ -12,6 +12,12 @@ init: false
 full_access: false
 hassio_api: true
 hassio_role: manager
+privileged:
+  - NET_ADMIN
+  - SYS_ADMIN
+  - SYS_RAWIO
+  - SYS_TIME
+  - SYS_NICE
 host_network: true
 map: [addon_config:rw]
 devices: ["dev/serial0"]
