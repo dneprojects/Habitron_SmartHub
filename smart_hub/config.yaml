@@ -16,7 +16,6 @@ map: [addon_config:rw]
 devices: ["dev/serial0"]
 uart: true
 devicetree: true
-apparmor: false
 ingress: true
 panel_title: Habitron Smart Hub
 panel_icon: hbt:habitron-logo
