@@ -28,3 +28,7 @@ panel_title: Habitron Smart Hub
 panel_icon: hbt:habitron-logo
 panel_admin: true
 image: "ghcr.io/dneprojects/smart_hub/{arch}"
+journald: true
+services:
+  - mysql:want
+  - mqtt:want
