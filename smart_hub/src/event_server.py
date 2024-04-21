@@ -502,6 +502,8 @@ class EventServer:
             self.logger.info(
                 f"Auth not valid, getting default token: {self.auth_token}"
             )
+        else:
+            self.logger.info(f"Using token: {self.auth_token}")
 
         if self.auth_token is None:
             if self.api_srv.is_addon:
@@ -526,7 +528,6 @@ class EventServer:
                     },
                     open_timeout=1,
                 )
-                self.logger.info(f"Extra headers: {self.websck.extra_headers}")
             else:
                 self.websck = await websockets.connect(self._uri, open_timeout=1)
             resp = await self.websck.recv()
@@ -552,7 +553,7 @@ class EventServer:
                     await self.close_websocket()
                     self.token_ok = False
                     if retry:
-                        await self.open_websocket(retry=False)
+                        return await self.open_websocket(retry=False)
                     return False
             except Exception as err_msg:
                 self.logger.error(f"Websocket authentification failed: {err_msg}")

@@ -11,6 +11,7 @@ startup: services
 init: false
 full_access: false
 hassio_api: true
+hassio_role: manager
 host_network: true
 map: [addon_config:rw]
 devices: ["dev/serial0"]
