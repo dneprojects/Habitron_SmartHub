@@ -523,6 +523,7 @@ class EventServer:
                     extra_headers={"Authorization": f"Bearer {self.auth_token}"},
                     open_timeout=1,
                 )
+                self.logger.info(f"Extra headers: {self.websck.extra_headers}")
             else:
                 self.websck = await websockets.connect(self._uri, open_timeout=1)
             resp = await self.websck.recv()
