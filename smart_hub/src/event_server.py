@@ -520,7 +520,10 @@ class EventServer:
             if self.api_srv.is_addon:
                 self.websck = await websockets.connect(
                     self._uri,
-                    extra_headers={"Authorization": f"Bearer {self.auth_token}"},
+                    extra_headers={
+                        "Authorization": f"Bearer {self.auth_token}",
+                        "Content-Type": "application/json",
+                    },
                     open_timeout=1,
                 )
                 self.logger.info(f"Extra headers: {self.websck.extra_headers}")
