@@ -11,24 +11,14 @@ startup: services
 init: false
 full_access: false
 hassio_api: true
-hassio_role: manager
-privileged:
-  - NET_ADMIN
-  - SYS_ADMIN
-  - SYS_RAWIO
-  - SYS_TIME
-  - SYS_NICE
 host_network: true
 map: [addon_config:rw]
 devices: ["dev/serial0"]
 uart: true
 devicetree: true
+apparmor: false
 ingress: true
 panel_title: Habitron Smart Hub
 panel_icon: hbt:habitron-logo
 panel_admin: true
 image: "ghcr.io/dneprojects/smart_hub/{arch}"
-journald: true
-services:
-  - mysql:want
-  - mqtt:want
