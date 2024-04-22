@@ -323,9 +323,7 @@ class ConfigServer:
             "errors": 0,
             "success": "OK",
         }
-        await api_srv.block_network_if(rtr._id, True)
         await rtr.hdlr.upload_router_firmware(None, rtr.hdlr.log_rtr_fw_update_protocol)
-        await api_srv.block_network_if(rtr._id, False)
         return show_hub_overview(app)
 
     @routes.post("/update_modules")
@@ -372,8 +370,6 @@ class ConfigServer:
 
     @routes.get("/update_status")
     async def get_update_status(request: web.Request) -> web.Response:  # type: ignore
-        if client_not_authorized(request):
-            return show_not_authorized(request.app)
         app = request.app
         stat = app["api_srv"].routers[0].hdlr.upd_stat_dict
         return web.Response(
