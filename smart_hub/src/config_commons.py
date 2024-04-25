@@ -219,7 +219,7 @@ def get_module_image(type_code: bytes) -> tuple[str, str]:
                     mod_image = "dimm.jpg"
                     type_desc = "Smart Dimm - 4fach Dimmer"
                 case 30:
-                    mod_image = "smart-out-8-T.jpg"
+                    mod_image = "smart-upm.jpg"
                     type_desc = "Smart UpM - 2fach 230 V-Binäreingang, 2fach Ausgang (potentialgebunden)"
         case 11:
             match type_code[1]:
