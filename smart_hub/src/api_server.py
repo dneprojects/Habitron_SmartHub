@@ -21,7 +21,7 @@ from event_server import EventServer
 # GPIO23, Pin 16: switch input, unpressed == 1
 # GPIO13, Pin 33: red
 # GPIO19, Pin 35: green
-# GPIO26, Pin 37: bluee
+# GPIO26, Pin 37: blue
 
 
 class ApiServer:

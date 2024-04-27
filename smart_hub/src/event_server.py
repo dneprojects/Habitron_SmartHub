@@ -82,6 +82,9 @@ class EventServer:
                 id_str = fid.read().decode("iso8859-1")
             fid.close()
             ip_len = ord(id_str[0])
+            if self.api_srv.is_addon and ip_len > 16:
+                # No ip, take str as token, generated manually
+                return id_str
             self.api_srv._client_ip = id_str[1 : ip_len + 1]
             self._client_ip = self.api_srv._client_ip
             id_str = id_str[ip_len + 1 :]
@@ -502,8 +505,6 @@ class EventServer:
             self.logger.info(
                 f"Auth not valid, getting default token: {self.auth_token}"
             )
-        else:
-            self.logger.info(f"Using token: {self.auth_token}")
 
         if self.auth_token is None:
             if self.api_srv.is_addon:
@@ -522,14 +523,11 @@ class EventServer:
             if self.api_srv.is_addon:
                 self.websck = await websockets.connect(
                     self._uri,
-                    extra_headers={
-                        "Authorization": f"Bearer {self.auth_token}",
-                        "Content-Type": "application/json",
-                    },
-                    open_timeout=1,
+                    extra_headers={"Authorization": f"Bearer {self.auth_token}"},
+                    open_timeout=2,
                 )
             else:
-                self.websck = await websockets.connect(self._uri, open_timeout=1)
+                self.websck = await websockets.connect(self._uri, open_timeout=2)
             resp = await self.websck.recv()
         except Exception as err_msg:
             await self.close_websocket()
@@ -553,7 +551,7 @@ class EventServer:
                     await self.close_websocket()
                     self.token_ok = False
                     if retry:
-                        return await self.open_websocket(retry=False)
+                        await self.open_websocket(retry=False)
                     return False
             except Exception as err_msg:
                 self.logger.error(f"Websocket authentification failed: {err_msg}")
