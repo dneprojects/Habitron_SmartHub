@@ -526,7 +526,6 @@ class EventServer:
                 self.websck = await websockets.connect(
                     self._uri,
                     extra_headers={"Authorization": f"Bearer {self.auth_token}"},
-                    open_timeout=4,
                 )
             else:
                 self.websck = await websockets.connect(self._uri, open_timeout=4)
