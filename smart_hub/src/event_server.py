@@ -51,7 +51,7 @@ class WEBSOCK_MSG:
 
 
 class EventServer:
-    """Reacts on habitron events and sends to home assistant websocket"""
+    """React on habitron events and send to home assistant websocket"""
 
     def __init__(self, api_srv):
         self.api_srv = api_srv
