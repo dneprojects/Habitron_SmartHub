@@ -51,7 +51,7 @@ class WEBSOCK_MSG:
 
 
 class EventServer:
-    """React on habitron events and send to home assistant websocket"""
+    """Reacts on habitron events and sends to home assistant websocket"""
 
     def __init__(self, api_srv):
         self.api_srv = api_srv
@@ -477,6 +477,7 @@ class EventServer:
     async def open_websocket(self, retry=True) -> bool:
         """Opens web socket connection to home assistant."""
 
+        self.token_ok = retry
         if not self.websck_is_closed:
             return True
         if self.api_srv._netw_blocked:
@@ -503,11 +504,10 @@ class EventServer:
 
         if self.api_srv.is_addon and (self.auth_token is None or not self.token_ok):
             # addon uses environment variable
-            self.auth_token = os.getenv("SUPERVISOR_TOKEN")
+            self.auth_token = self.get_ident()
             self.logger.info(
-                f"Auth not valid, retry getting SUPERVISOR_TOKEN token: {self.auth_token}"
+                f"Auth not valid, getting default token: {self.auth_token}"
             )
-
         if self.auth_token is None:
             if self.api_srv.is_addon:
                 self.logger.error(
@@ -525,11 +525,11 @@ class EventServer:
             if self.api_srv.is_addon:
                 self.websck = await websockets.connect(
                     self._uri,
-                    open_timeout=3,
                     extra_headers={"Authorization": f"Bearer {self.auth_token}"},
+                    open_timeout=4,
                 )
             else:
-                self.websck = await websockets.connect(self._uri, open_timeout=3)
+                self.websck = await websockets.connect(self._uri, open_timeout=4)
             resp = await self.websck.recv()
         except Exception as err_msg:
             await self.close_websocket()
