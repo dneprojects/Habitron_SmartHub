@@ -51,7 +51,7 @@ class WEBSOCK_MSG:
 
 
 class EventServer:
-    """Reacts on habitron events and sends to home assistant websocket"""
+    """React on habitron events and send to home assistant websocket"""
 
     def __init__(self, api_srv):
         self.api_srv = api_srv
@@ -525,8 +525,8 @@ class EventServer:
             if self.api_srv.is_addon:
                 self.websck = await websockets.connect(
                     self._uri,
-                    extra_headers={"Authorization": f"Bearer {self.auth_token}"},
                     open_timeout=3,
+                    extra_headers={"Authorization": f"Bearer {self.auth_token}"},
                 )
             else:
                 self.websck = await websockets.connect(self._uri, open_timeout=3)
