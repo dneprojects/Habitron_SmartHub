@@ -58,7 +58,9 @@ Dashboards sind die Bedienfelder, über die die eigentliche Bedienung des Smart 
 Die „Übersicht“, das Standard-Dashboard, zeigt automatisch alle im System vorhandenen Entitäten, gruppiert auf unterschiedlichen Kacheln je Bereich. Ein „Energie“-Dashboard kann die Energieflüsse visualisieren, sofern Sensoren für die Stromflüsse vorhanden sind.
 
 ## Inbetriebnahme
-### Einbau der Hardware
+
+### Anschluss der Hardware
+
 Das Smart Center ist in einem Gehäuse verbaut, das die Montage im Sicherungskasten auf einer Hutschiene vorsieht. Das mitgelieferte Kabel muss mit dem seriellen Port des Smart Center und dem Router verbunden werden. Für die Inbetriebnahme muss das Smart Center über ein Kabel mit dem Ethernet verbunden werden. Später kann auf Wunsch auch eine WLAN-Verbindung konfiguriert werden und das Kabel wieder entfernt werden.
 
 Wenn die serielle und die Netzwerkverbindung herstellt sind, kann die Spannungsversorgung eingesteckt werden und das System bootet. Nach etwa einer Minute kann lässt sich die Oberfläche von Home Assistant über den Browser erreichen.
@@ -132,7 +134,7 @@ Nach der Auswahl des Menupunkts „Module“ wird eine Übersicht aller im Syste
 Die erste Seite mit den Grundeinstellungen enthält den Modulnamen und dessen Gruppenzugehörigkeit. Es werden grundsätzlich nur Gruppen angeboten, die mit einem Namen versehen wurden, bei anderen, unbenannten Gruppen wird davon ausgegangen, dass diese nicht relevant sind.
 Seite zwei ermöglicht die Benennung der acht Modultasten. Auch hier gilt, nicht benannte Tasten erscheinen nicht in Home Assistant als Entitäten. Nachfolgend können die acht roten Signal-LEDs mit Namen versehen werden. Die Einstellungen der Eingänge umfassen neben die Namen die Umschaltung zwischen Taster und Schalter. Auf der Seite der Ausgänge sind ebenfalls Namen für alle verwendeten Ausgänge zu vergeben. 
 
-Bei den ersten fünf Ausgangspaaren ist zusätzlich der Schalter für eine Rollladenverschaltung zu setzen, die sich auf die Folgeseite auswirkt. Dort sind für die als Rollladen konfigurierten Paare Einstellungen zu finden. Der Name wird von der vorherigen Seite übernommen, allerdings werden Bezeichnungen wie „auf“, „ab“, „up“, „down“ aus dem Namen entfernt und je nach hier definierter Polarität für die einzelnen Ausgänge des Paares angepasst. Je Rollladen sind zwei Textfelder vorhanden, um die Zeiten für die Verstellung eintragen zu können. Das erste Feld beschreibt das Öffnen/Schließen des Rollladen. Ist im zweiten Feld ein Wert größer als Null eingetragen, wird der Rollladen als Jalousie erkannt, die zweite Zeit beschreibt dann die Zeit für das Umlegen der Lamellen.
+Bei den ersten fünf Ausgangspaaren ist zusätzlich der Schalter für eine Rollladenverschaltung zu setzen, die sich auf die Folgeseite auswirkt. Dort sind für die als Rollladen konfigurierten Paare Einstellungen zu finden. Der Name wird von der vorherigen Seite übernommen, allerdings werden Bezeichnungen wie „auf“, „ab“, „up“, „down“ aus dem Namen entfernt und je nach hier definierter Polarität für die einzelnen Ausgänge des Paares angepasst. Je Rollladen sind zwei Textfelder vorhanden, um die Zeiten für die Verstellung eintragen zu können. Das erste Feld beschreibt das Öffnen/Schließen des Rollladens. Ist im zweiten Feld ein Wert größer als Null eingetragen, wird der Rollladen als Jalousie erkannt, die zweite Zeit beschreibt dann die Zeit für das Umlegen der Lamellen.
 
 Auf der nächsten Seite lassen sich Zähler anlegen. Wie grundsätzlich wird zuerst eine Nummer vergeben, dann erscheint in diesem Fall ein Popup-Fenster mit der Abfrage, wie viele Zählerwerte zulässig sind (wenn der obere Wert beim Hochzählen überschritten wird, geht es zurück auf die Eins). Die folgenden Seiten erlauben die Verwaltung von lokalen Merkern, Direktbefehlen und Visualisierungsbefehlen.
 
