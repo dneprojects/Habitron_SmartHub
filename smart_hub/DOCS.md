@@ -52,6 +52,11 @@ Home Assistant bietet eine besondere Form der Automatisierung, die Szene. Anders
 Mit Hilfe von Skripten lassen sich noch komplexere Automatisierungen programmieren. Während eine „normale“ Automatisierung mit Hilfe der Benutzeroberfläche zusammengestellt wird, muss ein Skript programmiert werden.
 Eine Blaupause ist eine Vorlage für mehrere Automatisierungen, die immer gleichartig funktionieren. Ein Beispiel, das Home Assistant mitliefert, ist eine Lichtsteuerung durch einen Bewegungssensor: Man passt nur noch die Entitäten für den Sensor und das Licht, sowie die Einschaltdauer an.
 
+### Dashboards
+Dashboards sind die Bedienfelder, über die die eigentliche Bedienung des Smart Home erfolgt. Wenn alle Geräte und Integrationen eingerichtet sind, lassen sich hier sehr frei unterschiedliche Visualisierungs- und Bedienkonzepte umsetzen. Es können mehrere Dashboards angelegt werden, die auch je Benutzer unterschiedlich freigegeben werden.
+
+Die „Übersicht“, das Standard-Dashboard, zeigt automatisch alle im System vorhandenen Entitäten, gruppiert auf unterschiedlichen Kacheln je Bereich. Ein „Energie“-Dashboard kann die Energieflüsse visualisieren, sofern Sensoren für die Stromflüsse vorhanden sind.
+
 ## Inbetriebnahme
 ### Einbau der Hardware
 Das Smart Center ist in einem Gehäuse verbaut, das die Montage im Sicherungskasten auf einer Hutschiene vorsieht. Das mitgelieferte Kabel muss mit dem seriellen Port des Smart Center und dem Router verbunden werden. Für die Inbetriebnahme muss das Smart Center über ein Kabel mit dem Ethernet verbunden werden. Später kann auf Wunsch auch eine WLAN-Verbindung konfiguriert werden und das Kabel wieder entfernt werden.
@@ -79,11 +84,6 @@ Nachdem der Anmeldung unter der neuen Identität können weitere Personen angele
 Jedem Gerät (und bei Bedarf auch einer einzelnen Entität) kann ein Bereich zugeordnet werden. Daher sollten diese Bereiche vor der Detektion von Geräten bereits angelegt werden. Für ein ansprechendes Erscheinungsbild der Home Assistant Oberfläche empfiehlt es sich, Fotos von den Bereichen zu machen und diese hier hochzuladen. Dieser Schritt kann aber auch später jederzeit nachgeholt werden.
 
 Zum Anlegen der Bereiche wählt man links in der Seitenleiste die „Einstellungen“ und dann den Punkt „Bereiche, Labels & Zonen“. Jetzt kann man für jeden Raum einen „Bereich“ anlegen und jeden Bereich einer Etage. Etagen besitzen je nach Stockwerk ein Symbol (Icon), das vorgeschlagen wird. Den Bereichen kann man selbst ein gewünschtes Symbol zuordnen, indem man entweder in der Liste sucht, oder in das Feld tippt, z.B. „bed“ schränkt die Auswahl auf alle Symbole ein, die diese drei Buchstaben im Namen enthalten.
-
-#### Dashboards
-Dashboards sind die Bedienfelder, über die die eigentliche Bedienung des Smart Home erfolgt. Wenn alle Geräte und Integrationen eingerichtet sind, lassen sich hier sehr frei unterschiedliche Visualisierungs- und Bedienkonzepte umsetzen. Es können mehrere Dashboards angelegt werden, die auch je Benutzer unterschiedlich freigegeben werden.
-
-Die „Übersicht“, das Standard-Dashboard, zeigt automatisch alle im System vorhandenen Entitäten, gruppiert auf unterschiedlichen Kacheln je Bereich. Ein „Energie“-Dashboard kann die Energieflüsse visualisieren, sofern Sensoren für die Stromflüsse vorhanden sind.
 
 ### Grundeinstellungen im Habitron-System
 
