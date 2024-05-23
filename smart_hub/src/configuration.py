@@ -36,7 +36,7 @@ class ModuleSettings:
         )
         self.save_desc_file_needed: bool = False
         self.upload_desc_info_needed: bool = False
-        self.group = dpcopy(module.get_rtr().groups[self.id])
+        self.group = dpcopy(module.get_rtr().groups[self.id - 1])
         self.get_io_interfaces()
         self.get_counters()
         self.get_names()
@@ -79,7 +79,7 @@ class ModuleSettings:
         """Get module counters from status."""
         self.logger.debug("Getting module settings from module status")
         conf = self.status
-        if conf == "":
+        if len(conf) == 0:
             return
         for l_idx in range(10):
             if conf[MirrIdx.LOGIC + 3 * l_idx] == 5:
@@ -97,7 +97,15 @@ class ModuleSettings:
 
         self.logger.debug("Getting module settings from module status")
         conf = self.status
-        if conf == "":
+        if len(conf) == 0 or sum(conf[3:120]) == 0:
+            self.displ_contr = 30
+            self.displ_time = 120
+            self.t_short = 100
+            self.t_long = 1000
+            self.t_dimm = 1
+            self.supply_prio = 230
+            self.temp_ctl = 4
+            self.temp_1_2 = 1
             return False
         self.hw_version = (
             conf[MirrIdx.MOD_SERIAL : MirrIdx.MOD_SERIAL + 16]
@@ -137,7 +145,7 @@ class ModuleSettings:
             if (
                 conf[MirrIdx.COVER_SETTINGS] & (0x01 << c_idx) > 0
             ):  # binary flag for shutters
-                self.cover_times[c_idx] = round(int(conf[MirrIdx.COVER_T + c_idx]) / 10)
+                self.cover_times[c_idx] = round(int(conf[MirrIdx.COVER_T + c_idx]))
                 self.blade_times[c_idx] = round(int(conf[MirrIdx.BLAD_T + c_idx]) / 10)
                 # polarity defined per output, 2 per cover
                 polarity = (covr_pol & (0x01 << (2 * c_idx)) == 0) * 2 - 1
@@ -223,7 +231,7 @@ class ModuleSettings:
                 outp_state = outp_state | (0x01 << int(c_idx))
             status = replace_bytes(
                 status,
-                int.to_bytes(int(self.cover_times[c_idx] * 10)),
+                int.to_bytes(int(self.cover_times[c_idx])),
                 MirrIdx.COVER_T + c_idx,
             )
             status = replace_bytes(
@@ -774,7 +782,6 @@ class RouterSettings:
         self.logger = logging.getLogger(__name__)
         self.channels = rtr.channels
         self.timeout = rtr.timeout
-        # self.groups = rtr.groups
         self.mode_dependencies = rtr.mode_dependencies
         self.user_modes = rtr.user_modes
         self.serial = rtr.serial
@@ -796,6 +803,8 @@ class RouterSettings:
     def get_definitions(self) -> None:
         """Parse router smr info and set values."""
         # self.group_list = []
+        if len(self.smr) == 0:
+            return
         ptr = 1
         max_mod_no = 0
         for ch_i in range(4):
@@ -837,6 +846,8 @@ class RouterSettings:
         resp = self.desc.encode("iso8859-1")
 
         no_lines = int.from_bytes(resp[:2], "little")
+        if len(resp) == 0 and len(self.groups) == 0:
+            self.groups.append(IfDescriptor("general", 0, 0))
         resp = resp[4:]
         for _ in range(no_lines):
             if resp == b"":
@@ -855,9 +866,14 @@ class RouterSettings:
             elif content_code == 2303:  # FF 08: alarm commands
                 pass
             resp = resp[line_len:]
+            if len(self.groups) == 0:
+                self.groups.append(IfDescriptor("general", 0, 0))
 
     def set_glob_descriptions(self) -> str:
         """Add new descriptions into description string."""
+        if self.desc == "":
+            # init description header
+            self.desc = "\x00\x00\x00\x00"
         resp = self.desc.encode("iso8859-1")
         desc = resp[:4].decode("iso8859-1")
         no_lines = int.from_bytes(resp[:2], "little")

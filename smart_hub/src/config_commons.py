@@ -86,10 +86,12 @@ def show_hub_overview(app) -> web.Response:
 
 def show_modules(app) -> web.Response:
     """Prepare modules page."""
-    side_menu = activate_side_menu(app["side_menu"], ">Module<", app["is_offline"])
+    modules = app["api_srv"].routers[0].modules
+    side_menu = adjust_side_menu(modules, app["is_offline"], app["is_install"])
+    app["side_menu"] = side_menu
+    side_menu = activate_side_menu(side_menu, ">Module<", app["is_offline"])
     page = get_html("modules.html").replace("<!-- SideMenu -->", side_menu)
     images = ""
-    modules = app["api_srv"].routers[0].modules
     for module in modules:
         pic_file, title = get_module_image(module._typ)
         images += f'<div class="figd_grid"><a href="module-{module._id}"><div class="fig_grid"><img src="configurator_files/{pic_file}" alt="{module._name}"><p class="mod_subtext">{module._name}</p></div></a></div>\n'
@@ -228,7 +230,16 @@ def adjust_side_menu(modules, is_offline: bool, is_install: bool) -> str:
             )
             side_menu.append('<ul class="level_1">')
             side_menu.append(
-                '<li class="submenu modules last"><a href="setup/" title="Setup" class="submenu modules last">Setup</a></li>'
+                '<li class="submenu modules last"><a href="setup/" title="Einrichten" class="submenu modules last">Einrichten</a>'
+            )
+            side_menu.append(
+                '\n  <ul class="level_2">\n'
+                + '    <li class="setup sub"><a href="setup/add" title="Module anlegen" class="setup sub">Module anlegen</a></li>\n'
+            )
+            side_menu.append(
+                '    <li class="setup sub"><a href="setup/adapt" title="Module verwalten" class="setup sub">Module verwalten</a></li>\n'
+                + "  </ul>\n"
+                + "</li>"
             )
             side_menu.append("</ul>")
         else:
@@ -263,9 +274,9 @@ def activate_side_menu(menu: str, entry: str, is_offline: bool) -> str:
             sub_idx = side_menu.index(sub_line)
             break
     if sub_idx is not None:
-        side_menu[sub_idx] = re.sub(
-            r"title=\"[a-z,A-z,0-9,\-,\"]+ ", "", side_menu[sub_idx]
-        )
+        # side_menu[sub_idx] = re.sub(
+        #     r"title=\"[a-z,A-z,0-9,\-,\"]+ ", "", side_menu[sub_idx]
+        # )
         side_menu[sub_idx] = side_menu[sub_idx].replace('class="', 'class="active ')
     side_menu_str = "".join(side_menu)
     if is_offline:

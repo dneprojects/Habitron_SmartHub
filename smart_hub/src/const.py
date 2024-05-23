@@ -39,7 +39,7 @@ AUTOMATIONEDIT_TEMPLATE_FILE = "automation_edit_template.html"
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.2.0"
+    SW_VERSION = "1.3.0"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
@@ -745,7 +745,7 @@ MODULE_CODES: Final[dict[str, str]] = {
     "\x0a\x14": "Smart Dimm",
     "\x0a\x15": "Smart Dimm-1",
     "\x0a\x16": "Smart Dimm-2",
-    "\x0a\x1e": "Smart UpM",  # Unterputzmodul
+    "\x0a\x1e": "Smart IO 2",  # Unterputzmodul
     "\x0a\x32": "Smart Out 8/R-1",
     "\x0a\x33": "Smart Out 8/R-2",
     "\x0b\x1e": "Smart In 8/24V",

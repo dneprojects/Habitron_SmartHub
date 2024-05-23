@@ -106,6 +106,18 @@
 
             </div>
           </div>
+          <!-- SetupContentStart >
+          <div id="setup-buttons">
+            <div>
+              <form action="setup/remove" id="rem_form">
+                <button name="RemoveModule" id="rem-button" form="rem_form" type="submit" value="ModAddress">Modul entfernen</button>
+              </form>
+              <form action="test/start" id="test_form">
+                <button name="TestModule" id="test-button" form="test_form" type="submit" value="ModAddress">Modul testen</button>
+              </form>
+            </div>
+          </div>
+          <!-- SetupContentEnd -->
         </div>
         <br><br>
         <div id="clear"></div>
@@ -168,28 +180,7 @@
 
   </div>
 
-  <script>
-    const form_upload = document.getElementById("file_upload");
-    const form_download = document.getElementById("file_download");
-    files_button.addEventListener("click", function () {
-      file_popup.classList.add("show");
-    });
-    close_file_popup.addEventListener("click", function () {
-      file_popup.classList.remove("show");
-    });
-    form_upload.addEventListener("submit", function () {
-      openMsgPopup();
-    });
-    window.addEventListener("click", function (event) {
-      if (event.target == file_popup) {
-        openMsgPopup();
-      };
-    });
-    function openMsgPopup() {
-      file_popup.classList.remove("show");
-      msg_popup.classList.add("show");
-    };
-  </script>
+  <script type="text/javascript" src="configurator_files/config.js"></script>
 </body>
 
 </html>
