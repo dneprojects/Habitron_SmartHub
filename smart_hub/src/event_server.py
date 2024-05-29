@@ -407,7 +407,6 @@ class EventServer:
 
         if self.api_srv._test_mode:
             self.events_buffer.append(event)
-            # return
 
         if self.websck_is_closed:
             success = await self.open_websocket()
