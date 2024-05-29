@@ -9,7 +9,8 @@
 	Copyright ©2005-2023 by Leo Feyer :: Extensions are copyright of their respective owners
 	Visit the project website at http://www.contao.org for more information
 
-  //-->
+//-->
+  
   <base href="/">
 
   <title>habitron - Hausautomation und Gebäudesteuerung - Sortiment habitron</title>
@@ -22,6 +23,7 @@
   <link href="configurator_files/style.css" rel="stylesheet" type="text/css" media="screen">
   <link href="configurator_files/nav.css" rel="stylesheet" type="text/css" media="screen">
   <link href="configurator_files/popup.css" rel="stylesheet" type="text/css" media="screen">
+  <link href="configurator_files/tablesort.css" rel="stylesheet" type="text/css" media="screen">
   <!--[if IE]>
 <link href="tl_files/habitron/style_ie.css" rel="stylesheet" type="text/css" media="screen"  />
 <![endif]-->
@@ -52,13 +54,6 @@
               </div>
             </a>
           </div>
-          <!--
-<form id="suche" action="http://habitron.de/suche-habitron.html" method="get" enctype="text/html">
-        <div class="formbody">
-          <input type="text" name="keywords" id="keywords" class="text" value="Suche">
-        </div>
-</form> 
--->
           <div class="mod_article block" id="pic">
 
 
@@ -87,6 +82,12 @@
         <div id="right">
           <div class="inside">
             <div class="mod_article block" id="bild-rechts">
+              <div class="ce_image block">
+                <div class="image_container">
+                  <img src="configurator_files/router.jpg" width="216" height="217" alt="Habitron GmbH">
+                </div>
+
+              </div>
 
             </div>
           </div>
@@ -98,17 +99,10 @@
 
               <div class="ce_text block">
                 <!-- MainContentStart -->
-                <h1>Smart Configurator</h1>
+                <h1>HubTitle</h1>
 
-                <h3>Systemkonfiguration laden und sichern</h3>
-                <div class="ce_image block">
-                  <div class="image_container">
-                    <img src="configurator_files/smart-configurator.jpg" style="width:300px;" alt="Smart Configurator">
-                  </div>
-                
-                </div>
-                <br>
-                <p>Version: x.y.z</p>
+                <h2>Overview</h2>
+                <p>ContentText</p>
                 <!-- MainContentEnd -->
               </div>
 
@@ -119,17 +113,15 @@
       </div>
       <div id="footer">
         <div class="inside">
-          <div id="confbutton" style="position: relative;">
-            <form action="settings" style="width:200px">
-              <!--<button name="ModSettings" id="config_button" type="submit" value="ModAddress">Einstellungen</button>-->
-              <!--<button name="EditAutomtns" id="automtns_button" type="submit" value="ModAddress"
-                      style="float: center; position: absolute; top: 0; left: 280px;">Automatisierungen</button>-->
+          <div id="confbuttons">
+            <form id="buttons_line" action="setup/table_close">
+              <button name="ModSettings" class="config_button" id="transfer_button" type="submit" value="transfer">Übertragen</button>
+              <button name="ModSettings" class="config_button" id="config_button" type="submit"
+                value="cancel">Abbruch</button>
+              <button name="ModSettings" class="config_button" id="config_button_sv" type="submit" form="table-form"
+                value="save-ModAddress">Übernehmen</button>
+              <button name="ConfigFiles" class="config_button" id="files_button" type="button" style="float: right; position: absolute; top: 0; left: 560px;">Systemkonfiguration</button>
             </form>
-            <form id="form-exit" action="exit" style="width:200px">
-              <button name="ModSettings" id="exit_button" type="button" value="exit">Exit</button>
-            </form>
-            <button name="ConfigFiles" id="files_button"
-              style="float: right; position: absolute; top: 0; left: 20px;">Systemkonfiguration</button>
           </div>
         </div>
       </div>
@@ -151,13 +143,38 @@
           <h3>Konfiguration laden (Wiederherstellung)</h3>
           <form id="file_upload" action="upload" enctype="multipart/form-data" method="post">
             <div style="position: relative;">
-              <input id="file_updwnload" name="file" type="file" value="my_system.hcf" accept=".hcf"/>
+              <input id="file_updwnload" name="file" type="file" value="my_system.hcf" accept=".hcf" />
               <button name="SysUpload" id="file_button" type="submit" value="Sys">Upload</button>
             </div>
           </form>
         </div>
         <div id="close_file_popup_box">
           <button id="close_file_popup">
+            schließen
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="updates_popup" class="popup">
+      <div class="popup-content">
+        <h1>Updates</h1>
+        <h2>Upload der Firmware und Flashen von Router oder Modulen</h2>
+        <h3>Router Update</h3>
+        <div>
+          <form id="rtr_fw_upload" action="upd_upload" enctype="multipart/form-data" method="post">
+            <div style="position: relative;">
+              <input id="file_updwnload" name="file" type="file" value="router.rbin" accept=".rbin" />
+              <button name="SysUpload" id="file_button" type="submit" value="rtr">Upload</button>
+            </div></form>
+          <h3>Modul Update</h3>
+          <form id="mod_fw_upload" action="upd_upload" enctype="multipart/form-data" method="post">
+            <div style="position: relative;">
+              <input id="file_updwnload" name="file" type="file" value="module.bin" accept=".bin" />
+              <button name="SysUpload" id="file_button" type="submit" value="mod">Upload</button>
+            </div></form>
+        </div>
+        <div id="close_file_popup_box">
+          <button id="close_updates_popup">
             schließen
           </button>
         </div>
@@ -177,32 +194,11 @@
   </div>
 
   <script type="text/javascript" src="configurator_files/button_help.js"></script>
-  <script>
-    if (location.href.indexOf("#") == -1) {
-      var loc = location.href
-      window.open(loc + "#", "_self")
-    }
-    const form_upload = document.getElementById("file_upload");
-    const form_download = document.getElementById("file_download");
-    const form_exit = document.getElementById("form-exit");
-    files_button.addEventListener("click", function () {  
-      file_popup.classList.add("show");
-    });
-    close_file_popup.addEventListener("click", function () {
-      file_popup.classList.remove("show");
-    });
-    exit_button.addEventListener("click", function () {
-      window.close(); 
-      form_exit.submit()
-    });
-    form_upload.addEventListener("submit", function () {
-      openMsgPopup();
-    });
-    function openMsgPopup() {
-      file_popup.classList.remove("show");
-      msg_popup.classList.add("show");
-    };
-  </script>
+  <script type="text/javascript" src="configurator_files/tablesort.js"></script>
+  <script type="text/javascript" src='configurator_files/tablesort.number.min.js'></script>
+  <script type="text/javascript" src="configurator_files/files.js"></script>
+  <script type="text/javascript" src="configurator_files/setuptable.js"></script>
+  <script>var sorted_table = new Tablesort(document.getElementById('mod-table'));</script>
 </body>
 
 </html>
