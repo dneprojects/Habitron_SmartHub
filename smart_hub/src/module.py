@@ -445,13 +445,19 @@ class HbtnModule:
         """Restore changed settings from config server into module and re-initialize."""
         self.settings = settings
         self.status = settings.set_module_settings(self.status)
+        self.logger.info("Starting 'set_list()'")
         self.list = await settings.set_list()
         self.list_upload = self.list
+        self.logger.info("Starting 'build_smg()'")
         self.smg_upload = self.build_smg()
         if not self.api_srv.is_offline:
+            self.logger.info("Starting 'send_smg()'")
             await self.hdlr.send_module_smg(self._id)
+            self.logger.info("Starting 'send_list()'")
             await self.hdlr.send_module_list(self._id)
+            self.logger.info("Starting 'get_status()'")
             await self.hdlr.get_module_status(self._id)
+            self.logger.info("Finished)'")
         self.comp_status = self.get_status(False)
         self.calc_SMG_crc(self.build_smg())
         self._name = (
