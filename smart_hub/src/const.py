@@ -13,7 +13,7 @@ OWN_INGRESS_IP = "172.30.32.1"
 ALLOWED_INGRESS_IPS = ["172.30.32.2"]
 INGRESS_PORT = 8099
 RT_DEF_ADDR = 1
-RT_BAUDRATE = 19200
+RT_BAUDRATE = [19200, 38400]
 RT_TIMEOUT = 5
 MIRROR_CYC_TIME = 1
 RD_DELAY = 0.1
@@ -39,7 +39,7 @@ AUTOMATIONEDIT_TEMPLATE_FILE = "automation_edit_template.html"
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.3.5"
+    SW_VERSION = "1.3.6"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
