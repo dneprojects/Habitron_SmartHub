@@ -94,8 +94,9 @@ class ModHdlr(HdlrBase):
             await self.set_ekey_version()
         if self.mod._typ == b"\x1e\x03":
             # GSM specific settings
-            await self.set_pin()
-            await self.set_logic_units()
+            # await self.set_pin()
+            # await self.set_logic_units()
+            pass
         await self.api_srv.set_operate_mode()
 
     async def get_module_list(self, mod_addr: int) -> bytes:
