@@ -375,7 +375,7 @@ class ModuleSettings:
                                     if arg_code in range(44, 48):
                                         self.inputs[arg_code - 44].name = text
                                         self.inputs[arg_code - 44].nmbr = arg_code - 43
-                                else:
+                                else:  # sc inputs 24V
                                     self.inputs[arg_code - 40].name = text
                                     self.inputs[arg_code - 40].nmbr = arg_code - 39
                             elif arg_code in range(110, 120):
@@ -763,12 +763,18 @@ class ModuleSettings:
                     new_list.append(
                         f"\xff\0\xeb{chr(17 + led.nmbr)}\1\x23\0\xeb" + desc
                     )
+        if self.module._typ[0] == 1 or self.module._typ == b"\x32\x01":
+            inpt_offs = 39
+        else:
+            inpt_offs = 9
         for inpt in self.inputs:
             desc = inpt.name
-            # if len(desc.strip()) > 0:
-            desc += " " * (32 - len(desc))
-            desc = desc[:32]
-            new_list.append(f"\xff\0\xeb{chr(39 + inpt.nmbr)}\1\x23\0\xeb" + desc)
+            if len(desc.strip()) > 0 or self.module._typ[0] == 11:
+                desc += " " * (32 - len(desc))
+                desc = desc[:32]
+                new_list.append(
+                    f"\xff\0\xeb{chr(inpt_offs + inpt.nmbr)}\1\x23\0\xeb" + desc
+                )
         for outpt in self.outputs:
             desc = outpt.name
             if len(desc.strip()) > 0:
@@ -816,10 +822,12 @@ class ModuleSettings:
         for nr in self.gsm_numbers:
             desc = nr.name
             desc += " " * (32 - len(desc))
+            self.logger.info(f"GSM nr: {nr.nmbr} - {nr.name}")
             new_list.append(f"\xfe\0\xeb{chr(nr.nmbr)}\x01\x23\0\xeb" + desc)
         for msg in self.gsm_messages:
             desc = msg.name
             desc += " " * (32 - len(desc))
+            self.logger.info(f"GSM nr: {msg.nmbr} - {msg.name}")
             new_list.append(f"\xff\0\xeb{chr(msg.nmbr)}\x01\x23\0\xeb" + desc)
         return self.adapt_list_header(new_list)
 
