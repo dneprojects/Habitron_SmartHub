@@ -39,7 +39,7 @@ AUTOMATIONEDIT_TEMPLATE_FILE = "automation_edit_template.html"
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.3.8"
+    SW_VERSION = "1.3.9"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
@@ -168,6 +168,7 @@ class API_ACTIONS:
     MSG_RESET = 256 * 17 + 0
     MSG_SET = 256 * 17 + 1
     MSG_TIME = 256 * 17 + 3
+    MSG_SMS = 256 * 17 + 11
 
     BUZZER_SET = 256 * 18 + 1
 
@@ -564,6 +565,8 @@ class MirrIdx:
     LUM = 27
     MOV = 29
     LED_I = 30  # not included in status
+    GEN_1 = 31
+    GEN_2 = 32
     IR_H = 31
     IR_L = 32
     WIND = 33  # for smart nature (wrong indices?)
@@ -583,6 +586,8 @@ class MirrIdx:
     T_SETP_2 = 73
     T_LIM = 75
     CLIM_SETTINGS = 77
+    GEN_3 = 78
+    GEN_4 = 79
     RAIN = 78
     DISPL_CONTR = 79
     DCF77_STAT = 79
@@ -838,6 +843,7 @@ class HA_EVENTS:
     PERCNT = 11
     DIR_CMD = 12
     MOVE = 13
+    ANLG_VAL = 14
     MODE = 15
     SYS_ERR = 16
 
@@ -855,6 +861,7 @@ class HA_EVENTS:
         11: "Percent",
         12: "Direct command",
         13: "Motion",
+        14: "Analog value",
         15: "Mode",
         16: "System error",
     }
