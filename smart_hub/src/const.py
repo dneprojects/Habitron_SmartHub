@@ -39,7 +39,7 @@ AUTOMATIONEDIT_TEMPLATE_FILE = "automation_edit_template.html"
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.3.9"
+    SW_VERSION = "1.4.0"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
@@ -813,18 +813,19 @@ LGC_TYPES: dict[int, str] = {
     4: "NOR",
 }
 
-FingerNames = [
-    "Kleiner Finger links",
-    "Ringfinger links",
-    "Mittelfinger links",
-    "Zeigefinger links",
-    "Daumen links",
-    "Daumen rechts",
-    "Zeigefinger rechts",
-    "Mittelfinger rechts",
-    "Ringfinger rechts",
-    "Kleiner Finger rechts",
-]
+FingerNames: dict[int, str] = {
+    1: "Kleiner Finger links",
+    2: "Ringfinger links",
+    3: "Mittelfinger links",
+    4: "Zeigefinger links",
+    5: "Daumen links",
+    6: "Daumen rechts",
+    7: "Zeigefinger rechts",
+    8: "Mittelfinger rechts",
+    9: "Ringfinger rechts",
+    10: "Kleiner Finger rechts",
+    255: "-",
+}
 
 
 class HA_EVENTS:
