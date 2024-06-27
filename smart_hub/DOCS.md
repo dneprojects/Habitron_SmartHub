@@ -2,22 +2,26 @@
 
 ## Einleitung
 Das Habitron Smart Center bietet eine vorinstallierte Gesamtlösung zur Kombination eines Habitron Systems mit Home Assistant, einer Plattform zur Integration von smarten Komponenten verschiedener Hersteller zu einer übergreifenden und flexibel erweiterbaren Hausautomatisierung. 
-Das Smart Center besteht aus vier Teilen:
+Das Smart Center als Gerät führt gleichzeitig vier Programmteile aus:
 ### 1. Smart Hub
-Der Smart Hub fungiert als Gateway zwischen dem hausinternen Netzwerk (Ethernet oder WLAN) und dem Habitron-Router, der über eine serielle Schnittstelle extern angebunden ist. Der Router wiederum ist mit den installierten Habitron-Modulen, wie Raum-Controllern und Ein- und Ausgangsmodulen, vernetzt. Smart Hub realisiert somit die Schnittstelle des Smart Center nach außen in die Habitron-Systemwelt.
+Der Smart Hub fungiert als Gateway zwischen dem hausinternen Netzwerk (Ethernet oder WLAN) und dem Habitron-Router, der über eine serielle Schnittstelle extern angebunden ist. Der Router wiederum ist mit den installierten Habitron-Modulen, wie Raum-Controllern und Ein- und Ausgangsmodulen, vernetzt. Smart Hub realisiert somit den Zugang in die Habitron-Systemwelt.
+Das Software-Modul Smart Hub ist als add-on für Home Assistant verfügbar und mit diesem vorinstalliert. Es benötigt keine Konfiguration. Im Smart Hub add-on ist auch der Smart Configurator enthalten, auch wenn dieser ein eigenständiges Modul darstellt.
 ### 2. Smart Configurator
-Das Smart Center stellt eine Konfigurationsoberfläche bereit, den Smart Configurator. Über diesen lässt sich das Habitron-System mit seinen gesamten Einstellungen konfigurieren. Für die Module können Namen vergeben werden, wie auch für die Ein- und Ausgänge. Auch grundsätzliche Einstellungen, wie die Konfiguration von Eingängen für Taster oder Schalter oder die Bündelung von Ausgängen zur Rollladenansteuerung werden hier vorgenommen. Darüber hinaus werden hier Befehle, Merker und Zähler verwaltet, wie auch die Automatisierungen, die direkt auf dem Habitron-System ausgeführt werden sollen.
+Das Smart Center stellt eine Konfigurationsoberfläche bereit, den Smart Configurator. Über diesen lässt sich das Habitron-System mit seinen gesamten Einstellungen konfigurieren. Für die Module können Namen vergeben werden, wie auch für die Ein- und Ausgänge. Auch grundsätzliche Einstellungen, wie die Konfiguration von Eingängen für Taster oder Schalter oder die Bündelung von Ausgängen zur Rollladenansteuerung werden hier vorgenommen. Darüber hinaus werden hier Befehle, Merker und Zähler angelegt und verwaltet, wie auch die Automatisierungen, die direkt auf dem Habitron-System ausgeführt werden sollen.
+Die Bedienung des Smart Configurator ist nur für Administratoren vorgesehen.
 ### 3. Home Assistant
-Home Assistant ist auf dem Gerät vorinstalliert und wird mit einigen sinnvollen Voreinstellungen ausgeliefert. Für die Anpassung an das eigene Haus mit den dortigen weiteren Komponenten lassen sich weitere Integrationen jederzeit nachträglich installieren. Die Bedienung des gesamten Smart Home erfolgt über die Home Assistant Bedienoberfläche, die eine nahtlose Benutzererfahrung über die Systeme der unterschiedlichen Hersteller ermöglicht. Auch Automatisierungen über die Grenzen der Herstellersysteme werden hier angelegt.
+Home Assistant ist auf dem Smart Center Gerät vorinstalliert und wird mit einigen sinnvollen Voreinstellungen ausgeliefert. Für die Anpassung an das eigene Haus mit den dortigen weiteren Komponenten, wie etwa Kameras, Multimediasysteme, etc., lassen sich weitere Integrationen jederzeit nachträglich installieren. Eine der installierten Integrationen ist die für das Habitron-System.
+Die Bedienung des gesamten Smart Home erfolgt über die Home Assistant Bedienoberfläche, die eine nahtlose, integrierte Benutzererfahrung über die Systeme der unterschiedlichen Hersteller hinweg ermöglicht. Neben der übergreifenden Bedienbarkeit lassen sich in Home Assistant auch Automati-sierungen anlegen, die innerhalb, aber auch zwischen den verschiedenen Herstellersystemen wirken.
 ### 4. Habitron-Integration
-Als Basis für das Zusammenspiel mit dem Habitron Smart Hub ist die Habitron-Integration vorinstalliert. Dieses Software-Modul stellt die Schnittstelle des Smart Center zu Home Assistant bereit. Die Integration fragt das Habitron-System nach vorhandenen Controllern und Modulen ab und fügt die entsprechenden Funktionalitäten als Home Assistant Entitäten ein, z.B. Rollladen, Licht, Schalter, etc.
+Als Basis für das Zusammenspiel mit dem Habitron Smart Hub ist die Habitron-Integration vorinstalliert. Dieses Software-Modul stellt die Schnittstelle des Smart Center zu Home Assistant bereit. Die Integration fragt das Habitron-System nach vorhandenen Controllern und Modulen ab und fügt die entsprechenden Funktionalitäten als Home Assistant Entitäten ein, z.B. Rollladen, Licht, Schalter, Sensoren und mehr.
 
-In den folgenden Abschnitten wird die Inbetriebnahme, die Konfiguration, die grundsätzliche Bedienung und das Anlegen von Automatisierungen beschrieben.
-## Grundbegriffe
+In den folgenden Abschnitten wird die Inbetriebnahme, die Konfiguration, die grundsätzliche Bedienung und das Anlegen von Automatisierungen beschrieben. Zuvor sollen jedoch noch einige Grundbegriffe erklärt werden, die von Home Assistant verwendet werden.
+
+## Grundbegriffe von Home Assistant
 Vorab sollen noch ein paar Grundbegriffe erklärt werden, die in dieser Beschreibung und den Dialogen bei Home Assistant immer wieder vorkommen.
+
 ### Entitäten
 Die grundlegende Einheit in Home Assistant ist die Entität. Eine Entität hat einen bestimmten Typ, z.B. ein Licht oder ein Schalter, ein Sensor oder ein Rollladen. Jede Entität hat je nach Typ unterschiedliche Eigenschaften und Möglichkeiten. So kann ein Licht dimmbar oder nur schaltbar sein, aber auch eine Farbe oder eine Farbtemperatur des Weißtons annehmen. Eine Klima-Entität kann heizen und/oder kühlen.
-
 Entitäten und ihre Eigenschaften werden beim Hochfahren von Home Assistant automatisch erkannt. Für das Habitron-System übernimmt dies die Habitron-Integration auf Basis der Einstellungen, die über den Smart Configurator zuvor vorgenommen wurden. 
 
 ### Geräte
@@ -38,15 +42,18 @@ Labels sind eine weitere Methode, um Entitäten zu gruppieren. Eine Entität kan
 Zonen sind geografische Bereiche, die genutzt werden sollen, um Automatisierungen auszulösen. Zu den Grundeinstellungen gehört die „Home“-Zone um die eigene Adresse, bei dessen Verlassen oder Eintritt sich z.B. eine Verriegelung oder eine Temperaturabsenkung steuern lässt. Zonen werden über eine Adresse oder einen Punkt auf der Karte definiert und haben einen Radius um diesen Punkt.
 
 ### Automatisierungen
-Automatisierungen verknüpfen die verschiedenen Entitäten miteinander und sorgen so für smarte Funktionen. Die einfachste Form der Automatisierung ist das Ereignis eines Tastendrucks mit einer Ausgangsänderung zu verbinden. In Home Assistant lassen sich Regeln sehr flexibel und elegant definieren, indem verschiedene Auslöser mit verschiedenen Bedingungen verknüpft verschiedene Aktionen auslösen lassen. So kann eine Regel in Home Assistant einen komplexeren Ablauf definieren und selbstverständlich Entitäten unterschiedlicher Hersteller miteinander verknüpfen.
+Automatisierungen verknüpfen die verschiedenen Entitäten miteinander und sorgen so für smarte Funktionen. Die einfachste Form der Automatisierung ist das Ereignis eines Tastendrucks mit einer Ausgangsänderung zu verbinden. In Home Assistant lassen sich Regeln sehr flexibel und elegant definieren, indem verschiedene Auslöser mit verschiedenen Bedingungen verknüpft verschiedene Aktionen auslösen lassen. So kann eine einzige Regel in Home Assistant einen komplexeren Zusammenhang definieren und selbstverständlich Entitäten unterschiedlicher Hersteller miteinander verknüpfen.
 
 Automatisierungen lassen sich sowohl in Home Assistant definieren, als auch in bestimmten Systemen, wie bei Habitron, lokal. Dies kann zur Unsicherheit führen, dass unklar ist, ob eine bestimmte Automatisierung im Habitron-System oder bei Home Assistant definiert wurde. Daher empfiehlt es sich, ein paar grundsätzliche Kriterien zu berücksichtigen:
+
 -	Eine Automatisierung, die verschiedene Systeme verknüpft, muss in Home Assistant angelegt werden.
 -	Eine Automatisierung, die komplexere Bedingungen enthält oder verschiedene Entitäten gleich verknüpft, sollte bei Home Assistant definiert werden, weil im Habitron-System dafür zusätzliche Definitionen nötig werden, wie z.B. Sammelbefehle.
 -	Eine Richtschnur kann sein, nur solche Automatisierungen im Habitron-System anzulegen, die lokal auf einem Controller ausgeführt werden, z.B. Licht- oder Rollladenaktionen, die über lokal am Controller angeschlossenen Tastern ausgelöst werden. Diese Aktionen bleiben selbst dann verfügbar, wenn eine Störung im System vorliegen sollte.
 
 ### Szenen
-Home Assistant bietet eine besondere Form der Automatisierung, die Szene. Anders als bei einer Automatisierung muss eine Szene nicht programmiert werden, sondern sie wird konfiguriert, indem man die Entitäten, die Teil der Szene sein sollten, auswählt und deren aktuellen Zustand übernimmt. Dieser Zustand besteht nicht nur aus dem Schaltzustand, sondern z.B. auch der Farbe eines Lichts oder der Position eines Rollladens. Szenen können selbst wieder Teil einer Automatisierung sein.
+Home Assistant bietet eine besondere Form der Automatisierung, die Szene. Anders als bei einer Automatisierung muss eine Szene nicht programmiert werden, sondern sie wird konfiguriert, indem man die Entitäten, die Teil der Szene sein sollten, auswählt und deren aktuellen Zustand übernimmt. Dieser Zustand besteht nicht nur aus dem Schaltzustand, sondern z.B. auch der Farbe eines Lichts, der Position eines Rollladens oder einer Solltemperatur des Raumes.
+
+Man schaltet also das Licht in der gewünschten Helligkeit und Farbe ein oder aus, bringt die alle weiteren Entitäten, die Teil der Szene sein sollen, in den gewünschten Zustand und definiert dann die entsprechende Szene. Szenen können selbst wieder Teil einer Automatisierung sein, um z.B. auf diese Weise ausgelöst zu werden.
 
 ### Skripte und Blaupausen
 Mit Hilfe von Skripten lassen sich noch komplexere Automatisierungen programmieren. Während eine „normale“ Automatisierung mit Hilfe der Benutzeroberfläche zusammengestellt wird, muss ein Skript programmiert werden.
@@ -73,6 +80,7 @@ Es erscheint ein Anmeldedialog, in dem als Benutzername „habitron_admin“ und
 Bevor man mit der Bedienung beginnt, sollten einige Einstellungen vorab vorgenommen werden, die aufeinander aufbauen. Auch wenn sich alle Einstellungen auch nachträglich anpassen lassen, empfiehlt es sich, diese Vorgehensweise in der beschriebenen Reihenfolge einzuhalten.
 
 Die Einstellungen von Home Assistant erreicht man, indem an der linken Seite der Weboberfläche das Zahnradsymbol geklickt wird.
+
 #### Benutzerverwaltung
 Als erstes sollte für jeden Bediener des Systems eine Person angelegt werden. Dazu gibt es im Bereich der Einstellungen den Bereich der „Personen“. Rechts unten auf der Personen-Seite lässt sich über den schwebenden Button „+ PERSON HINZUFÜGEN“ eine neue Person anlegen. 
 
@@ -85,7 +93,7 @@ Nachdem der Anmeldung unter der neuen Identität können weitere Personen angele
 #### Bereiche, Etagen und Zonen
 Jedem Gerät (und bei Bedarf auch einer einzelnen Entität) kann ein Bereich zugeordnet werden. Daher sollten diese Bereiche vor der Detektion von Geräten bereits angelegt werden. Für ein ansprechendes Erscheinungsbild der Home Assistant Oberfläche empfiehlt es sich, Fotos von den Bereichen zu machen und diese hier hochzuladen. Dieser Schritt kann aber auch später jederzeit nachgeholt werden.
 
-Zum Anlegen der Bereiche wählt man links in der Seitenleiste die „Einstellungen“ und dann den Punkt „Bereiche, Labels & Zonen“. Jetzt kann man für jeden Raum einen „Bereich“ anlegen und jeden Bereich einer Etage. Etagen besitzen je nach Stockwerk ein Symbol (Icon), das vorgeschlagen wird. Den Bereichen kann man selbst ein gewünschtes Symbol zuordnen, indem man entweder in der Liste sucht, oder in das Feld tippt, z.B. „bed“ schränkt die Auswahl auf alle Symbole ein, die diese drei Buchstaben im Namen enthalten.
+Zum Anlegen der Bereiche wählt man links in der Seitenleiste die „Einstellungen“ und dann den Punkt „Bereiche, Labels & Zonen“. Jetzt kann man für jeden Raum einen „Bereich“ anlegen und jeden Bereich einer Etage zuordnen. Etagen besitzen je nach Stockwerk ein Symbol (Icon), das vorgeschlagen wird. Den Bereichen kann man selbst ein gewünschtes Symbol zuordnen, indem man entweder in der Liste sucht, oder in das Feld tippt, z.B. „bed“ schränkt die Auswahl auf alle Symbole ein, die diese drei Buchstaben im Namen enthalten.
 
 ### Grundeinstellungen im Habitron-System
 
@@ -93,15 +101,21 @@ In der Seitenleiste befindet sich ein Habitron-Symbol mit der Beschriftung „Ha
 
 Grundsätzlich ist zu beachten, dass nicht benannte Ein- oder Ausgänge, wie auch andere Elemente ohne Namen, von der Habitron-Integration für Home Assistant als nicht existent behandelt werden. Es wird davon ausgegangen, dass alle relevanten Entitäten einen Namen besitzen. Daher ist dieser Konfigurationsvorgang vor Beginn der Detektion wichtig. Zwar sind auch nachträgliche Änderungen möglich, aber dazu muss die Integration neu geladen werden und gelöschte Einträge führen zu verwaisten Entitäten in Home Assistant.
 
-Für die genauere Bedienung des Smart Configurator ist das gesonderte Kapitel zu beachten.
+Für die genauere Informationen ist das Kapitel „Bedienung des Smart Configurator" zu beachten.
 
-Es wird dringend geraten, die Einstellungen des Routers und aller Module einmal durchzugehen, um alle benötigten Taster, LEDs, Ein- und Ausgänge mit Namen zu versehen. Obligatorisch ist ferner bei den Eingängen die Einstellung, ob es sich um einen Taster oder einen Schalter handelt, und bei den Ausgängen sind die Rollladenbeschaltungen und deren Polarität zu wählen. Ein Textfeld je Rollladen erlaubt die Einstellung der Zeit zum Öffnen/Schließen, um eine Positionsansteuerung zu ermöglichen. Jalousien lassen sich von Rollladen nur anhand einer gesetzten zweiten Verstellzeit unterscheiden, dieses Feld muss bei Rollladen eine Null enthalten.
+Es wird dringend geraten, die Einstellungen des Routers und aller Module einmal durchzugehen:
+-	Alle benötigten Taster, Schalter und Ausgänge müssen mit Namen versehen sein.
+-	Obligatorisch ist ferner bei den Eingängen die Einstellung, ob es sich um einen Taster oder einen Schalter handelt.
+-	Bei den Ausgängen sind die Rollladenbeschaltungen und deren Polarität zu wählen. Ein Textfeld je Rollladen erlaubt die Einstellung der Zeit zum Öffnen/Schließen, um eine Positionsansteuerung zu ermöglichen. 
+-	Jalousien lassen sich von Rollladen nur anhand einer gesetzten zweiten Verstellzeit unterscheiden, dieses Feld muss bei Rollladen eine Null enthalten.
 
 ### Erfassung des Habitron-Systems in Home Assistant
 
 Nach diesen Grundeinstellungen in Home Assistant und im Habitron-System, kann nun die Integration gestartet werden. Dazu wird unter „Einstellungen“ / „Geräte & Dienste“ im Bereich der konfigurierten Integrationen (unten) die Kachel „Habitron“ gewählt. Auf der nun erscheinenden Seite gibt es rechts ein Menu mit drei Punkten, aus dem „Neu laden“ geklickt wird. 
 
-Die Habitron-Integration wird neu gestartet und fragt über den Smart Hub das System nach seinen Modulen und Einstellungen. Diese werden dann als Geräte und Entitäten angelegt. Nach diesem Vorgang erscheint ein Fenster, in dem alle gefundenen Geräte aufgeführt sind. Diese können in diesem Schritt jeweils einem zuvor definierten Bereich zugeordnet werden. Ansonsten lassen sich auch in diesem Schritt Bereiche neu anlegen.
+Die Habitron-Integration wird nun neu gestartet und fragt über den Smart Hub das System nach seinen Modulen und Einstellungen. Dieser Schritt ist übrigens immer dann erneut notwendig, wenn Veränderungen an der Konfiguration des Habitron-Systems vorgenommen werden.
+
+Die gefundenen Geräte mit ihren Ein-, Ausgängen und Sensoren werden dann als Geräte und Entitäten angelegt. Nach diesem Vorgang erscheint ein Fenster, in dem alle neu gefundenen Geräte aufgeführt sind. Diese können in diesem Schritt jeweils einem zuvor definierten Bereich zugeordnet werden. Ansonsten lassen sich auch in diesem Schritt Bereiche neu anlegen.
 
 Danach ist die Einrichtung abgeschlossen. Alle Geräte und Entitäten erscheinen auf einem Standard-Dashboard, das in der Seitenleiste ganz oben mit den Namen „Übersicht“ zu finden ist. Dort befinden sich Kacheln für jeden Bereich mit einer Liste aller jeweiligen Entitäten.
 
@@ -115,9 +129,9 @@ Auf der linken Menuleiste lassen sich die Übersichtsseiten für den Hub, den Ro
 
 Die Einstellungen erfolgen über mehrere Seiten, die mit den Tasten „weiter“ oder „zurück“ gewechselt werden können. Erst mit dem „Speichern“ Button erfolgt die Übernahme ins System. Dann werden die Einstellungen im Router gespeichert. Ein Abbruch macht alle Änderungen, die auf den Einstellungsseiten ohne zu speichern gemacht wurden, rückgängig.
 
-Auf der ersten Seite erhält der Router einen Namen. Außerdem lassen sich die beiden benutzerdefinierten Modi, die zusätzlich zu den Standard-Modi, wie „Anwesend“, „Abwesend“, „Schlafen“ und „Urlaub“ zur Verfügung stehen, mit einem aussagekräftigen Namen versehen.
+Auf der ersten Seite erhält der Router einen Namen. Außerdem lassen sich die beiden benutzerdefinierten Modi, die zusätzlich zu den Standard-Modi, wie „Anwesend“, „Abwesend“, „Schlafen“ und „Urlaub“ zur Verfügung stehen, mit einem aussagekräftigen Namen versehen. Die folgenden beiden Seiten dienen der Einstellung der Tag-/Nachtumschaltung.
 
-Auf der folgenden Seite werden Gruppennamen vergeben. Die Gruppen dienen dem Zweck, die Modi sowie die Zustande „Tag“/ „Nacht“ und „Alarm“ in Bereichen unabhängig voneinander steuern zu können. Während die Modi, z.B. „Anwesend“ in den Gruppen immer unabhängig voneinander sind, können Tag/Nacht und Alarm über die Gruppe 0 übergreifend verwendet werden. Wenn also unabhängige Zustände erwünscht sind, müssen hier Gruppen angelegt werden.
+Auf der folgenden Seite werden Gruppennamen vergeben. Die Gruppen dienen dem Zweck, die Modi sowie die Zustände „Tag“/ „Nacht“ und „Alarm“ in Bereichen unabhängig voneinander steuern zu können. Während die Modi, z.B. „Anwesend“ in den Gruppen immer unabhängig voneinander sind, können Tag/Nacht und Alarm über die Gruppe 0 übergreifend verwendet werden. Wenn also unabhängige Zustände erwünscht sind, müssen hier Gruppen angelegt werden.
 
 Dazu wird im unteren Feld eine Zahl eingegeben oder die Pfeiltasten am rechten Rand der Textbox verändert. Es erfolgt eine Überprüfung auf den Wertebereich und bereits vergebene Zahlen dürfen nicht eingegeben werden, in diesem Fall wird der nächste freie Zahlenwert übernommen. Neu angelegte Gruppen erhalten einen allgemeinen Namen, der umbenannt werden sollte. Über die Auswahlkästchen rechts lassen sich existierende Einträge wählen und daraufhin entfernen.
 
@@ -132,17 +146,22 @@ Wenn alle Einstellungen erfolgt sind, bitte das Speichern nicht vergessen!
 Nach der Auswahl des Menupunkts „Module“ wird eine Übersicht aller im System vorhandenen Module dargestellt. Jedes Modul bietet auf seiner Übersichtsseite Informationen zur Adresse, den Routerkanal, über den das Modul angebunden ist, und einer Seriennummer sowie dem Softwarestand der Firmware. Bei Modulen, die Aktoren steuern, ist neben den Buttons für die Einstellungen und die Konfigurationsdatei auch ein dritter verfügbar, um die Automatisierungen zur verwalten. Die Einstellungsseiten unterscheiden sich je nach Typ des Moduls. Hier ist exemplarisch der Raumcontroller beschrieben, die anderen Module bieten weniger Konfigurationsoptionen.
 
 Die erste Seite mit den Grundeinstellungen enthält den Modulnamen und dessen Gruppenzugehörigkeit. Es werden grundsätzlich nur Gruppen angeboten, die mit einem Namen versehen wurden, bei anderen, unbenannten Gruppen wird davon ausgegangen, dass diese nicht relevant sind.
-Seite zwei ermöglicht die Benennung der acht Modultasten. Auch hier gilt, nicht benannte Tasten erscheinen nicht in Home Assistant als Entitäten. Nachfolgend können die acht roten Signal-LEDs mit Namen versehen werden. Die Einstellungen der Eingänge umfassen neben die Namen die Umschaltung zwischen Taster und Schalter. Auf der Seite der Ausgänge sind ebenfalls Namen für alle verwendeten Ausgänge zu vergeben. 
+
+Raumcontroller bieten zusätzlich Einstellungen für das Display, Tastenzeiten, das Dimmen, die Klimatisierung und die Priorität der Spannungsversorgung. 
+
+Seite zwei ermöglicht die Benennung der acht Modultasten. Auch hier gilt, nicht benannte Tasten erscheinen nicht in Home Assistant als Entitäten. Nachfolgend können die acht roten Signal-LEDs mit Namen versehen werden. Die Einstellungen der Eingänge umfassen neben die Namen die Umschaltung zwischen Taster und Schalter. Beim Input-Modul mit 24V-Eingängen lassen sich zusätzlich sechs der Eingänge zu Analogeingängen umkonfigurieren. Auf der Seite der Ausgänge sind ebenfalls Namen für alle verwendeten Ausgänge zu vergeben.
 
 Bei den ersten fünf Ausgangspaaren ist zusätzlich der Schalter für eine Rollladenverschaltung zu setzen, die sich auf die Folgeseite auswirkt. Dort sind für die als Rollladen konfigurierten Paare Einstellungen zu finden. Der Name wird von der vorherigen Seite übernommen, allerdings werden Bezeichnungen wie „auf“, „ab“, „up“, „down“ aus dem Namen entfernt und je nach hier definierter Polarität für die einzelnen Ausgänge des Paares angepasst. Je Rollladen sind zwei Textfelder vorhanden, um die Zeiten für die Verstellung eintragen zu können. Das erste Feld beschreibt das Öffnen/Schließen des Rollladens. Ist im zweiten Feld ein Wert größer als Null eingetragen, wird der Rollladen als Jalousie erkannt, die zweite Zeit beschreibt dann die Zeit für das Umlegen der Lamellen.
 
-Auf der nächsten Seite lassen sich Zähler anlegen. Wie grundsätzlich wird zuerst eine Nummer vergeben, dann erscheint in diesem Fall ein Popup-Fenster mit der Abfrage, wie viele Zählerwerte zulässig sind (wenn der obere Wert beim Hochzählen überschritten wird, geht es zurück auf die Eins). Die folgenden Seiten erlauben die Verwaltung von lokalen Merkern, Direktbefehlen und Visualisierungsbefehlen.
+Auf der nächsten Seite lassen sich Zähler anlegen. Wie grundsätzlich wird zuerst eine Nummer vergeben, dann erscheint in diesem Fall ein Popup-Fenster mit der Abfrage, wie viele Zählerwerte zulässig sind (wenn der obere Wert beim Hochzählen überschritten wird, geht es zurück auf die Eins). Danach können Logikfunktionen für das Modul verwaltet werden. Hier wird beim Neuanlegen über ein popup abgefragt, um welche Logikfunktion es sich handeln (AND, NAND, OR, NOR) und wie viele Eingänge die Funktion haben soll.
+
+Die Folgeseiten erlauben die Verwaltung von lokalen Merkern, Direktbefehlen und Visualisierungsbefehlen, sowie Meldungstexten.
 
 Auch bei den Einstellungen für die Module am Ende bitte das Speichern nicht vergessen. Alle Einstellungen, die bis dahin gemacht werden, sind nur vorläufig, d.h. mit „Abbruch“ kann man jederzeit Eingaben wieder verwerfen. „Speichern“ startet einen Upload der Einstellungen ins entsprechende Modul. 
 
 ### Automatisierungen
 
-Auf der Übersichtsseite jedes Moduls, das Aktionen ausführen kann, befindet sich unten ein Button „Automatisierungen“, über den sich eine Liste der im Modul gespeicherten Automatisierungen anzeigen lässt. Auf einer ersten Seite werden alle lokalen Verknüpfungen angezeigt, die Auslöser auf dem entsprechenden Modul mit Aktionen desselben Moduls verbinden. Über den „weiter“-Button lassen sich die Automatisierungen anzeigen, die von anderen Modulen ausgelöst werden.
+Auf der Übersichtsseite jedes Moduls, das Aktionen ausführen kann, befindet sich unten ein Button „Automatisierungen“, über den sich eine Liste der im Modul gespeicherten Automatisierungen anzeigen lässt. Auf einer ersten Seite werden alle lokalen Verknüpfungen angezeigt, die Auslöser auf dem entsprechenden Modul mit Aktionen desselben Moduls verbinden. Über den „weiter“-Button lassen sich die Automatisierungen anzeigen, die von anderen Modulen ausgelöst werden. Die Listen lassen sich nach Auslösern, Bedingungen oder Aktionen sortieren, um gleichartige Regeln schneller auffinden zu können.
 
 Die Bedienung erfolgt auf beiden Seiten identisch. Eine der Automatisierungsregeln ist immer ausgewählt. Diese kann entweder gelöscht, geändert oder als Vorlage für eine neue Regel genutzt werden. Beim Löschen erscheint ein Popup mit einer Rückfrage, die eine Freigabe oder das Abbrechen des Löschvorgangs ermöglicht. 
 
@@ -160,10 +179,12 @@ Auf jeder Übersichtsseite eines Moduls oder des Routers kann ein Dialog für di
 
 ### Updates
 
-Von der Übersichtsseite des Hubs aus kann ein Update der Router- oder Modulfirmware vorgenommen werden. Zunächst ist auf dem lokalen Gerät eine Firmwaredatei auszuwählen, die dann auf den Hub geladen wird. Danach ist immer noch ein Abbruch möglich. Bei Modulen findet im Anschluss ein Vergleich mit den im System vorhandenen Modulen statt und es wird eine Übersicht aller Module des zur Firmware kompatiblen Typs dargestellt. Wenn die Firmware neuer ist als der Firmwarestand eines Moduls, wird dieses selektiert dargestellt. Manuell lassen sich jetzt Module anwählen oder abwählen, um gezielt nur bestimmte Module mit der veränderten Firmware zu flashen. Über eine manuelle Selektion kann auch ein älterer Firmwarestand geflasht werden.
+Grundsätzlich bietet Smart Center eine automatische Versorgung mit Updates, auch für die Firmware von Modulen und Router. Der aktuelle Stand aller Firmware-Dateien wird mit jeder neuen Version des Smart Hub Add-ons ausgerollt. Wenn ein Modul oder der Router einen davon abweichenden Firmwarestand aufweisen sollte, erfolgt über Home Assistant eine Information, über die dann auch der Update-Vorgang angestoßen werden kann. Dies ist möglich, ohne den Smart Configurator zu benutzen.
+
+Zusätzlich kann von der Übersichtsseite des Hubs ein Update der Router- oder Modulfirmware auf einen beliebigen Stand vorgenommen werden. Dazu ist zunächst auf dem lokalen Gerät eine Firmwaredatei auszuwählen, die dann auf den Hub geladen wird. Danach ist immer noch ein Abbruch möglich. Bei Modulen findet im Anschluss ein Vergleich mit den im System vorhandenen Modulen statt und es wird eine Übersicht aller Module des zur Firmware kompatiblen Typs dargestellt. Wenn die Firmware neuer ist als der Firmwarestand eines Moduls, wird dieses selektiert dargestellt. Manuell lassen sich jetzt Module anwählen oder abwählen, um gezielt nur bestimmte Module mit der veränderten Firmware zu flashen. Über eine manuelle Selektion kann auch ein älterer Firmwarestand geflasht werden.
 
 Wenn der Button „Flashen“ gedrückt wurde, ist der Vorgang nicht mehr abzubrechen. In den Kacheln der Module wird ein Status eingeblendet. Sollte dieser Status für einige Zeit lang unverändert bleiben, kann dies am Smart Center liegen, das in der Zeit einen anderen Prozess ausführt. Dies hat jedoch keine Auswirkung auf den Update-Prozess, der vom Router ohne Zutun des Smart Center durchgeführt wird. Für die Zeit des Flash-Vorgangs ist der Smart Hub für externe Kommandos gesperrt.
 
-### Lizenzen
+## Lizenzen
 
 Über die Einstiegsseite, die auch über einen Klick auf den Schriftzug „Smart Configurator“ oben rechts erreichbar ist, kann eine Tabelle angezeigt werden, die alle von Smart Hub, Smart Center und Home Assistant verwendeten Softwarepakete und deren Open Source Lizenzen auflistet. Diese Tabelle wird automatisiert aufbereitet und dieser Vorgang dauert einige Sekunden.
