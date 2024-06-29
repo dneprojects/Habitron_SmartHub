@@ -1,4 +1,4 @@
-from aiohttp import web
+from aiohttp import content_disposition_filename, web
 from urllib.parse import parse_qs
 from multidict import MultiDict
 from config_settings import (
@@ -406,14 +406,18 @@ class ConfigServer:
 
         await asyncio.sleep(2)
         request.app.logger.info(f"PDF-file {WEB_FILES_DIR + DOC_FILE} loaded")
-        return web.Response(body=pdf_content, content_type="application/pdf")
+        return web.Response(
+            body=pdf_content, content_type="application/pdf", charset="latin-1"
+        )
 
     @routes.get(path="/setup_doc")
     async def load_setup_doc(request: web.Request) -> web.Response:  # type: ignore
         with open(WEB_FILES_DIR + SETUP_DOC_FILE, "rb") as doc_file:
             pdf_content = doc_file.read()
         request.app.logger.debug(f"PDF-file {WEB_FILES_DIR + SETUP_DOC_FILE} loaded")
-        return web.Response(body=pdf_content, content_type="application/pdf")
+        return web.Response(
+            body=pdf_content, content_type="application/pdf", charset="latin-1"
+        )
 
     @routes.get(path="/{key:.*}.txt")
     async def get_license_text(request: web.Request) -> web.Response:  # type: ignore
