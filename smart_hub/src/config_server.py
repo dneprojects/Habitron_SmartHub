@@ -403,7 +403,9 @@ class ConfigServer:
     async def load_doc(request: web.Request) -> web.Response:  # type: ignore
         with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
             pdf_content = doc_file.read()
-        request.app.logger.debug(f"PDF-file {WEB_FILES_DIR + DOC_FILE} loaded")
+
+        await asyncio.sleep(2)
+        request.app.logger.info(f"PDF-file {WEB_FILES_DIR + DOC_FILE} loaded")
         return web.Response(body=pdf_content, content_type="application/pdf")
 
     @routes.get(path="/setup_doc")
