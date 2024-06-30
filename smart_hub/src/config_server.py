@@ -391,7 +391,10 @@ class ConfigServer:
             pdf_content = doc_file.read()
         return web.Response(
             headers=MultiDict(
-                {"Content-Disposition": f"inline; filename = {DOC_FILE}"}
+                {
+                    "Content-Disposition": f"Attachment; filename = {DOC_FILE}",
+                    "Content-Type": "application/octet-stream",
+                }
             ),
             body=pdf_content,
         )
