@@ -387,36 +387,24 @@ class ConfigServer:
 
     @routes.get(path="/show_doc")
     async def show_doc(request: web.Request) -> web.Response:  # type: ignore
-        with open(WEB_FILES_DIR + PDF_PAGE, "r") as fid:
-            page = fid.read()
-        page = page.replace("<mypdf>", "doc")
-        return web.Response(text=page, content_type="text/html", charset="utf-8")
+        with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
+            pdf_content = doc_file.read()
+        return web.Response(
+            headers=MultiDict(
+                {"Content-Disposition": f"inline; filename = {DOC_FILE}"}
+            ),
+            body=pdf_content,
+        )
 
     @routes.get(path="/show_setup_doc")
     async def show_setup_doc(request: web.Request) -> web.Response:  # type: ignore
-        with open(WEB_FILES_DIR + PDF_PAGE, "r") as fid:
-            page = fid.read()
-        page = page.replace("<mypdf>", "setup_doc")
-        return web.Response(text=page, content_type="text/html", charset="utf-8")
-
-    @routes.get(path="/doc")
-    async def load_doc(request: web.Request) -> web.Response:  # type: ignore
-        with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
-            pdf_content = doc_file.read()
-
-        await asyncio.sleep(2)
-        request.app.logger.info(f"PDF-file {WEB_FILES_DIR + DOC_FILE} loaded")
-        return web.Response(
-            body=pdf_content, content_type="application/pdf", charset="latin-1"
-        )
-
-    @routes.get(path="/setup_doc")
-    async def load_setup_doc(request: web.Request) -> web.Response:  # type: ignore
         with open(WEB_FILES_DIR + SETUP_DOC_FILE, "rb") as doc_file:
             pdf_content = doc_file.read()
-        request.app.logger.debug(f"PDF-file {WEB_FILES_DIR + SETUP_DOC_FILE} loaded")
         return web.Response(
-            body=pdf_content, content_type="application/pdf", charset="latin-1"
+            headers=MultiDict(
+                {"Content-Disposition": f"Attachment; filename = {SETUP_DOC_FILE}"}
+            ),
+            body=pdf_content,
         )
 
     @routes.get(path="/{key:.*}.txt")
