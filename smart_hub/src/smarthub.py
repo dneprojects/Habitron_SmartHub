@@ -339,7 +339,7 @@ async def init_serial(bd_rate: int, logger):
                 elif new_query and (resp_buf[4] == 0x87):
                     logger.info("   Router available")
                     router_booting = False
-                elif (not new_query) and (resp_buf[3] == 0x87):
+                elif True:  # (not new_query) and (resp_buf[3] == 0x87):
                     logger.info("   Router available")
                     router_booting = False
                 elif new_query and (resp_buf[4] == 0xFD):  # 253
@@ -392,9 +392,9 @@ async def main(ev_loop):
                     f"   Initialization of serial connection failed, retry {retry_max-retry_serial}"
                 )
             rt_serial = await init_serial(bd_rate, logger)  # lower baud rate
-            if rt_serial is None:
-                bd_rate = 1
-                rt_serial = await init_serial(bd_rate, logger)  # higher baud rate
+            # if rt_serial is None:
+            #     bd_rate = 1
+            #     rt_serial = await init_serial(bd_rate, logger)  # higher baud rate
             retry_serial -= 1
         if rt_serial is None:
             init_flag = False
