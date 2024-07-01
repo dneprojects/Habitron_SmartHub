@@ -320,6 +320,7 @@ async def init_serial(bd_rate: int, logger):
     except Exception as err_msg:
         logger.info(f"   Error opening {def_device}: {err_msg}")
 
+    return rt_serial
     try:
         new_query = True
         while router_booting:
@@ -339,7 +340,7 @@ async def init_serial(bd_rate: int, logger):
                 elif new_query and (resp_buf[4] == 0x87):
                     logger.info("   Router available")
                     router_booting = False
-                elif True:  # (not new_query) and (resp_buf[3] == 0x87):
+                elif (not new_query) and (resp_buf[3] == 0x87):
                     logger.info("   Router available")
                     router_booting = False
                 elif new_query and (resp_buf[4] == 0xFD):  # 253
