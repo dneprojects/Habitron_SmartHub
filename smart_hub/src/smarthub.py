@@ -320,7 +320,6 @@ async def init_serial(bd_rate: int, logger):
     except Exception as err_msg:
         logger.info(f"   Error opening {def_device}: {err_msg}")
 
-    return rt_serial
     try:
         new_query = True
         while router_booting:
@@ -393,9 +392,9 @@ async def main(ev_loop):
                     f"   Initialization of serial connection failed, retry {retry_max-retry_serial}"
                 )
             rt_serial = await init_serial(bd_rate, logger)  # lower baud rate
-            # if rt_serial is None:
-            #     bd_rate = 1
-            #     rt_serial = await init_serial(bd_rate, logger)  # higher baud rate
+            if rt_serial is None:
+                bd_rate = 1
+                rt_serial = await init_serial(bd_rate, logger)  # higher baud rate
             retry_serial -= 1
         if rt_serial is None:
             init_flag = False
