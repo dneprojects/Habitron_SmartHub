@@ -78,7 +78,7 @@ class HbtnModule:
             .decode("iso8859-1")
             .strip()
         )
-        if len(serial) == 0 or serial[0] == "\x00":
+        if len(serial) == 0 or serial[0] != "0":
             serial = await self.hdlr.get_module_serial()
             if len(serial) > 0:
                 return serial
