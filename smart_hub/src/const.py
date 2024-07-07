@@ -43,7 +43,7 @@ SETUP_DOC_FILE = "setup.pdf"
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.5.2"
+    SW_VERSION = "1.5.3"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"

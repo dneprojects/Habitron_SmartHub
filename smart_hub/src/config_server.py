@@ -273,7 +273,7 @@ class ConfigServer:
         api_srv = app["api_srv"]
         rtr = api_srv.routers[0]
         data = await request.post()
-        # fw_filename = data["file"].filename
+        fw_filename = data["file"].filename  # type: ignore
         rtr.fw_upload = data["file"].file.read()  # type: ignore
         upd_type = str(data["SysUpload"])
         if upd_type == "rtr":
@@ -282,6 +282,8 @@ class ConfigServer:
             return show_update_router(rtr, fw_vers)
         elif upd_type == "mod":
             mod_type = rtr.fw_upload[:2]
+            if mod_type == b"\x01\x02" and fw_filename[:8] == "scrmgv46":
+                mod_type = b"\x01\x03"
             mod_type_str = MODULE_CODES[mod_type.decode()]
             fw_vers = rtr.fw_upload[-27:-5].decode().strip()
             app.logger.info(

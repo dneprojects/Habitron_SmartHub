@@ -385,16 +385,15 @@ async def main(ev_loop):
         # Instantiate SmartHub object
         sm_hub = SmartHub(ev_loop, logger)
         rt_serial = None
-        bd_rate = 0
         while (rt_serial is None) and (retry_serial >= 0):
             if retry_serial < retry_max:
                 logger.warning(
                     f"   Initialization of serial connection failed, retry {retry_max-retry_serial}"
                 )
-            rt_serial = await init_serial(bd_rate, logger)  # lower baud rate
-            if rt_serial is None:
-                bd_rate = 1
-                rt_serial = await init_serial(bd_rate, logger)  # higher baud rate
+            for bd_rate in range(len(RT_BAUDRATE)):
+                rt_serial = await init_serial(bd_rate, logger)  # lower baud rate
+                if rt_serial is not None:
+                    break
             retry_serial -= 1
         if rt_serial is None:
             init_flag = False

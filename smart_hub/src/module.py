@@ -85,9 +85,13 @@ class HbtnModule:
             cont_serial = self._id + 800000
             year = datetime.date.today().year - 2000
             week = datetime.datetime.now().isocalendar().week
-            serial = (
-                f"{self._typ[0]:03}{self._typ[1]:03}{year:02}{week:02}{cont_serial:06}"
-            )
+            if self._typ == b"\x01\x03":
+                # Artificial type for SC with new LE, change to SC
+                typ = b"\x01\x02"
+            else:
+                typ = self._typ
+
+            serial = f"{typ[0]:03}{typ[1]:03}{year:02}{week:02}{cont_serial:06}"
             # set serial in module
             await self.hdlr.set_module_serial(serial)
         return serial

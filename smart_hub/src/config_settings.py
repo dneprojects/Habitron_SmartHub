@@ -612,7 +612,11 @@ def prepare_basic_settings(main_app, mod_addr, mod_type):
             + f'<div><label for="{id_name}_s2">Sensor 2</label><input type="radio" '
             + f'name="{id_name}" id="{id_name}_s2" value="2" {s2_checked}></div></td></tr>\n'
         )
-    if settings.type in ["Smart Controller XL-1" , "Smart Controller XL-2", "Smart Controller XL-2 (LE2)"]:
+    if settings.type in [
+        "Smart Controller XL-1",
+        "Smart Controller XL-2",
+        "Smart Controller XL-2 (LE2)",
+    ]:
         id_name = "supply_prio"
         prompt = "Versorgungspriorität"
         if len(settings.status) == 0:
@@ -1440,6 +1444,7 @@ async def prepare_log_list(main_app):
     ekey_protocol: list[dict[str, str]] = []
     module = main_app["module"]
     settings = module.get_module_settings()
+    await main_app["api_srv"].set_server_mode()
     log_list = await module.hdlr.ekey_log_read()
     ll_len = int.from_bytes(log_list[1:3], "little") >> 3  # 8 bytes per entry
     for line_idx in range(ll_len):
