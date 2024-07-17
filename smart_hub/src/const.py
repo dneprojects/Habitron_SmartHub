@@ -36,6 +36,7 @@ CONFIG_TEMPLATE_FILE = "config_template.html"
 SETTINGS_TEMPLATE_FILE = "settings_template.html"
 AUTOMATIONS_TEMPLATE_FILE = "automations_template.html"
 AUTOMATIONEDIT_TEMPLATE_FILE = "automation_edit_template.html"
+HTML_DOC = "SmartCenterDokumentation.html"
 DOC_FILE = "documentation.pdf"
 SETUP_DOC_FILE = "setup.pdf"
 

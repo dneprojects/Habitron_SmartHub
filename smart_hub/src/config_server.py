@@ -43,6 +43,7 @@ from const import (
     CONF_PORT,
     INGRESS_PORT,
     WEB_FILES_DIR,
+    HTML_DOC,
     MirrIdx,
 )
 
@@ -389,9 +390,10 @@ class ConfigServer:
 
     @routes.get(path="/show_doc")
     async def show_doc(request: web.Request) -> web.Response:  # type: ignore
-        with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
-            pdf_content = doc_file.read()
-        return web.Response(body=pdf_content, content_type="application/pdf")
+        return html_response(HTML_DOC)
+        # with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
+        #     pdf_content = doc_file.read()
+        # return web.Response(body=pdf_content, content_type="application/pdf")
 
     @routes.get(path="/show_setup_doc")
     async def show_setup_doc(request: web.Request) -> web.Response:  # type: ignore
