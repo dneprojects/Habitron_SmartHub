@@ -48,6 +48,8 @@ class ApiServer:
         self._first_api_cmd: bool = True
         self.is_offline: bool = False
         self._test_mode = False
+        self._pc_mode: bool = False
+        self._in_shutdown = False
         self.token = os.getenv("SUPERVISOR_TOKEN")
         if self.token is None:
             self.is_addon: bool = False
@@ -161,9 +163,12 @@ class ApiServer:
         await self.sm_hub.conf_srv.runner.cleanup()
         await self.set_server_mode(rt)
         await self.routers[rt - 1].flush_buffer()
-        self.sm_hub.q_srv._q_running = False
+        if not self._pc_mode:
+            self.sm_hub.q_srv._q_running = False
         self._running = False
         self._auto_restart_opr = False
+        if self._pc_mode:
+            self.sm_hub.tg._abort()
 
     async def respond_client(self, response):
         """Send api command response"""

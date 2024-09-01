@@ -100,7 +100,7 @@ class ConfigSetupServer:
 
 def show_setup_page(app, popup_msg="") -> web.Response:
     """Prepare modules page."""
-    side_menu = activate_side_menu(app["side_menu"], ">Einrichten<", app["is_offline"])
+    side_menu = activate_side_menu(app["side_menu"], ">Einrichten<", app["is_offline"] or app["api_srv"]._pc_mode)
     page = get_html("setup.html").replace("<!-- SideMenu -->", side_menu)
     page = page.replace("<h1>HubTitle", "<h1>Habitron-Geräte einrichten")
     page = page.replace("Overview", "Installationsbereich")
@@ -169,8 +169,8 @@ def show_module_types(app) -> web.Response:
     """Prepare modules page."""
     api_srv = app["api_srv"]
     rtr = api_srv.routers[0]
-    side_menu = activate_side_menu(app["side_menu"], ">Einrichten<", app["is_offline"])
-    side_menu = activate_side_menu(side_menu, ">Module anlegen<", app["is_offline"])
+    side_menu = activate_side_menu(app["side_menu"], ">Einrichten<", app["is_offline"] or app["api_srv"]._pc_mode)
+    side_menu = activate_side_menu(side_menu, ">Module anlegen<", app["is_offline"] or app["api_srv"]._pc_mode)
     page = get_html("modules.html").replace("<!-- SideMenu -->", side_menu)
     page = page.replace("<h1>Module", "<h1>Module anlegen")
     page = page.replace("Übersicht", "Mögliche Modultypen")
@@ -191,8 +191,8 @@ def show_module_types(app) -> web.Response:
 
 def show_module_table(app) -> web.Response:
     """Build html table string from table line list."""
-    side_menu = activate_side_menu(app["side_menu"], ">Einrichten<", app["is_offline"])
-    side_menu = activate_side_menu(side_menu, ">Module verwalten<", app["is_offline"])
+    side_menu = activate_side_menu(app["side_menu"], ">Einrichten<", app["is_offline"] or app["api_srv"]._pc_mode)
+    side_menu = activate_side_menu(side_menu, ">Module verwalten<", app["is_offline"] or app["api_srv"]._pc_mode)
     page = get_html("setup.html").replace("<!-- SideMenu -->", side_menu)
     page = page.replace("<h1>HubTitle", "<h1>Module verwalten")
     page = page.replace("Overview", "Modulübersicht")

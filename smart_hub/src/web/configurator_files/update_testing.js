@@ -102,7 +102,7 @@ function setEventStatus(jsonString) {
     if (buttonsStat) {
         for (let i = 0; i < buttonsStat.length; i++) {
             row = inTable.rows[buttonsStat[i][0]];
-            msg1 = "Taste " + (i + 1).toString() + ": '" + row.cells[1].innerHTML + "'"
+            msg1 = "Taste " + (buttonsStat[i][0]).toString() + ": '" + row.cells[1].innerHTML + "'"
             if (buttonsStat[i][1] == 1) {
                 cellText = '<p id="button-evnt">kurz</p>'
                 msg2 = "kurz"

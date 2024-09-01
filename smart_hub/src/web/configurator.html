@@ -146,6 +146,13 @@
     function openMsgPopup() {
       msg_popup.classList.add("show");
     };
+    const header = document.getElementsByTagName("h3")[0];
+    if (header.innerHTML == "Beendet.") {
+      setTimeout(function(){
+        let new_wd = window.open(window.location, '_self');
+        new_wd.close(); 
+      }, 1000);
+    }
   </script>
       </body>
       

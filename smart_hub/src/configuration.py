@@ -420,6 +420,8 @@ class ModuleSettings:
                                 self.buttons[arg_code - 10] = IfDescriptor(
                                     text, arg_code - 9, 1
                                 )
+                            elif self.type == "Smart Sensor":
+                                pass
                             else:
                                 self.inputs[arg_code - 10].name = text
                                 self.inputs[arg_code - 10].nmbr = arg_code - 9

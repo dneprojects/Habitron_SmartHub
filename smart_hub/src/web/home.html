@@ -52,13 +52,6 @@
               </div>
             </a>
           </div>
-          <!--
-<form id="suche" action="http://habitron.de/suche-habitron.html" method="get" enctype="text/html">
-        <div class="formbody">
-          <input type="text" name="keywords" id="keywords" class="text" value="Suche">
-        </div>
-</form> 
--->
           <div class="mod_article block" id="pic">
 
 
@@ -120,16 +113,12 @@
       <div id="footer">
         <div class="inside">
           <div id="confbutton" style="position: relative;">
-            <form action="settings" style="width:200px">
-              <!--<button name="ModSettings" id="config_button" type="submit" value="ModAddress">Einstellungen</button>-->
-              <!--<button name="EditAutomtns" id="automtns_button" type="submit" value="ModAddress"
-                      style="float: center; position: absolute; top: 0; left: 280px;">Automatisierungen</button>-->
-            </form>
-            <form id="form-exit" action="exit" style="width:200px">
+            <!--<button name="ModSettings" id="updates_button" type="submit" value="Upd" style="float:left">Updates</button>-->
+            <form id="form-exit" action="exit" style="width:200px;float:left">
               <button name="ModSettings" id="exit_button" type="button" value="exit">Exit</button>
             </form>
             <button name="ConfigFiles" id="files_button"
-              style="float: right; position: absolute; top: 0; left: 20px;">Systemkonfiguration</button>
+              style="float: right; top: 0; left: 20px;">Systemkonfiguration</button>
           </div>
         </div>
       </div>
@@ -164,6 +153,32 @@
       </div>
     </div>
 
+    <div id="updates_popup" class="popup">
+      <div class="popup-content">
+        <h1>Updates</h1>
+        <h2>Upload der Firmware und Flashen von Router oder Modulen</h2>
+        <h3>Router Update</h3>
+        <div>
+          <form id="rtr_fw_upload" action="upd_upload" enctype="multipart/form-data" method="post">
+            <div style="position: relative;">
+              <input id="file_updwnload" name="file" type="file" value="router.rbin" accept=".rbin" />
+              <button name="SysUpload" id="file_button" type="submit" value="rtr">Upload</button>
+            </div></form>
+          <h3>Modul Update</h3>
+          <form id="mod_fw_upload" action="upd_upload" enctype="multipart/form-data" method="post">
+            <div style="position: relative;">
+              <input id="file_updwnload" name="file" type="file" value="module.bin" accept=".bin" />
+              <button name="SysUpload" id="file_button" type="submit" value="mod">Upload</button>
+            </div></form>
+        </div>
+        <div id="close_file_popup_box">
+          <button id="close_updates_popup">
+            schließen
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div id="msg_popup" class="popup">
       <div class="popup-content">
         <h1 id="msg_popup_txt">ContentTitle</h1>
@@ -185,6 +200,9 @@
     const form_upload = document.getElementById("file_upload");
     const form_download = document.getElementById("file_download");
     const form_exit = document.getElementById("form-exit");
+    const updates_butt = document.getElementById("updates_button");
+    const updates_pop = document.getElementById("updates_popup");
+    const close_updates_pop = document.getElementById("close_updates_popup");
     files_button.addEventListener("click", function () {  
       file_popup.classList.add("show");
     });
@@ -198,9 +216,30 @@
     form_upload.addEventListener("submit", function () {
       openMsgPopup();
     });
+    if (updates_butt)
+        updates_butt.addEventListener("click", function () {
+            updates_pop.classList.add("show");
+        });
+    if (close_updates_pop)
+        close_updates_pop.addEventListener("click", function () {
+            updates_pop.classList.remove("show");
+        });
+    form_rtr_update.addEventListener("submit", function () {
+        openMsgPopup();
+    });
+    form_mod_update.addEventListener("submit", function () {
+        openMsgPopup();
+    });
+    window.addEventListener("click", function (event) {
+        if (event.target == file_popup) {
+            openMsgPopup();
+        };
+    });
     function openMsgPopup() {
-      file_popup.classList.remove("show");
-      msg_popup.classList.add("show");
+        file_popup.classList.remove("show");
+        msg_popup.classList.add("show");
+        if (updates_pop)
+            updates_pop.classList.remove("show");
     };
   </script>
 </body>

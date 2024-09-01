@@ -152,7 +152,7 @@ def show_router_overview(main_app, popup_msg="") -> web.Response:
     api_srv = main_app["api_srv"]
     rtr = api_srv.routers[0]
     side_menu = activate_side_menu(
-        main_app["side_menu"], ">Router<", api_srv.is_offline
+        main_app["side_menu"], ">Router<", api_srv.is_offline or api_srv._pc_mode
     )
     type_desc = "Smart Router - Kommunikationsschnittstelle zwischen den Modulen"
     if rtr.channels == b"":  #  and not main_app["is_install"]:
@@ -236,10 +236,10 @@ def show_module_overview(main_app, mod_addr, popup_msg="") -> web.Response:
     api_srv = main_app["api_srv"]
     module = api_srv.routers[0].get_module(mod_addr)
     side_menu = activate_side_menu(
-        main_app["side_menu"], ">Module<", api_srv.is_offline
+        main_app["side_menu"], ">Module<", api_srv.is_offline or api_srv._pc_mode
     )
     side_menu = activate_side_menu(
-        side_menu, f"module-{module._id}", api_srv.is_offline
+        side_menu, f"module-{module._id}", api_srv.is_offline or api_srv._pc_mode
     )
     mod_image, type_desc = get_module_image(module._typ)
     main_app["module"] = module

@@ -1,4 +1,4 @@
-from aiohttp import content_disposition_filename, web
+from aiohttp import web
 from urllib.parse import parse_qs
 from multidict import MultiDict
 from config_settings import (
@@ -25,7 +25,6 @@ from config_commons import (
     show_hub_overview,
     client_not_authorized,
     show_not_authorized,
-    html_response,
 )
 from licenses import get_package_licenses, show_license_text
 from messages import calc_crc
@@ -39,12 +38,10 @@ from const import (
     SETUP_DOC_FILE,
     MODULE_CODES,
     LICENSE_PAGE,
-    PDF_PAGE,
     OWN_INGRESS_IP,
     CONF_PORT,
     INGRESS_PORT,
     WEB_FILES_DIR,
-    HTML_DOC,
     MirrIdx,
 )
 
@@ -139,8 +136,8 @@ class ConfigServer:
     @routes.get("/exit")
     async def get_exit(request: web.Request) -> web.Response:  # type: ignore
         api_srv = request.app["api_srv"]
-        # async with api_srv.sm_hub.tg:
-        api_srv.sm_hub.tg.create_task(terminate_delayed(api_srv))
+        if api_srv._in_shutdown:
+            api_srv.sm_hub.tg.create_task(terminate_delayed(api_srv))
         return show_exitpage(request.app)
 
     @routes.get("/router")
@@ -389,23 +386,23 @@ class ConfigServer:
             text=json.dumps(stat), content_type="text/plain", charset="utf-8"
         )
 
-    @routes.get(path="/show_doc")
+    @routes.get(path="/Smart Center Documentation")
     async def show_doc(request: web.Request) -> web.Response:  # type: ignore
-        return html_response(HTML_DOC)
-        # with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
-        #     pdf_content = doc_file.read()
-        # return web.Response(body=pdf_content, content_type="application/pdf")
+        with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
+            pdf_content = doc_file.read()
+        return web.Response(body=pdf_content, content_type="application/pdf")
 
-    @routes.get(path="/show_setup_doc")
+    @routes.get(path="/Setup Guide")
     async def show_setup_doc(request: web.Request) -> web.Response:  # type: ignore
         with open(WEB_FILES_DIR + SETUP_DOC_FILE, "rb") as doc_file:
             pdf_content = doc_file.read()
-        return web.Response(
-            headers=MultiDict(
-                {"Content-Disposition": f"Attachment; filename = {SETUP_DOC_FILE}"}
-            ),
-            body=pdf_content,
-        )
+        return web.Response(body=pdf_content, content_type="application/pdf")
+        # return web.Response(
+        #     headers=MultiDict(
+        #         {"Content-Disposition": f"Attachment; filename = {SETUP_DOC_FILE}"}
+        #     ),
+        #     body=pdf_content,
+        # )
 
     @routes.get(path="/{key:.*}.txt")
     async def get_license_text(request: web.Request) -> web.Response:  # type: ignore
@@ -572,9 +569,9 @@ async def send_to_module(app, content: str, mod_addr: int):
 
 async def terminate_delayed(api_srv):
     """suspend for a time limit in seconds"""
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(2)
     # execute the other coroutine
-    await api_srv.shutdown(None, False)
+    await api_srv.shutdown(1, False)
 
 
 def show_license_table(app):

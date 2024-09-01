@@ -27,9 +27,9 @@ def show_homepage(app) -> web.Response:
     """Show configurator home page."""
     api_srv = app["api_srv"]
     page = get_html(HOMEPAGE)
-    side_menu = activate_side_menu(app["side_menu"], "", api_srv.is_offline)
+    side_menu = activate_side_menu(app["side_menu"], "", api_srv.is_offline or api_srv._pc_mode)
     page = page.replace("<!-- SideMenu -->", side_menu)
-    if app["is_offline"]:
+    if api_srv.is_offline or api_srv._pc_mode:
         page = page.replace(">Hub<", ">Home<")
     return web.Response(text=page, content_type="text/html", charset="utf-8")
 
@@ -38,12 +38,18 @@ def show_exitpage(app) -> web.Response:
     """Show configurator exit page."""
     api_srv = app["api_srv"]
     page = get_html(HOMEPAGE)
-    side_menu = activate_side_menu(app["side_menu"], "", api_srv.is_offline)
-    page = page.replace(
-        "Passen Sie hier die Grundeinstellungen des Systems an.", "Beendet."
-    )
+    side_menu = activate_side_menu(app["side_menu"], "", api_srv.is_offline or api_srv._pc_mode)
+    if api_srv._in_shutdown:
+        page = page.replace(
+            "Passen Sie hier die Grundeinstellungen des Systems an.", "Das Fenster kann geschlossen werden."
+        )
+    else:
+        page = page.replace(
+            "Passen Sie hier die Grundeinstellungen des Systems an.", "Beendet."
+        )
+        api_srv._in_shutdown = True
     page = page.replace("<!-- SideMenu -->", side_menu)
-    if app["is_offline"]:
+    if api_srv.is_offline or api_srv._pc_mode:
         page = page.replace(">Hub<", ">Home<")
     return web.Response(text=page, content_type="text/html", charset="utf-8")
 
@@ -54,12 +60,15 @@ def show_hub_overview(app) -> web.Response:
     smhub = api_srv.sm_hub
     smhub_info = smhub.get_info()
     hub_name = smhub._host
-    side_menu = activate_side_menu(app["side_menu"], ">Hub<", api_srv.is_offline)
-    if api_srv.is_offline:
+    side_menu = activate_side_menu(app["side_menu"], ">Hub<", api_srv.is_offline or api_srv._pc_mode)
+    if api_srv.is_offline or api_srv._pc_mode:
+        side_menu = side_menu.replace(">Hub<", ">Home<")
         pic_file, subtitle = get_module_image(b"\xc9\x00")
         html_str = get_html(CONF_HOMEPAGE).replace(
             "Version: x.y.z", f"Version: {SMHUB_INFO.SW_VERSION}"
         )
+        if not api_srv.is_offline and api_srv._pc_mode:
+            html_str = adjust_update_button(html_str)
     elif api_srv.is_addon:
         pic_file, subtitle = get_module_image(b"\xca\x00")
         html_str = get_html(HUB_HOMEPAGE).replace(
@@ -88,7 +97,7 @@ def show_modules(app) -> web.Response:
     modules = app["api_srv"].routers[0].modules
     side_menu = adjust_side_menu(modules, app["is_offline"], app["is_install"])
     app["side_menu"] = side_menu
-    side_menu = activate_side_menu(side_menu, ">Module<", app["is_offline"])
+    side_menu = activate_side_menu(side_menu, ">Module<", app["is_offline"] or app["api_srv"]._pc_mode)
     page = get_html("modules.html").replace("<!-- SideMenu -->", side_menu)
     images = ""
     for module in modules:
@@ -132,13 +141,15 @@ def is_outdated(cur_fw: str, new_fw: str) -> bool:
     new_fw_fields = new_fw.strip().split()
     cur_date = cur_fw_fields[-1]
     new_date = new_fw_fields[-1]
-    cur_year = cur_date.split("/")[1]
+    cur_year = cur_date.split("/")[1][:4]
     cur_month = cur_date.split("/")[0][-2:]
-    new_year = new_date.split("/")[1]
+    new_year = new_date.split("/")[1][:4]
     new_month = new_date.split("/")[0][-2:]
     if int(new_year) > int(cur_year):
         return True
     if (int(new_year) == int(cur_year)) and (int(new_month) > int(cur_month)):
+        return True
+    if (int(new_year) == int(cur_year)) and (int(new_month) == int(cur_month)) and (len(new_date.split("/")[1]) > 4):
         return True
     # if (new_date == cur_date) and ():
     #     return True
@@ -253,7 +264,7 @@ def adjust_side_menu(modules, is_offline: bool, is_install: bool) -> str:
                     '    <li class="setup sub"><a href="test/modules" title="Module testen" class="setup sub">Module testen</a></li>\n'
                 )
             side_menu.append(
-                '<li class="setup sub"><a href="show_setup_doc" title="Anleitung zur Einrichtung" class="submenu modules last">Setup Guide</a></li>\n'
+                '<li class="setup sub"><a href="Setup Guide" title="Anleitung zur Einrichtung" class="submenu modules last">Setup Guide</a></li>\n'
             )
             side_menu.append("</ul></li></ul>\n")
         else:
@@ -349,8 +360,13 @@ def get_module_image(type_code: bytes) -> tuple[str, str]:
             mod_image = "finger_numbers.jpg"
             type_desc = "Smart Key - Zugangskontroller über Fingerprint"
         case 50:
-            mod_image = "scc.jpg"
-            type_desc = "Smart Controller compakt - Controller mit Sensorik und 24 V Anschlüssen"
+            match type_code[1]:
+                case 1:
+                    mod_image = "scc.jpg"
+                    type_desc = "Smart Controller compakt - Controller mit Sensorik und 24 V Anschlüssen"
+                case 40:
+                    mod_image = "smart-sensor.jpg"
+                    type_desc = "Smart Sensor - Externer Temperatursensor"
         case 80:
             match type_code[1]:
                 case 100 | 102:
@@ -389,7 +405,11 @@ def adjust_settings_button(page, type, addr: str) -> str:
         page = page.replace("ModAddress", addr)
     return page
 
-
+def adjust_update_button(page: str) -> str:
+    """Enable update button on home page"""
+    page = page.replace("<!--<button", "<button").replace("</button>-->", "</button>")
+    return page
+    
 def adjust_automations_button(page: str) -> str:
     """Enable edit automations button."""
     page = page.replace("<!--<button", "<button").replace("</button>-->", "</button>")
@@ -438,6 +458,8 @@ def show_not_authorized(request) -> web.Response:
 
 def format_smc(buf: bytes) -> str:
     """Parse line structure and add ';' and linefeeds."""
+    if len(buf) < 5:
+        return ""
     no_lines = int.from_bytes(buf[:2], "little")
     str_data = ""
     for byt in buf[:4]:

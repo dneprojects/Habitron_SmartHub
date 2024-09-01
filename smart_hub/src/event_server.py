@@ -498,6 +498,10 @@ class EventServer:
 
     async def ping_pong_reconnect(self) -> bool:
         """Check for living websocket connection, reconnect if needed."""
+        
+        if self.api_srv._pc_mode:
+            # If connected with PC no HA available
+            return True
         if self.api_srv._test_mode and self.failure_count > 2:
             # Test mode does not use websocket
             return True
@@ -527,6 +531,9 @@ class EventServer:
     async def open_websocket(self, retry=True) -> bool:
         """Opens web socket connection to home assistant."""
 
+        if self.api_srv._pc_mode:
+            # If connected with PC no HA available
+            return False
         if self.api_srv._test_mode and self.failure_count > 2:
             # Test mode does not use websocket
             return False
@@ -554,7 +561,7 @@ class EventServer:
             self._uri = "ws://<ip>:8123/api/websocket".replace("<ip>", self._client_ip)
             self.logger.debug(f"URI: {self._uri}")
             # supervisor_token  "2f428d27e04db95b4c844b451af4858fba585aac82f70ee6259cf8ec1834a00abf6a448f49ee18d3fc162f628ce6f479fe4647c6f8624f88"
-            # token for local docker:    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI4NDE0ZmY3NTE5YzE0NzE0YTU3OGQ3MjFjY2Q3YWY0MiIsImlhdCI6MTcxNTQyOTk1MywiZXhwIjoyMDMwNzg5OTUzfQ.M6912T4CAJFqgeRRLexwhaMM3-6-Cg_h-qr9jFniQ-Y"
+            # token for local docker:    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmYTIzMmRhMDBhZTc0MmNmYTJiY2FiNjM1OGE5MzEzOSIsImlhdCI6MTcyNDMxNzMxNiwiZXhwIjoyMDM5Njc3MzE2fQ.0M83XHd6uspRqBl4Z1IdyM_ynML9M9ctlVx9vSrMGAY"
             # token for 192.168.178.160: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI5NGY2ZjMyZjdhYjE0NzAzYmI4MTc5YjZhOTdhYzdjNSIsImlhdCI6MTcxMzYyMjgxNywiZXhwIjoyMDI4OTgyODE3fQ.2iJQuKgpavJOelH_WHEDe06X2XmAmyHB3FlzkDPl4e0"
             # token for SmartCenter 5:   token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmN2UxMGFhNzcyZTE0ZWY0OGFmOTkzNDVlOTIwNTNlNiIsImlhdCI6MTcxMzUxNDM4MSwiZXhwIjoyMDI4ODc0MzgxfQ.9kpjxhElmWAqTY2zwSsTyLSZiJQZkaV5FX8Pyj9j8HQ"
 
@@ -585,7 +592,7 @@ class EventServer:
                     open_timeout=4,
                 )
             else:
-                self.websck = await websockets.connect(self._uri, open_timeout=1)
+                self.websck = await websockets.connect(self._uri, open_timeout=2)
             await asyncio.sleep(1)
             resp = await self.websck.recv()
             self.failure_count = 0

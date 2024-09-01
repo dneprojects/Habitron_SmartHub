@@ -27,7 +27,6 @@ HOMEPAGE = "configurator.html"
 HUB_HOMEPAGE = "hub.html"
 CONF_HOMEPAGE = "home.html"
 NOT_AUTH_PAGE = "not_auth.html"
-PDF_PAGE = "pdf.html"
 SIDE_MENU_FILE = "side-menu.html"
 LICENSE_PAGE = "licenses.html"
 LICENSE_TABLE = "license_table.html"
@@ -36,15 +35,15 @@ CONFIG_TEMPLATE_FILE = "config_template.html"
 SETTINGS_TEMPLATE_FILE = "settings_template.html"
 AUTOMATIONS_TEMPLATE_FILE = "automations_template.html"
 AUTOMATIONEDIT_TEMPLATE_FILE = "automation_edit_template.html"
-HTML_DOC = "SmartCenterDokumentation.html"
 DOC_FILE = "documentation.pdf"
 SETUP_DOC_FILE = "setup.pdf"
+USB_SERIAL_DEVICES = ["USB Seri", "Prolific"]
 
 
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.5.3"
+    SW_VERSION = "1.5.5"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
@@ -52,6 +51,7 @@ class SMHUB_INFO:
 
 class API_CATEGS:
     "Categries of API handlers"
+    
     DATA = 10
     SETTINGS = 20
     ACTIONS = 30
@@ -772,7 +772,7 @@ MODULE_CODES: Final[dict[str, str]] = {
     "\x1e\x03": "Smart GSM",
     "\x1e\x28": "FanMatrix",
     "\x32\x01": "Smart Controller Mini",
-    # "\x32\x28": "Smart Sensors",
+    "\x32\x28": "Smart Sensor",
     "\x50\x64": "Smart Detect 180",
     "\x50\x65": "Smart Detect 360",
     "\x50\x66": "Smart Detect 180-2",
@@ -792,6 +792,7 @@ MODULE_TYPES: Final[dict[str, str]] = {
     "\x14\x01": "Smart Nature",
     "\x1e\x01": "Fanekey",
     "\x1e\x03": "Smart GSM",
+    "\x32\x28": "Smart Sensor",
     "\x50\x66": "Smart Detect 180-2",
     "\x50\x65": "Smart Detect 360",
 }
@@ -816,6 +817,7 @@ MODULE_FIRMWARE: Final[dict[bytes, str]] = {
     b"\x14\x01": "scasm",
     b"\x1e\x01": "SCfan232",
     b"\x1e\x03": "SCfangsm",
+    b"\x32\x28": "scumgsens",
     b"\x50\x64": "scbws180",
     b"\x50\x65": "scbs360",
     b"\x50\x66": "scbws2180",

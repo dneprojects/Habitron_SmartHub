@@ -90,8 +90,8 @@ def show_modules_overview(app) -> web.Response:
     """Prepare modules page."""
     api_srv = app["api_srv"]
     rtr = api_srv.routers[0]
-    side_menu = activate_side_menu(app["side_menu"], ">Einrichten<", app["is_offline"])
-    side_menu = activate_side_menu(side_menu, ">Module testen<", app["is_offline"])
+    side_menu = activate_side_menu(app["side_menu"], ">Einrichten<", app["is_offline"] or app["api_srv"]._pc_mode)
+    side_menu = activate_side_menu(side_menu, ">Module testen<", app["is_offline"] or app["api_srv"]._pc_mode)
     page = get_html("modules.html").replace("<!-- SideMenu -->", side_menu)
     page = page.replace("<h1>Module", "<h1>Module testen")
     images = ""

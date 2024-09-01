@@ -236,6 +236,7 @@ class HbtnModule:
             "Smart In 8/24V",
             "Smart In 8/230V",
             "Fanekey",
+            "Smart Sensor",
         ]:
             pass  # Don't track update changes for these modules
         else:
@@ -656,20 +657,21 @@ class HbtnModule:
                     case 3:  # gsm module
                         props["gsm_messages"] = 255
                         props["gsm_numbers"] = 50
-            case 50:  # compact controller module
-                props["buttons"] = 2
-                props["inputs"] = 4
-                props["inputs_230V"] = 0
-                props["inputs_24V"] = 4
-                props["outputs"] = 2
-                props["outputs_24V"] = 2
-                props["leds"] = 5
-                props["counters"] = 10
-                props["logic"] = 10
-                props["flags"] = 16
-                props["dir_cmds"] = 25
-                props["vis_cmds"] = 65280
-                props["messages"] = 100
+            case 50:
+                if type_code[1] == 1:  # compact controller module
+                    props["buttons"] = 2
+                    props["inputs"] = 4
+                    props["inputs_230V"] = 0
+                    props["inputs_24V"] = 4
+                    props["outputs"] = 2
+                    props["outputs_24V"] = 2
+                    props["leds"] = 5
+                    props["counters"] = 10
+                    props["logic"] = 10
+                    props["flags"] = 16
+                    props["dir_cmds"] = 25
+                    props["vis_cmds"] = 65280
+                    props["messages"] = 100
 
         keys = [
             "buttons",
