@@ -112,6 +112,7 @@ class HbtnRouter:
         await self.set_config_mode(True)
         self.status = await self.hdlr.get_rt_full_status()
         self.chan_status = await self.hdlr.get_rt_status()
+        self.comm_errors = await self.hdlr.get_mod_errors()
         self.build_smr()
         self.check_firmware()
         self.logger.info("Router initialized")
@@ -158,6 +159,7 @@ class HbtnRouter:
         """Returns router channel status"""
         await self.api_srv.set_server_mode(self._id)
         self.chan_status = await self.hdlr.get_rt_status()
+        self.comm_errors = await self.hdlr.get_mod_errors()
         return self.chan_status
 
     def get_module(self, mod_id: int) -> HbtnModule | None:
@@ -205,6 +207,10 @@ class HbtnRouter:
             if grp.nmbr == grp_no:
                 return grp.name
         return f"{grp_no}"
+
+    def get_area_name(self, area_idx: int) -> str:
+        """Return area name from index."""
+        return self.settings.areas[area_idx - 1].name
 
     def build_smr(self) -> None:
         """Build SMR file content from status."""
@@ -432,11 +438,19 @@ class HbtnRouter:
         props: dict = {}
         props["day_sched"] = 7
         props["night_sched"] = 7
+        props["areas"] = 255
         props["groups"] = 16
         props["glob_flags"] = 16
         props["coll_cmds"] = 16
 
-        keys = ["day_sched", "night_sched", "groups", "glob_flags", "coll_cmds"]
+        keys = [
+            "areas",
+            "groups",
+            "day_sched",
+            "night_sched",
+            "glob_flags",
+            "coll_cmds",
+        ]
         no_keys = 0
         for key in keys:
             if props[key] > 0:

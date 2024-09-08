@@ -28,6 +28,7 @@ class HbtnModule:
         self._typ: bytes = b""
         self._type = ""
         self._serial: str = ""
+        self.area: int = 0
         self.api_srv = api_srv
         self.hdlr = hdlr
 
@@ -67,6 +68,9 @@ class HbtnModule:
         self.io_properties, self.io_prop_keys = self.get_io_properties()
         self._serial = await self.get_serial()
         await self.cleanup_descriptions()
+        if "settings" in self.__dir__():
+            if self.settings is not None:
+                self.area = self.settings.area_member
         self.check_firmware()
 
         self.logger.debug(f"Module {self._name} at {self._id} initialized")
@@ -116,6 +120,19 @@ class HbtnModule:
         """Return own group from router."""
         rtr = self.get_rtr()
         return rtr.get_group_name(rtr.groups[self._id])
+
+    def get_area_name(self) -> str:
+        """Return own area from router."""
+        rtr = self.get_rtr()
+        return rtr.get_area_name(self.area)
+
+    def get_area_member(self, area_name: str) -> int:
+        """Return index of area given by name."""
+        rtr = self.get_rtr()
+        for area in rtr.settings.areas:
+            if area.name == area_name:
+                return area.nmbr
+        return -1
 
     def get_smc_crc(self) -> int:
         """Return smc crc from status."""
@@ -426,6 +443,7 @@ class HbtnModule:
             + int.to_bytes(polarity, 2, "little")
             + self.status[MirrIdx.COVER_POL + 2 :]
         )
+        # self.area = int(smg[SMGIdx.index(MirrIdx.MOD_AREA)])
 
     def different_smg_crcs(self) -> bool:
         """Performs comparison, equals lengths of smg buffers."""
@@ -541,6 +559,7 @@ class HbtnModule:
             .decode("iso8859-1")
             .strip()
         )
+        self.area = self.status[MirrIdx.MOD_AREA]
         self.settings.status = self.status
         self.settings.list = self.list
 

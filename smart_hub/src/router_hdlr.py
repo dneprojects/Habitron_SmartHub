@@ -287,6 +287,15 @@ class RtHdlr(HdlrBase):
         await self.handle_router_cmd_resp(self.rt_id, RT_CMDS.GET_RT_MODULES)
         return self.rt_msg._resp_msg
 
+    async def get_mod_errors(self) -> bytes:
+        """Get all module communication errors with last error."""
+        await self.rt_msg.api_hdlr.api_srv.set_server_mode()
+        await self.handle_router_cmd_resp(self.rt_id, RT_CMDS.GET_MD_LASTERR)
+        ret_bytes = self.rt_msg._resp_msg
+        await self.handle_router_cmd_resp(self.rt_id, RT_CMDS.GET_MD_ERRORS)
+        ret_bytes += self.rt_msg._resp_msg
+        return ret_bytes
+
     async def send_rt_channels(self, rt_channels) -> bytes:
         """Send router channels."""
         cmd_str = RT_CMDS.SEND_RT_CHANS + rt_channels.decode("iso8859-1") + "\xff"

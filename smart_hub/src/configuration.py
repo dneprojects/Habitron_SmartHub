@@ -3,6 +3,7 @@ import math
 from copy import deepcopy as dpcopy
 from const import (
     IfDescriptor,
+    IoDescriptor,
     LgcDescriptor,
     LGC_TYPES,
     MirrIdx,
@@ -40,6 +41,7 @@ class ModuleSettings:
         )
         self.save_desc_file_needed: bool = False
         self.upload_desc_info_needed: bool = False
+        self.area_member = module.area
         self.group = dpcopy(module.get_group())
         self.get_io_interfaces()
         self.get_logic()
@@ -59,10 +61,10 @@ class ModuleSettings:
             IfDescriptor("", i + 1, 1) for i in range(self.properties["buttons"])
         ]
         self.inputs = [
-            IfDescriptor("", i + 1, 1) for i in range(self.properties["inputs"])
+            IoDescriptor("", i + 1, 1, 0) for i in range(self.properties["inputs"])
         ]
         self.outputs = [
-            IfDescriptor("", i + 1, 1) for i in range(self.properties["outputs"])
+            IoDescriptor("", i + 1, 1, 0) for i in range(self.properties["outputs"])
         ]
         self.covers = [
             IfDescriptor("", i + 1, 0) for i in range(self.properties["covers"])
@@ -235,6 +237,11 @@ class ModuleSettings:
         """Restore settings to module status."""
         status = replace_bytes(
             status,
+            int.to_bytes(int(self.area_member)),
+            MirrIdx.MOD_AREA,
+        )
+        status = replace_bytes(
+            status,
             (self.name + " " * (32 - len(self.name))).encode("iso8859-1"),
             MirrIdx.MOD_NAME,
         )
@@ -363,6 +370,7 @@ class ModuleSettings:
 
         self.logger.debug("Getting module names from list")
         self.all_fingers = {}
+        area_count = [0 for i in range(len(self.module.get_rtr().settings.areas))]
         list = self.list
         no_lines = int.from_bytes(list[:2], "little")
         list = list[4 : len(list)]  # Strip 4 header bytes
@@ -425,20 +433,32 @@ class ModuleSettings:
                             else:
                                 self.inputs[arg_code - 10].name = text
                                 self.inputs[arg_code - 10].nmbr = arg_code - 9
+                                if int(line[1]) > 0:
+                                    self.inputs[arg_code - 10].area = int(line[1])
+                                    area_count[line[1] - 1] += 1
                         elif arg_code in range(18, 26):
                             # Description of module LEDs
                             self.leds[arg_code - 17] = IfDescriptor(
                                 text, arg_code - 17, 0
                             )
-                        elif arg_code in range(40, 50):
+                        elif arg_code in range(40, 52):
                             # Description of Inputs
                             if self.type == "Smart Controller Mini":
                                 if arg_code in range(44, 48):
                                     self.inputs[arg_code - 44].name = text
                                     self.inputs[arg_code - 44].nmbr = arg_code - 43
+                                    # Set area index, where included, else apply module area later
+                                    if int(line[1]) > 0:
+                                        self.inputs[arg_code - 44].area = int(line[1])
+                                        area_count[line[1] - 1] += 1
                             else:  # sc inputs 24V
                                 self.inputs[arg_code - 40].name = text
                                 self.inputs[arg_code - 40].nmbr = arg_code - 39
+                                # Set area index, where included, else apply module area later
+                                if int(line[1]) > 0:
+                                    self.inputs[arg_code - 40].area = int(line[1])
+                                    area_count[line[1] - 1] += 1
+
                         elif arg_code in range(110, 120):
                             # Description of counters
                             for cnt in self.counters:
@@ -462,18 +482,29 @@ class ModuleSettings:
                             )
                         elif self.type[0:9] == "Smart Out":
                             # Description of outputs in Out modules
-                            self.outputs[arg_code - 60] = IfDescriptor(
+                            self.outputs[arg_code - 60] = IoDescriptor(
                                 text, arg_code - 59, 1
                             )
+                            # Set area index, where included, else apply module area later
+                            if int(line[1]) > 0:
+                                self.outputs[arg_code - 60].area = int(line[1])
+                                area_count[line[1] - 1] += 1
                         else:
                             # Description of outputs
                             self.outputs[arg_code - 60].name = text
+                            if int(line[1]) > 0:
+                                self.outputs[arg_code - 60].area = int(line[1])
+                                area_count[line[1] - 1] += 1
                     except Exception as err_msg:
                         self.logger.error(
                             f"Parsing of names for module {self.name} failed: {err_msg}: Code {arg_code}, Text {text}"
                         )
 
             list = list[line_len : len(list)]  # Strip processed line
+
+        if sum(area_count) > 0:
+            self.area_member = area_count.index(max(area_count)) + 1
+            self.module.area = self.area_member
 
         if self.type == "Smart Controller Mini":
             self.leds[0].name = "Ambient"
@@ -486,9 +517,9 @@ class ModuleSettings:
             self.outputs[11].type = 2
             self.leds[0].name = "Nachtlicht"
             self.leds[0].nmbr = 0
-            if self.typ == b"\x01\x03":
-                self.inputs[-2].name = "A/D-Kanal 1"
-                self.inputs[-1].name = "A/D-Kanal 2"
+            # if self.typ == b"\x01\x03":
+            #     self.inputs[-2].name = "A/D-Kanal 1"
+            #     self.inputs[-1].name = "A/D-Kanal 2"
             return True
         if self.type[:10] == "Smart Dimm":
             self.dimmers[0].name = self.outputs[0].name
@@ -834,15 +865,24 @@ class ModuleSettings:
             if len(desc.strip()) > 0 or self.module._typ[0] == 11:
                 desc += " " * (32 - len(desc))
                 desc = desc[:32]
-                new_list.append(
-                    f"\xff\0\xeb{chr(inpt_offs + inpt.nmbr)}\1\x23\0\xeb" + desc
-                )
+                if self.typ[0] == 11:
+                    new_list.append(
+                        f"\xff\x00\xeb{chr(inpt_offs + inpt.nmbr)}\1\x23\0\xeb" + desc
+                    )
+                else:
+                    new_list.append(
+                        f"\xff{chr(inpt.area)}\xeb{chr(inpt_offs + inpt.nmbr)}\1\x23\0\xeb"
+                        + desc
+                    )
         for outpt in self.outputs:
             desc = outpt.name
             if len(desc.strip()) > 0:
                 desc += " " * (32 - len(desc))
                 desc = desc[:32]
-                new_list.append(f"\xff\0\xeb{chr(59 + outpt.nmbr)}\1\x23\0\xeb" + desc)
+                new_list.append(
+                    f"\xff{chr(outpt.area)}\xeb{chr(59 + outpt.nmbr)}\1\x23\0\xeb"
+                    + desc
+                )
         for cnt in self.counters:
             desc = cnt.name
             desc += " " * (32 - len(desc))
@@ -982,6 +1022,7 @@ class RouterSettings:
         self.glob_flags: list[IfDescriptor] = []
         self.groups: list[IfDescriptor] = []
         self.coll_cmds: list[IfDescriptor] = []
+        self.areas: list[IfDescriptor] = []
         self.chan_list = []
         self.module_grp = []
         self.max_group = 0
@@ -1037,8 +1078,6 @@ class RouterSettings:
         resp = self.desc.encode("iso8859-1")
 
         no_lines = int.from_bytes(resp[:2], "little")
-        if len(resp) == 0 and len(self.groups) == 0:
-            self.groups.append(IfDescriptor("general", 0, 0))
         resp = resp[4:]
         for _ in range(no_lines):
             if resp == b"":
@@ -1053,12 +1092,21 @@ class RouterSettings:
             elif content_code == 1023:  # FF 03: collective commands (Sammelbefehle)
                 self.coll_cmds.append(IfDescriptor(entry_name, entry_no, 0))
             elif content_code == 2047:  # FF 07: group names
-                self.groups.append(IfDescriptor(entry_name, entry_no, 0))
+                if entry_no in (nmbrs := [grp.nmbr for grp in self.groups]):
+                    self.groups[nmbrs.index(entry_no)] = IfDescriptor(
+                        entry_name, entry_no, 0
+                    )
+                else:
+                    self.groups.append(IfDescriptor(entry_name, entry_no, 0))
             elif content_code == 2303:  # FF 08: alarm commands
                 pass
+            elif content_code == 2815:  # FF 0A: areas
+                self.areas.append(IfDescriptor(entry_name, entry_no, 0))
             resp = resp[line_len:]
-            if len(self.groups) == 0:
-                self.groups.append(IfDescriptor("general", 0, 0))
+        if len(self.groups) == 0:
+            self.groups.append(IfDescriptor("general", 0, 0))
+        if len(self.areas) == 0:
+            self.areas.append(IfDescriptor("House", 1, 0))
 
     def set_glob_descriptions(self) -> str:
         """Add new descriptions into description string."""
@@ -1090,6 +1138,9 @@ class RouterSettings:
             line_no += 1
         for grp in self.groups:
             desc += f"\x01\xff\x07{chr(grp.nmbr)}\x00\x00\x00\x00{chr(len(grp.name))}{grp.name}"
+            line_no += 1
+        for area in self.areas:
+            desc += f"\x01\xff\x0a{chr(area.nmbr)}\x00\x00\x00\x00{chr(len(area.name))}{area.name}"
             line_no += 1
         return chr(line_no & 0xFF) + chr(line_no >> 8) + desc[2:]
 
@@ -1160,6 +1211,7 @@ class ModuleSettingsLight(ModuleSettings):
         self.desc = dpcopy(module.get_rtr().descriptions)
         self.properties: dict = module.io_properties
         self.prop_keys = module.io_prop_keys
+        self.area_member = module.area
         self.cover_times = [0, 0, 0, 0, 0]
         self.blade_times = [0, 0, 0, 0, 0]
         self.user1_name = module.get_rtr().user_modes[1:11].decode("iso8859-1").strip()

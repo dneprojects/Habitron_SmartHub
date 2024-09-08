@@ -335,6 +335,14 @@ class AutomationTrigger:
                 SelSensCodes["rain"]: "Regen",
                 SelSensCodes["wind_peak"]: "Wind",
             }
+        if mod_typ == b"\x32\x28":
+            self.triggers_dict = {
+                SelTrgCodes["climate"]: "Klimaregelung",
+                SelTrgCodes["sensor"]: "Sensor",
+            }
+            self.sensors_dict = {
+                SelSensCodes["temp_int"]: "Temperatur innen",
+            }
         if mod_typ[0] == 10:
             self.triggers_dict = {
                 SelTrgCodes["output"]: "Ausgangsänderung",
@@ -783,6 +791,10 @@ class AutomationTrigger:
             page = page.replace(
                 f'<option value="{SelTrgCodes["ekey"]}">{self.triggers_dict[SelTrgCodes["ekey"]]}',
                 f'<option value="{SelTrgCodes["ekey"]}" disabled>{self.triggers_dict[SelTrgCodes["ekey"]]}',
+            )
+        if list(sel_triggers.keys()) == [220, 203]:
+            page = page.replace(
+                '<option value="2">externer Temperatursensor</option>', " "
             )
 
         opt_str = '<option value="">-- Zähler wählen --</option>'

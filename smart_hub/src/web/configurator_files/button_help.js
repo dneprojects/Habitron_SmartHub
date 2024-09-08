@@ -3,6 +3,7 @@ button_help_dict["Updates"] = "Firmware von Router oder Modulen updaten";
 button_help_dict["Systemkonfiguration"] = "Systemeinstellungen der Anlage sichern oder wiederherstellen";
 button_help_dict["Datei auswählen"] = "Dialog zur Auswahl der Datei öffnen";
 button_help_dict["schließen"] = "Aktuelles Fenster schließen";
+button_help_dict["Erzeugen"] = "Erzeugen einer Dokumentation der Ein- und Ausgänge aller Module";
 button_help_dict["Upload"] = "Ausgewählte Datei in den Configurator laden";
 button_help_dict["Start"] = "Einlernen aktiv für die eingestellte Zeit (LED orange)";
 button_help_dict["Download"] = "Einstellungen unter dem angegebenen Namen als Download sichern";

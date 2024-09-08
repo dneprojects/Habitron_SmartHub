@@ -316,6 +316,8 @@ class EventServer:
                 )
             else:
                 self.logger.debug("API mode router message, system mode: 'Config'")
+        elif rt_event[4] in [10, 11]:  # set/reset global flag
+            pass  # discard response, info is always 74 123
 
         else:
             # Discard resonse of API command
@@ -498,7 +500,7 @@ class EventServer:
 
     async def ping_pong_reconnect(self) -> bool:
         """Check for living websocket connection, reconnect if needed."""
-        
+
         if self.api_srv._pc_mode:
             # If connected with PC no HA available
             return True

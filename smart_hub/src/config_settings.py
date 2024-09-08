@@ -95,7 +95,10 @@ class ConfigSettingsServer:
             # only one field filled
             return show_settings(request.app["parent"], settings.id)
         for form_key in list(form_data.keys())[:-1]:
-            settings.__setattr__(form_key, form_data[form_key][0])
+            if form_key == "area_member":
+                settings.__setattr__(form_key, int(form_data[form_key][0]))
+            else:
+                settings.__setattr__(form_key, form_data[form_key][0])
         args = form_data["ModSettings"][0]
         return await show_next_prev(request.app["parent"], args)
 
@@ -163,11 +166,11 @@ def show_router_overview(main_app, popup_msg="") -> web.Response:
         return web.Response(text=page, content_type="text/html")
     props = "<h3>Eigenschaften</h3>\n"
     props += "<table>\n"
-    props += f'<tr><td style="width:80px;">Hardware:</td><td>{rtr.serial.decode("iso8859-1")[1:]}</td></tr>\n'
+    props += f'<tr><td style="width:90px;">Hardware:</td><td>{rtr.serial.decode("iso8859-1")[1:]}</td></tr>\n'
     props += (
         f"<tr><td>Firmware:</td><td>{rtr.version.decode('iso8859-1')[1:]}</td></tr>\n"
     )
-    mode0 = rtr.mode0
+    mode0 = rtr.chan_status[1]
     config_mode = mode0 == SYS_MODES.Config
     day_mode = mode0 & 0x3
     alarm_mode = mode0 & 0x4
@@ -197,7 +200,10 @@ def show_router_overview(main_app, popup_msg="") -> web.Response:
         mode_str += ", Alarm"
     if mode_str[0] == ",":
         mode_str = mode_str[2:]
-    props += "<tr><td>Mode:</td><td>" + mode_str + "</td></tr>\n"
+    props += "</table>\n"
+    props += "<h3>Status</h3>\n"
+    props += "<table>\n"
+    props += '<tr><td style="width:90px;">Mode:</td><td>' + mode_str + "</td></tr>\n"
     if api_srv._opr_mode:
         props += "<tr><td>Betriebsart:</td><td>Operate</td></tr>\n"
     else:
@@ -210,6 +216,20 @@ def show_router_overview(main_app, popup_msg="") -> web.Response:
         props += "<tr><td>Events:</td><td>aktiv</td></tr>\n"
     else:
         props += "<tr><td>Events:</td><td>inaktiv</td></tr>\n"
+    props += f"<tr><td>Modulanzahl:</td><td>{rtr.chan_status[0]}</td></tr>\n"
+    if rtr.comm_errors[0]:
+        last_err_str = f"Modul {rtr.comm_errors[0]}: F{rtr.comm_errors[1]}"
+    else:
+        last_err_str = "-"
+    mod_err_str = ""
+    for err_cnt in range(rtr.comm_errors[2]):
+        mod_err_str += f"Modul {rtr.comm_errors[3 + 2*err_cnt]}: F{rtr.comm_errors[4 + 2*err_cnt]}; "
+    if mod_err_str == "":
+        mod_err_str = "-"
+    else:
+        mod_err_str = mod_err_str[:-2]
+    props += f"<tr><td>Fehler:</td><td>{mod_err_str}</td></tr>\n"
+    props += f"<tr><td>Letzter Fehler:</td><td>{last_err_str}</td></tr>\n"
 
     props += "</table>\n"
     def_filename = "my_router.hrt"
@@ -442,6 +462,7 @@ def get_module_properties(mod) -> str:
     props += "<table>\n"
     props += f'<tr><td style="width:80px;">Adresse:</td><td>{mod._id}</td></tr>\n'
     props += f"<tr><td>Kanal:</td><td>{mod._channel}</td></tr>\n"
+    props += f"<tr><td>Bereich:</td><td>{mod.get_area_name()}</td></tr>\n"
     props += f"<tr><td>Gruppe:</td><td>{mod.get_group_name()}</td></tr>\n"
     props += f"<tr><td>Hardware:</td><td>{mod._serial}</td></tr>\n"
     props += f"<tr><td>Firmware:</td><td>{mod.get_sw_version()}</td></tr>\n"
@@ -469,6 +490,25 @@ def prepare_basic_settings(main_app, mod_addr, mod_type):
     )
     if mod_addr > 0:
         # Module
+        id_name = "area_member"
+        prompt = "Zuordnung zu Bereich"
+        tbl += (
+            indent(7)
+            + f'<tr><td><label for="{id_name}">{prompt}</label></td>'
+            + f'<td><select name="{id_name}" id="{id_name}">\n'
+        )
+        rtr = main_app["api_srv"].routers[0]
+        rt_settings = RouterSettings(rtr)
+        areas = rt_settings.areas
+        for area in areas:
+            if area.nmbr == settings.area_member:
+                tbl += (
+                    indent(8)
+                    + f'<option value="{area.nmbr}" selected>{area.name}</option>\n'
+                )
+            else:
+                tbl += indent(8) + f'<option value="{area.nmbr}">{area.name}</option>\n'
+        tbl += indent(7) + "/select></td></tr>\n"
         id_name = "group_member"
         prompt = "Gruppenzugehörigkeit"
         tbl += (
@@ -476,9 +516,6 @@ def prepare_basic_settings(main_app, mod_addr, mod_type):
             + f'<tr><td><label for="{id_name}">{prompt}</label></td>'
             + f'<td><select name="{id_name}" id="{id_name}">\n'
         )
-        rtr = main_app["api_srv"].routers[0]
-        # groups = rtr.groups
-        rt_settings = RouterSettings(rtr)
         grps = rt_settings.groups
         for grp in grps:
             if grp.nmbr == settings.group:
@@ -561,6 +598,7 @@ def prepare_basic_settings(main_app, mod_addr, mod_type):
         "Smart Controller XL-2",
         "Smart Controller XL-2 (LE2)",
         "Smart Controller Mini",
+        "Smart Sensor",
     ]:
         id_name = "temp_ctl"
         prompt = "Temperatur-Regelverhalten"
@@ -592,6 +630,12 @@ def prepare_basic_settings(main_app, mod_addr, mod_type):
             + f'<div><label for="{id_name}_cl4">Aus</label><input type="radio" '
             + f'name="{id_name}" id="{id_name}_cl4" value="4" {cl4_checked}></div></td></tr>\n'
         )
+    if settings.type in [
+        "Smart Controller XL-1",
+        "Smart Controller XL-2",
+        "Smart Controller XL-2 (LE2)",
+        "Smart Controller Mini",
+    ]:
         id_name = "temp_1_2"
         prompt = "Temperatursensor"
         if len(settings.status) == 0:
@@ -658,9 +702,20 @@ def prepare_basic_settings(main_app, mod_addr, mod_type):
 def prepare_table(main_app, mod_addr, step, key) -> str:
     """Prepare settings table with form of edit fields."""
 
+    if key in ["inputs", "outputs"]:  # prepare area popup menu
+        module = main_app["settings"].module
+        rtr = main_app["api_srv"].routers[module.rt_id - 1]
+        areas = rtr.settings.areas
+        area_name_mod = rtr.get_area_name(main_app["settings"].area_member)
+        area_menu = '<td><select name="area_sel" id="area-select" title="Zuordnung zu Bereich (Raum)" style="width:50px;">'
+        for area in areas:
+            area_menu += f'<option value="{area.nmbr}">{area.name}</option>'
+        area_menu += "</td>"
+
     key_prompt = main_app["prompt"]
     if hasattr(main_app["settings"], "covers"):
         covers = getattr(main_app["settings"], "covers")
+
     tbl_data = getattr(main_app["settings"], key)
     tbl = (
         indent(4) + '<form id="settings_table" action="settings/step" method="post">\n'
@@ -792,6 +847,11 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
                 + f'title="2. Zeile (max. 14 Zeichen)" value="{tbl_data[ci].name[18:].strip()}"></td>'
             )
         elif key == "inputs":
+            if tbl_data[ci].area == 0:
+                area_name_e = area_name_mod
+            else:
+                area_name_e = rtr.get_area_name(tbl_data[ci].area)
+            tbl += area_menu.replace(f">{area_name_e}<", f" selected>{area_name_e}<")
             title_sw = "Eingang für Schalteranschluss konfigurieren"
             title_btn = "Eingang für Tasteranschluss konfigurieren"
             title_anl = "Eingang für analogen Messwert (0..10 V) konfigurieren"
@@ -842,6 +902,11 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
                     + f'name="data[{ci},1]" id="{id_name}_anlg" value="anlg" {anlg_checked}></td>'
                 )
         elif key == "outputs":
+            if tbl_data[ci].area == 0:
+                area_name_e = area_name_mod
+            else:
+                area_name_e = rtr.get_area_name(tbl_data[ci].area)
+            tbl += area_menu.replace(f">{area_name_e}<", f" selected>{area_name_e}<")
             title_out = "Ausgänge einzeln verwenden"
             title_cov = "Ausgangspaar für Rollladen gebündelt"
             if (ci < 2 * len(covers)) and ((ci % 2) == 0):
@@ -947,6 +1012,7 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
         if key in [
             "glob_flags",
             "flags",
+            "areas",
             "groups",
             "vis_cmds",
             "coll_cmds",
@@ -969,6 +1035,7 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
     if key in [
         "glob_flags",
         "flags",
+        "areas",
         "groups",
         "dir_cmds",
         "vis_cmds",
@@ -1007,7 +1074,7 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
             max_new = 65280
         elif key in ["groups"]:
             max_new = 80
-        elif key in ["coll_cmds", "users", "gsm_messages"]:
+        elif key in ["areas", "coll_cmds", "users", "gsm_messages"]:
             max_new = 255
         elif key in ["counters", "logic", "fingers"]:
             max_new = 10
@@ -1076,8 +1143,8 @@ def parse_response_form(main_app, form_data):
             elem.name = ""  # clear names to get empty entries
 
     for form_key in list(form_data.keys())[:-1]:
-        if form_key[:4] == "sel_":
-            pass  # checked, but no delete command
+        if form_key[:4] in ["area", "sel_"]:
+            pass  # checked, but no delete command; area_sel handled later
         elif form_key == "new_entry":
             # add element
             if (
@@ -1170,6 +1237,9 @@ def parse_response_form(main_app, form_data):
                             settings.inputs[indices[0]].type = 2
                         elif form_data[form_key][0] == "anlg":
                             settings.inputs[indices[0]].type = 3
+                        settings.inputs[indices[0]].area = int(
+                            form_data["area_sel"][indices[0]]
+                        )
                     case "outputs":
                         o_idx = indices[0]
                         c_idx = settings.out_2_cvr(o_idx)
@@ -1188,21 +1258,28 @@ def parse_response_form(main_app, form_data):
                                 settings.outputs[o_idx].name = set_cover_output_name(
                                     outp_name, cvr_name, "up"
                                 )
-                                settings.outputs[o_idx + 1].name = (
-                                    set_cover_output_name(outp_name, cvr_name, "dwn")
+                                settings.outputs[
+                                    o_idx + 1
+                                ].name = set_cover_output_name(
+                                    outp_name, cvr_name, "dwn"
                                 )
                             else:
                                 settings.outputs[o_idx].name = set_cover_output_name(
                                     outp_name, cvr_name, "dwn"
                                 )
-                                settings.outputs[o_idx + 1].name = (
-                                    set_cover_output_name(outp_name, cvr_name, "up")
+                                settings.outputs[
+                                    o_idx + 1
+                                ].name = set_cover_output_name(
+                                    outp_name, cvr_name, "up"
                                 )
                         elif form_data[form_key][0] == "out":
                             settings.outputs[o_idx].type = 1
                             settings.outputs[o_idx + 1].type = 1
                             settings.covers[c_idx].type = 0
                             settings.covers[c_idx].name = ""
+                        settings.outputs[indices[0]].area = int(
+                            form_data["area_sel"][indices[0]]
+                        )
                     case "covers":
                         c_idx = indices[0]
                         o_idx = settings.cvr_2_out(c_idx)
@@ -1220,15 +1297,19 @@ def parse_response_form(main_app, form_data):
                                 settings.outputs[o_idx].name = set_cover_output_name(
                                     outp_name, cover_name, "up"
                                 )
-                                settings.outputs[o_idx + 1].name = (
-                                    set_cover_output_name(outp_name, cover_name, "dwn")
+                                settings.outputs[
+                                    o_idx + 1
+                                ].name = set_cover_output_name(
+                                    outp_name, cover_name, "dwn"
                                 )
                             else:
                                 settings.outputs[o_idx].name = set_cover_output_name(
                                     outp_name, cover_name, "dwn"
                                 )
-                                settings.outputs[o_idx + 1].name = (
-                                    set_cover_output_name(outp_name, cover_name, "up")
+                                settings.outputs[
+                                    o_idx + 1
+                                ].name = set_cover_output_name(
+                                    outp_name, cover_name, "up"
                                 )
                                 # unchecked 'normal polarity' => no entry in form, so set pol here
                                 settings.covers[c_idx].type = abs(
@@ -1397,6 +1478,9 @@ def get_property_kind(main_app, step) -> tuple[str, str, str]:
         case "night_sched":
             header = "Einstellungen Nachtumschaltung"
             prompt = "Nacht"
+        case "areas":
+            header = "Einstellungen Bereiche (Räume, etc.)"
+            prompt = "Bereich"
         case "groups":
             header = "Einstellungen Gruppen"
             prompt = "Gruppe"

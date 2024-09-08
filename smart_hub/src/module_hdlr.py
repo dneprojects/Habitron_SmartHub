@@ -290,6 +290,18 @@ class ModHdlr(HdlrBase):
             return self.rt_msg._resp_msg[1:].decode("iso8859-1")
         return ""
 
+    async def set_area_index(self):
+        """Send area index setting to module."""
+        base_idx = SMGIdx.index(MirrIdx.MOD_AREA)
+        val = self.mod.smg_upload[base_idx]
+        cmd = (
+            RT_CMDS.SET_AREA_IDX.replace("<rtr>", chr(self.rt_id))
+            .replace("<mod>", chr(self.mod_id))
+            .replace("<set>", chr(val))
+        )
+        await self.handle_router_cmd_resp(self.rt_id, cmd)
+        return "OK"
+
     async def set_display_constrast(self):
         """Send display contrast setting to module."""
         base_idx = SMGIdx.index(MirrIdx.DISPL_CONTR)

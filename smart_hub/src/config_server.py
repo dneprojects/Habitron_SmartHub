@@ -26,6 +26,7 @@ from config_commons import (
     client_not_authorized,
     show_not_authorized,
 )
+from config_export import create_documentation
 from licenses import get_package_licenses, show_license_text
 from messages import calc_crc
 from module import HbtnModule
@@ -78,7 +79,6 @@ class ConfigServer:
 
         @web.middleware
         async def ingress_middleware(request: web.Request, handler) -> web.Response:
-
             response = await handler(request)
             if (
                 request.app["api_srv"].is_addon
@@ -164,6 +164,23 @@ class ConfigServer:
             return show_not_authorized(request.app)
         mod_addr = int(request.match_info["mod_addr"])
         return show_module_overview(request.app, mod_addr)
+
+    @routes.get("/sysdoc")
+    async def get_documentation(request: web.Request) -> web.Response:  # type: ignore
+        if client_not_authorized(request):
+            return show_not_authorized(request.app)
+        file_name = request.query["file"]
+        file_name = file_name.split(".")[0] + ".xlsx"
+        rtr = request.app["api_srv"].routers[0]
+        create_documentation(rtr, file_name)
+        with open(file_name, "rb") as fid:
+            str_data = fid.read()
+        return web.Response(
+            headers=MultiDict(
+                {"Content-Disposition": f"Attachment; filename = {file_name}"}
+            ),
+            body=str_data,
+        )
 
     @routes.get("/download")
     async def get_download(request: web.Request) -> web.Response:  # type: ignore

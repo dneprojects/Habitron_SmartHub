@@ -1074,7 +1074,7 @@ input[type="password"],
 textarea,
 select {
    background: url(design/input_shadow.gif) no-repeat left top;
-   width: 180px;
+   width: 172px;
    padding-top: 2px;
    padding-bottom: 1px;
    color: #333;
@@ -1144,7 +1144,7 @@ form.select,
 select {
    background: url(design/input_shadow.gif) no-repeat left top;
    height: 21.78px;
-   width: 184.78px;
+   width: 177px;
    padding-left: 0px;
    margin-left: 5px;
    border: 1px solid #C0372D;

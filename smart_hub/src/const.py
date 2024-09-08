@@ -43,7 +43,7 @@ USB_SERIAL_DEVICES = ["USB Seri", "Prolific"]
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.5.5"
+    SW_VERSION = "1.5.6"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
@@ -51,7 +51,7 @@ class SMHUB_INFO:
 
 class API_CATEGS:
     "Categries of API handlers"
-    
+
     DATA = 10
     SETTINGS = 20
     ACTIONS = 30
@@ -365,7 +365,7 @@ class RT_CMDS:
     RST_MD_COMMSTAT = "\x2a<rtr>\x07\x65<mod>L\xff"
     RST_MD_ERRORS = "\x2a<rtr>\x06\x65\xfd\xff"
     GET_MD_LASTERR = "\x2a<rtr>\x06\x65\xfe\xff"
-    GET_MD_ERRORS = "\x2a<rtr>\x06\x64\xff\xff"
+    GET_MD_ERRORS = "\x2a<rtr>\x06\x65\xff\xff"
 
     GET_RT_MODULES = "\x2a<rtr>\x06\x63\x01\xff"
     SEND_RT_CHANS = "\x2a<rtr>\xff\x63\x50\x53"
@@ -425,6 +425,7 @@ class RT_CMDS:
     SET_T_LIM = "\x2a<rtr>\x0b\x44<mod>\x07\xdc\x64<Tlow><Thigh>\xff"
     SET_CLIMATE = "\x2a<rtr>\x0a\x44<mod>\x06\x04\x53<set>\xff"
     SET_DISPL_CONTR = "\x2a<rtr>\x0a\x44<mod>\x06\x03\x53<set>\xff"
+    SET_AREA_IDX = "\x2a<rtr>\x0a\x44<mod>\x06\x03\x53<set>\xff"
     SET_MOD_NAME = "\x2a<rtr>\x12\x44<mod>\x0e\x67\x53<cnt><name8>\xff"
     SET_MOD_SERIAL = "\x2a<rtr>\x19\x44<mod>\x15\x69<cnt>"
     GET_MOD_SERIAL = "\x2a<rtr>\x09\x44<mod>\x05\x69\x4c\xff"
@@ -572,7 +573,7 @@ class MirrIdx:
     AQI = 26
     LUM = 27
     MOV = 29
-    LED_I = 30  # not included in status
+    MOD_AREA = 30  # index of area list in router
     GEN_1 = 31
     GEN_2 = 32
     IR_H = 31
@@ -597,6 +598,7 @@ class MirrIdx:
     GEN_3 = 78
     GEN_4 = 79
     RAIN = 78
+    LED_I = 79
     DISPL_CONTR = 79
     DCF77_STAT = 79
     MOD_RESTARTED = 80
@@ -655,7 +657,7 @@ SMGIdx = [
     MirrIdx.ADDR,
     MirrIdx.MOD_DESC,
     MirrIdx.MOD_DESC + 1,
-    MirrIdx.LED_I,
+    MirrIdx.MOD_AREA,
     # following values are stored in Mirr only once, polarity separate
     # only start value valid, mirror contains only 8 values each
     *range(MirrIdx.COVER_T, MirrIdx.COVER_T + 16),
@@ -831,6 +833,14 @@ class IfDescriptor:
         self.name: str = iname
         self.nmbr: int = inmbr
         self.type: int = itype
+
+
+class IoDescriptor(IfDescriptor):
+    """Habitron input/output interface descriptor."""
+
+    def __init__(self, iname, inmbr, itype, iarea=0) -> None:
+        super().__init__(iname, inmbr, itype)
+        self.area: int = iarea
 
 
 class LgcDescriptor(IfDescriptor):

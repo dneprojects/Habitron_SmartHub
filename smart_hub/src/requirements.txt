@@ -1,5 +1,6 @@
 aiohttp
 multidict
+openpyxl
 pip-licenses
 psutil
 py_cpuinfo
