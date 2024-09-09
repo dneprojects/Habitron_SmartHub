@@ -1,4 +1,5 @@
 from aiohttp import web
+import ssl
 from urllib.parse import parse_qs
 from multidict import MultiDict
 from config_settings import (
@@ -114,9 +115,14 @@ class ConfigServer:
             self.testing_srv = ConfigTestingServer(self.app, self.api_srv)
             self.app.add_subapp("/test", self.testing_srv.app)
         self.app.add_routes(routes)
-        self.runner = web.AppRunner(self.app)
+        ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        # ssl_context.load_cert_chain("domain_srv.crt", "domain_srv.key")
+        self.runner = web.AppRunner(self.app)  # , ssl_context=ssl_context)
         await self.runner.setup()
         self.site = web.TCPSite(self.runner, self._ip, self._port)
+        # self.site = web.TCPSite(
+        #     self.runner, self._ip, self._port, ssl_context=ssl_context
+        # )
 
     async def prepare(self):
         """Second initialization after api_srv is initialized."""
@@ -175,9 +181,10 @@ class ConfigServer:
         create_documentation(rtr, file_name)
         with open(file_name, "rb") as fid:
             str_data = fid.read()
+        # Use ".txt" extension for passing download block of ingress
         return web.Response(
             headers=MultiDict(
-                {"Content-Disposition": f"Attachment; filename = {file_name}"}
+                {"Content-Disposition": f"Attachment; filename = {file_name}.txt"}
             ),
             body=str_data,
         )
