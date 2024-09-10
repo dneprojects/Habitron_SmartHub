@@ -1,5 +1,6 @@
 from aiohttp import web
-import ssl
+
+# import ssl
 from urllib.parse import parse_qs
 from multidict import MultiDict
 from config_settings import (
@@ -26,6 +27,7 @@ from config_commons import (
     show_hub_overview,
     client_not_authorized,
     show_not_authorized,
+    show_message_page,
 )
 from config_export import create_documentation
 from licenses import get_package_licenses, show_license_text
@@ -36,6 +38,8 @@ import asyncio
 import logging
 import pathlib
 from const import (
+    DATA_FILES_ADDON_DIR,
+    DATA_FILES_DIR,
     DOC_FILE,
     SETUP_DOC_FILE,
     MODULE_CODES,
@@ -115,7 +119,7 @@ class ConfigServer:
             self.testing_srv = ConfigTestingServer(self.app, self.api_srv)
             self.app.add_subapp("/test", self.testing_srv.app)
         self.app.add_routes(routes)
-        ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        # ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
         # ssl_context.load_cert_chain("domain_srv.crt", "domain_srv.key")
         self.runner = web.AppRunner(self.app)  # , ssl_context=ssl_context)
         await self.runner.setup()
@@ -177,17 +181,26 @@ class ConfigServer:
             return show_not_authorized(request.app)
         file_name = request.query["file"]
         file_name = file_name.split(".")[0] + ".xlsx"
+
         rtr = request.app["api_srv"].routers[0]
-        create_documentation(rtr, file_name)
-        with open(file_name, "rb") as fid:
-            str_data = fid.read()
-        # Use ".txt" extension for passing download block of ingress
-        return web.Response(
-            headers=MultiDict(
-                {"Content-Disposition": f"Attachment; filename = {file_name}.txt"}
-            ),
-            body=str_data,
-        )
+        if rtr.api_srv.is_addon:
+            data_file_path = DATA_FILES_ADDON_DIR
+            return show_message_page(
+                "Dokumentation erzeugt.",
+                f">Datei unter '{data_file_path + file_name}' abgelegt.<",
+            )
+        else:
+            data_file_path = DATA_FILES_DIR
+            create_documentation(rtr, file_name)
+            with open(data_file_path + file_name, "rb") as fid:
+                str_data = fid.read()
+            # Use ".txt" extension for passing download block of ingress
+            return web.Response(
+                headers=MultiDict(
+                    {"Content-Disposition": f"Attachment; filename = {file_name}"}
+                ),
+                body=str_data,
+            )
 
     @routes.get("/download")
     async def get_download(request: web.Request) -> web.Response:  # type: ignore
@@ -412,21 +425,33 @@ class ConfigServer:
 
     @routes.get(path="/Smart Center Documentation")
     async def show_doc(request: web.Request) -> web.Response:  # type: ignore
-        with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
-            pdf_content = doc_file.read()
-        return web.Response(body=pdf_content, content_type="application/pdf")
+        if request.app["api_srv"].is_addon:
+            return show_message_page(
+                "Dokumentation erzeugt.",
+                f"Datei unter '{DATA_FILES_ADDON_DIR + DOC_FILE}' abgelegt.",
+            )
+        else:
+            with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
+                pdf_content = doc_file.read()
+            return web.Response(body=pdf_content, content_type="application/pdf")
 
     @routes.get(path="/Setup Guide")
     async def show_setup_doc(request: web.Request) -> web.Response:  # type: ignore
-        with open(WEB_FILES_DIR + SETUP_DOC_FILE, "rb") as doc_file:
-            pdf_content = doc_file.read()
-        return web.Response(body=pdf_content, content_type="application/pdf")
-        # return web.Response(
-        #     headers=MultiDict(
-        #         {"Content-Disposition": f"Attachment; filename = {SETUP_DOC_FILE}"}
-        #     ),
-        #     body=pdf_content,
-        # )
+        if request.app["api_srv"].is_addon:
+            return show_message_page(
+                "Dokumentation erzeugt.",
+                f"Datei unter '{DATA_FILES_ADDON_DIR + SETUP_DOC_FILE}' abgelegt.",
+            )
+        else:
+            with open(WEB_FILES_DIR + SETUP_DOC_FILE, "rb") as doc_file:
+                pdf_content = doc_file.read()
+            return web.Response(body=pdf_content, content_type="application/pdf")
+            # return web.Response(
+            #     headers=MultiDict(
+            #         {"Content-Disposition": f"Attachment; filename = {SETUP_DOC_FILE}"}
+            #     ),
+            #     body=pdf_content,
+            # )
 
     @routes.get(path="/{key:.*}.txt")
     async def get_license_text(request: web.Request) -> web.Response:  # type: ignore

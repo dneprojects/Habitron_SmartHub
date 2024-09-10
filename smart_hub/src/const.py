@@ -26,7 +26,7 @@ LOGGING_DEF_FILE = "logging_def.yaml"
 HOMEPAGE = "configurator.html"
 HUB_HOMEPAGE = "hub.html"
 CONF_HOMEPAGE = "home.html"
-NOT_AUTH_PAGE = "not_auth.html"
+MESSAGE_PAGE = "msg_template.html"
 SIDE_MENU_FILE = "side-menu.html"
 LICENSE_PAGE = "licenses.html"
 LICENSE_TABLE = "license_table.html"
@@ -43,7 +43,7 @@ USB_SERIAL_DEVICES = ["USB Seri", "Prolific"]
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.5.6"
+    SW_VERSION = "1.5.7"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"

@@ -4,30 +4,42 @@ from const import (
     SIDE_MENU_FILE,
     CONFIG_TEMPLATE_FILE,
     ALLOWED_INGRESS_IPS,
-    NOT_AUTH_PAGE,
     CONF_HOMEPAGE,
     HUB_HOMEPAGE,
     HOMEPAGE,
+    MESSAGE_PAGE,
     SMHUB_INFO,
 )
 
 
 def get_html(html_file) -> str:
+    """Return loaded html page."""
     with open(WEB_FILES_DIR + html_file, mode="r", encoding="utf-8") as pg_id:
         return pg_id.read()
 
 
 def html_response(html_file) -> web.Response:
+    """Return loaded html page as web response."""
     with open(WEB_FILES_DIR + html_file, mode="r", encoding="utf-8") as pg_id:
         text = pg_id.read()
     return web.Response(text=text, content_type="text/html", charset="utf-8")
+
+
+def show_message_page(msg_header: str, msg_text: str) -> web.Response:
+    """Return page with message text."""
+    page = get_html(MESSAGE_PAGE)
+    page = page.replace("msg_header", msg_header)
+    page = page.replace("msg_text", msg_text)
+    return web.Response(text=page, content_type="text/html", charset="utf-8")
 
 
 def show_homepage(app) -> web.Response:
     """Show configurator home page."""
     api_srv = app["api_srv"]
     page = get_html(HOMEPAGE)
-    side_menu = activate_side_menu(app["side_menu"], "", api_srv.is_offline or api_srv._pc_mode)
+    side_menu = activate_side_menu(
+        app["side_menu"], "", api_srv.is_offline or api_srv._pc_mode
+    )
     page = page.replace("<!-- SideMenu -->", side_menu)
     if api_srv.is_offline or api_srv._pc_mode:
         page = page.replace(">Hub<", ">Home<")
@@ -38,10 +50,13 @@ def show_exitpage(app) -> web.Response:
     """Show configurator exit page."""
     api_srv = app["api_srv"]
     page = get_html(HOMEPAGE)
-    side_menu = activate_side_menu(app["side_menu"], "", api_srv.is_offline or api_srv._pc_mode)
+    side_menu = activate_side_menu(
+        app["side_menu"], "", api_srv.is_offline or api_srv._pc_mode
+    )
     if api_srv._in_shutdown:
         page = page.replace(
-            "Passen Sie hier die Grundeinstellungen des Systems an.", "Das Fenster kann geschlossen werden."
+            "Passen Sie hier die Grundeinstellungen des Systems an.",
+            "Das Fenster kann geschlossen werden.",
         )
     else:
         page = page.replace(
@@ -60,7 +75,9 @@ def show_hub_overview(app) -> web.Response:
     smhub = api_srv.sm_hub
     smhub_info = smhub.get_info()
     hub_name = smhub._host
-    side_menu = activate_side_menu(app["side_menu"], ">Hub<", api_srv.is_offline or api_srv._pc_mode)
+    side_menu = activate_side_menu(
+        app["side_menu"], ">Hub<", api_srv.is_offline or api_srv._pc_mode
+    )
     if api_srv.is_offline or api_srv._pc_mode:
         side_menu = side_menu.replace(">Hub<", ">Home<")
         pic_file, subtitle = get_module_image(b"\xc9\x00")
@@ -97,7 +114,9 @@ def show_modules(app) -> web.Response:
     modules = app["api_srv"].routers[0].modules
     side_menu = adjust_side_menu(modules, app["is_offline"], app["is_install"])
     app["side_menu"] = side_menu
-    side_menu = activate_side_menu(side_menu, ">Module<", app["is_offline"] or app["api_srv"]._pc_mode)
+    side_menu = activate_side_menu(
+        side_menu, ">Module<", app["is_offline"] or app["api_srv"]._pc_mode
+    )
     page = get_html("modules.html").replace("<!-- SideMenu -->", side_menu)
     images = ""
     for module in modules:
@@ -149,7 +168,11 @@ def is_outdated(cur_fw: str, new_fw: str) -> bool:
         return True
     if (int(new_year) == int(cur_year)) and (int(new_month) > int(cur_month)):
         return True
-    if (int(new_year) == int(cur_year)) and (int(new_month) == int(cur_month)) and (len(new_date.split("/")[1]) > 4):
+    if (
+        (int(new_year) == int(cur_year))
+        and (int(new_month) == int(cur_month))
+        and (len(new_date.split("/")[1]) > 4)
+    ):
         return True
     # if (new_date == cur_date) and ():
     #     return True
@@ -405,11 +428,13 @@ def adjust_settings_button(page, type, addr: str) -> str:
         page = page.replace("ModAddress", addr)
     return page
 
+
 def adjust_update_button(page: str) -> str:
     """Enable update button on home page"""
     page = page.replace("<!--<button", "<button").replace("</button>-->", "</button>")
     return page
-    
+
+
 def adjust_automations_button(page: str) -> str:
     """Enable edit automations button."""
     page = page.replace("<!--<button", "<button").replace("</button>-->", "</button>")
@@ -451,8 +476,8 @@ def client_not_authorized(request) -> bool:
 
 def show_not_authorized(request) -> web.Response:
     """Return web page with 'not authorized' message'."""
-    return web.Response(
-        text=get_html(NOT_AUTH_PAGE), content_type="text/html", charset="utf-8"
+    return show_message_page(
+        "Zugriff nicht erlaubt.", "Anmeldung über Home Assistant nötig."
     )
 
 

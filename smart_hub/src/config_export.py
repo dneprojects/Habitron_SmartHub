@@ -1,8 +1,8 @@
 from openpyxl import Workbook
 from openpyxl.styles.fonts import Font
-from openpyxl.worksheet.dimensions import ColumnDimension
 
 from configuration import ModuleSettingsLight
+from const import DATA_FILES_ADDON_DIR, DATA_FILES_DIR
 
 
 def create_documentation(router, filename):
@@ -15,7 +15,11 @@ def create_documentation(router, filename):
         # ws.add_image("./web/configurator_files/logo.png", "F1")
         document_module(ws, mod)
     del doc["Sheet"]
-    doc.save(filename)
+    if router.api_srv.is_addon:
+        data_file_path = DATA_FILES_ADDON_DIR
+    else:
+        data_file_path = DATA_FILES_DIR
+    doc.save(data_file_path + filename)
 
 
 def document_module(ws, mod):
