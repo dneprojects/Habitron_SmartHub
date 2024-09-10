@@ -56,7 +56,7 @@ class EventServer:
 
     def __init__(self, api_srv):
         self.api_srv = api_srv
-        self._hass_ip = api_srv._hass_ip
+        self._hass_ip = api_srv.hass_ip
         self._client_ip = api_srv._client_ip
         self._uri = ""
         self.logger = logging.getLogger(__name__)
@@ -92,8 +92,8 @@ class EventServer:
             self._client_ip = self.api_srv._client_ip
             id_str = id_str[ip_len + 1 :]
             ip_len = ord(id_str[0])
-            self.api_srv._hass_ip = id_str[1 : ip_len + 1]
-            self._hass_ip = self.api_srv._hass_ip
+            self.api_srv.hass_ip = id_str[1 : ip_len + 1]
+            self._hass_ip = self.api_srv.hass_ip
             tok_len = ord(id_str[ip_len + 1])
             tok_str = id_str[ip_len + 2 : ip_len + 2 + tok_len]
             if not self.api_srv.is_addon:

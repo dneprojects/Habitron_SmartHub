@@ -196,7 +196,7 @@ class ConfigServer:
 
         if api_srv.is_addon:
             data_file_path = DATA_FILES_ADDON_DIR
-            web_path = f"file://{api_srv._hass_ip}/addon_configs/{api_srv.slug_name}/{file_name}"
+            web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{file_name}"
             return show_message_page(
                 "Dokumentation erzeugt.",
                 f'Datei unter <a href="{web_path}" target="_blank">{data_file_path + file_name}</a> abgelegt.',
@@ -443,10 +443,15 @@ class ConfigServer:
     async def show_doc(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
         api_srv = request.app["api_srv"]
-        if api_srv.is_addon:
+        if not api_srv.is_addon:
             request.app.logger.info(f"Headers: {request.headers}")
-            shutil.copy2(WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + DOC_FILE)
-            web_path = f"file://{api_srv._hass_ip}/addon_configs/{api_srv.slug_name}/{DOC_FILE}"
+            shutil.copy(WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + DOC_FILE)
+            request.app.logger.info(
+                f"Path: file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{DOC_FILE}"
+            )
+            web_path = (
+                f"file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{DOC_FILE}"
+            )
             return show_message_page(
                 "Dokumentation erzeugt.",
                 f'Datei unter <a href="{web_path}" target="_blank">{DATA_FILES_ADDON_DIR + DOC_FILE}</a> abgelegt.',
@@ -461,10 +466,8 @@ class ConfigServer:
         inspect_header(request)
         api_srv = request.app["api_srv"]
         if api_srv.is_addon:
-            shutil.copy2(
-                WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + SETUP_DOC_FILE
-            )
-            web_path = f"file://{api_srv._hass_ip}/addon_configs/{api_srv.slug_name}/{SETUP_DOC_FILE}"
+            shutil.copy(WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + SETUP_DOC_FILE)
+            web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{SETUP_DOC_FILE}"
             return show_message_page(
                 "Dokumentation erzeugt.",
                 f'Datei unter <a href="{web_path}" target="_blank">{DATA_FILES_ADDON_DIR + SETUP_DOC_FILE}</a> abgelegt.',
