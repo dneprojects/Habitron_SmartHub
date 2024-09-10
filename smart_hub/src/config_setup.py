@@ -6,6 +6,7 @@ from config_commons import (
     client_not_authorized,
     show_not_authorized,
     activate_side_menu,
+    inspect_header,
 )
 from const import (
     CONF_PORT,
@@ -29,6 +30,7 @@ class ConfigSetupServer:
 
     @routes.get("/")
     async def setup_page(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         main_app = request.app["parent"]
         if client_not_authorized(request):
             return show_not_authorized(main_app)
@@ -36,6 +38,7 @@ class ConfigSetupServer:
 
     @routes.get("/add")
     async def type_list(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         main_app = request.app["parent"]
         if client_not_authorized(request):
             return show_not_authorized(main_app)
@@ -43,6 +46,7 @@ class ConfigSetupServer:
 
     @routes.get("/add_type-{mod_cat}-{mod_subtype}")
     async def add_type(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         main_app = request.app["parent"]
         api_srv = main_app["api_srv"]
         rtr = api_srv.routers[0]
@@ -64,6 +68,7 @@ class ConfigSetupServer:
 
     @routes.get("/remove")
     async def mod_remove(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         main_app = request.app["parent"]
         api_srv = main_app["api_srv"]
         rtr = api_srv.routers[0]
@@ -75,11 +80,13 @@ class ConfigSetupServer:
 
     @routes.get("/table_close")
     async def tbl_close(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         main_app = request.app["parent"]
         return show_setup_page(main_app, "Änderungen verworfen")
 
     @routes.get("/adapt")
     async def mod_adapt(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         main_app = request.app["parent"]
         if client_not_authorized(request):
             return show_not_authorized(main_app)
@@ -87,6 +94,7 @@ class ConfigSetupServer:
 
     @routes.get("/apply")
     async def tbl_apply(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         main_app = request.app["parent"]
         rtr = main_app["api_srv"].routers[0]
         if client_not_authorized(request):
@@ -100,7 +108,9 @@ class ConfigSetupServer:
 
 def show_setup_page(app, popup_msg="") -> web.Response:
     """Prepare modules page."""
-    side_menu = activate_side_menu(app["side_menu"], ">Einrichten<", app["is_offline"] or app["api_srv"]._pc_mode)
+    side_menu = activate_side_menu(
+        app["side_menu"], ">Einrichten<", app["is_offline"] or app["api_srv"]._pc_mode
+    )
     page = get_html("setup.html").replace("<!-- SideMenu -->", side_menu)
     page = page.replace("<h1>HubTitle", "<h1>Habitron-Geräte einrichten")
     page = page.replace("Overview", "Installationsbereich")
@@ -169,8 +179,12 @@ def show_module_types(app) -> web.Response:
     """Prepare modules page."""
     api_srv = app["api_srv"]
     rtr = api_srv.routers[0]
-    side_menu = activate_side_menu(app["side_menu"], ">Einrichten<", app["is_offline"] or app["api_srv"]._pc_mode)
-    side_menu = activate_side_menu(side_menu, ">Module anlegen<", app["is_offline"] or app["api_srv"]._pc_mode)
+    side_menu = activate_side_menu(
+        app["side_menu"], ">Einrichten<", app["is_offline"] or app["api_srv"]._pc_mode
+    )
+    side_menu = activate_side_menu(
+        side_menu, ">Module anlegen<", app["is_offline"] or app["api_srv"]._pc_mode
+    )
     page = get_html("modules.html").replace("<!-- SideMenu -->", side_menu)
     page = page.replace("<h1>Module", "<h1>Module anlegen")
     page = page.replace("Übersicht", "Mögliche Modultypen")
@@ -191,8 +205,12 @@ def show_module_types(app) -> web.Response:
 
 def show_module_table(app) -> web.Response:
     """Build html table string from table line list."""
-    side_menu = activate_side_menu(app["side_menu"], ">Einrichten<", app["is_offline"] or app["api_srv"]._pc_mode)
-    side_menu = activate_side_menu(side_menu, ">Module verwalten<", app["is_offline"] or app["api_srv"]._pc_mode)
+    side_menu = activate_side_menu(
+        app["side_menu"], ">Einrichten<", app["is_offline"] or app["api_srv"]._pc_mode
+    )
+    side_menu = activate_side_menu(
+        side_menu, ">Module verwalten<", app["is_offline"] or app["api_srv"]._pc_mode
+    )
     page = get_html("setup.html").replace("<!-- SideMenu -->", side_menu)
     page = page.replace("<h1>HubTitle", "<h1>Module verwalten")
     page = page.replace("Overview", "Modulübersicht")

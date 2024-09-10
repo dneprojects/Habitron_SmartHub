@@ -6,6 +6,7 @@ from config_commons import (
     client_not_authorized,
     show_not_authorized,
     fill_page_template,
+    inspect_header,
 )
 from config_settings import activate_side_menu
 from const import CONF_PORT, MirrIdx, HA_EVENTS
@@ -28,6 +29,7 @@ class ConfigTestingServer:
 
     @routes.get("/modules")
     async def test_modules(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         main_app = request.app["parent"]
@@ -35,6 +37,7 @@ class ConfigTestingServer:
 
     @routes.get("/start-{mod_addr}")
     async def start_test(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         main_app = request.app["parent"]
@@ -46,6 +49,7 @@ class ConfigTestingServer:
 
     @routes.get("/events")
     async def get_events(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         main_app = request.app["parent"]
         mod_addr = main_app["mod_addr"]
         events_dict: dict[str, list[list[int]]] = {}
@@ -64,6 +68,7 @@ class ConfigTestingServer:
 
     @routes.get("/stop")
     async def stop_test(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         main_app = request.app["parent"]
@@ -73,6 +78,7 @@ class ConfigTestingServer:
 
     @routes.get("/set_output")
     async def set_output(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         args = request.query_string.split("=")
@@ -90,8 +96,12 @@ def show_modules_overview(app) -> web.Response:
     """Prepare modules page."""
     api_srv = app["api_srv"]
     rtr = api_srv.routers[0]
-    side_menu = activate_side_menu(app["side_menu"], ">Einrichten<", app["is_offline"] or app["api_srv"]._pc_mode)
-    side_menu = activate_side_menu(side_menu, ">Module testen<", app["is_offline"] or app["api_srv"]._pc_mode)
+    side_menu = activate_side_menu(
+        app["side_menu"], ">Einrichten<", app["is_offline"] or app["api_srv"]._pc_mode
+    )
+    side_menu = activate_side_menu(
+        side_menu, ">Module testen<", app["is_offline"] or app["api_srv"]._pc_mode
+    )
     page = get_html("modules.html").replace("<!-- SideMenu -->", side_menu)
     page = page.replace("<h1>Module", "<h1>Module testen")
     images = ""

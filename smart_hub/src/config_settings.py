@@ -17,6 +17,7 @@ from config_commons import (
     hide_button,
     client_not_authorized,
     show_not_authorized,
+    inspect_header,
 )
 from const import (
     LGC_TYPES,
@@ -52,6 +53,7 @@ class ConfigSettingsServer:
 
     @routes.get("/module-{mod_addr}")
     async def get_module(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         mod_addr = int(request.match_info["mod_addr"])
@@ -59,6 +61,7 @@ class ConfigSettingsServer:
 
     @routes.get("/settings")
     async def get_settings(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         args = request.query_string.split("=")
@@ -70,6 +73,7 @@ class ConfigSettingsServer:
 
     @routes.get("/step")
     async def get_step(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         args = request.query_string.split("=")
@@ -77,6 +81,7 @@ class ConfigSettingsServer:
 
     @routes.post("/settings")
     async def post_settings(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         if client_not_authorized(request):
@@ -104,6 +109,7 @@ class ConfigSettingsServer:
 
     @routes.post("/step")
     async def post_step(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         resp = await request.text()
@@ -113,6 +119,7 @@ class ConfigSettingsServer:
 
     @routes.get("/teach")
     async def get_teach(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         args = request.query_string.split("=")
@@ -120,6 +127,7 @@ class ConfigSettingsServer:
 
     @routes.get("/show_logs")
     async def show_logs(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         args = request.query_string.split("=")
@@ -127,6 +135,7 @@ class ConfigSettingsServer:
 
     @routes.get("/ekey_log_table")
     async def ekey_logs(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         args = request.query_string.split("=")
@@ -143,6 +152,7 @@ class ConfigSettingsServer:
 
     @routes.get("/pair")
     async def ekey_pair(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         module = request.app["parent"]["module"]

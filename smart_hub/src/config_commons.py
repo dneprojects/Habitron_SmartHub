@@ -8,8 +8,23 @@ from const import (
     HUB_HOMEPAGE,
     HOMEPAGE,
     MESSAGE_PAGE,
+    INSTALLER_GROUP,
     SMHUB_INFO,
 )
+
+
+def inspect_header(req: web.Request):
+    """Get login information from header."""
+    api_srv = req.app["api_srv"]
+    if api_srv.is_addon:
+        api_srv.user_login = req.headers["X-Remote-User-Name"]
+        if api_srv.user_login.lower() in INSTALLER_GROUP:
+            req.app["is_install"] = True
+        else:
+            req.app["is_install"] = False
+    else:
+        api_srv.user_login = ""
+        req.app["is_install"] = False
 
 
 def get_html(html_file) -> str:

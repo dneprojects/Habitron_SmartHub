@@ -9,6 +9,7 @@ from config_commons import (
     indent,
     client_not_authorized,
     show_not_authorized,
+    inspect_header,
 )
 from config_settings import show_module_overview
 from const import (
@@ -35,6 +36,7 @@ class ConfigAutomationsServer:
 
     @routes.get("/list")
     async def get_list(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         args = request.query_string.split("=")
@@ -45,6 +47,7 @@ class ConfigAutomationsServer:
 
     @routes.post("/automtns")
     async def post_automtns(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         resp = await request.text()
@@ -168,6 +171,7 @@ class ConfigAutomationsServer:
 
     @routes.post("/automtn_def")
     async def post_automtn_def(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         resp = await request.text()
         form_data = parse_qs(resp)
         main_app = request.app["parent"]

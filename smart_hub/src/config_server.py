@@ -29,6 +29,7 @@ from config_commons import (
     client_not_authorized,
     show_not_authorized,
     show_message_page,
+    inspect_header,
 )
 from config_export import create_documentation
 from licenses import get_package_licenses, show_license_text
@@ -114,11 +115,10 @@ class ConfigServer:
         self.app.add_subapp("/settings", self.settings_srv.app)
         self.automations_srv = ConfigAutomationsServer(self.app, self.api_srv)
         self.app.add_subapp("/automations", self.automations_srv.app)
-        if self.is_install:
-            self.setup_srv = ConfigSetupServer(self.app, self.api_srv)
-            self.app.add_subapp("/setup", self.setup_srv.app)
-            self.testing_srv = ConfigTestingServer(self.app, self.api_srv)
-            self.app.add_subapp("/test", self.testing_srv.app)
+        self.setup_srv = ConfigSetupServer(self.app, self.api_srv)
+        self.app.add_subapp("/setup", self.setup_srv.app)
+        self.testing_srv = ConfigTestingServer(self.app, self.api_srv)
+        self.app.add_subapp("/test", self.testing_srv.app)
         self.app.add_routes(routes)
         # ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
         # ssl_context.load_cert_chain("domain_srv.crt", "domain_srv.key")
@@ -133,19 +133,22 @@ class ConfigServer:
         """Second initialization after api_srv is initialized."""
         self.app["api_srv"] = self.api_srv
         self.app["is_offline"] = self.api_srv.is_offline
-        self.app["is_install"] = self.is_install
+        self.app["is_install"] = False
         init_side_menu(self.app)
 
     @routes.get("/")
     async def get_root(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         return show_homepage(request.app)
 
     @routes.get("/licenses")
     async def get_licenses(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         return show_license_table(request.app)
 
     @routes.get("/exit")
     async def get_exit(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         api_srv = request.app["api_srv"]
         if api_srv._in_shutdown:
             api_srv.sm_hub.tg.create_task(terminate_delayed(api_srv))
@@ -153,24 +156,28 @@ class ConfigServer:
 
     @routes.get("/router")
     async def get_router(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         return show_router_overview(request.app)
 
     @routes.get("/hub")
     async def get_hub(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         return show_hub_overview(request.app)
 
     @routes.get("/modules")
     async def get_modules(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         return show_modules(request.app)
 
     @routes.get("/module-{mod_addr}")
     async def get_module_addr(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         mod_addr = int(request.match_info["mod_addr"])
@@ -178,6 +185,7 @@ class ConfigServer:
 
     @routes.get("/sysdoc")
     async def get_documentation(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         file_name = request.query["file"]
@@ -206,6 +214,7 @@ class ConfigServer:
 
     @routes.get("/download")
     async def get_download(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         file_name = request.query["file"]
@@ -257,6 +266,7 @@ class ConfigServer:
 
     @routes.post("/upload")
     async def get_upload(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         app = request.app
@@ -305,6 +315,7 @@ class ConfigServer:
 
     @routes.post("/upd_upload")
     async def get_upd_upload(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         app = request.app
@@ -353,6 +364,7 @@ class ConfigServer:
 
     @routes.post("/update_router")
     async def get_update_router(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         app = request.app
@@ -377,6 +389,7 @@ class ConfigServer:
 
     @routes.post("/update_modules")
     async def get_update_modules(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         app = request.app
@@ -419,6 +432,7 @@ class ConfigServer:
 
     @routes.get("/update_status")
     async def get_update_status(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         app = request.app
         stat = app["api_srv"].routers[0].hdlr.upd_stat_dict
         return web.Response(
@@ -427,6 +441,7 @@ class ConfigServer:
 
     @routes.get(path="/Smart Center Documentation")
     async def show_doc(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         api_srv = request.app["api_srv"]
         if api_srv.is_addon:
             request.app.logger.info(f"Headers: {request.headers}")
@@ -443,6 +458,7 @@ class ConfigServer:
 
     @routes.get(path="/Setup Guide")
     async def show_setup_doc(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         api_srv = request.app["api_srv"]
         if api_srv.is_addon:
             shutil.copy2(
@@ -466,6 +482,7 @@ class ConfigServer:
 
     @routes.get(path="/{key:.*}.txt")
     async def get_license_text(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
         return show_license_text(request)
 
 

@@ -38,6 +38,7 @@ AUTOMATIONEDIT_TEMPLATE_FILE = "automation_edit_template.html"
 DOC_FILE = "documentation.pdf"
 SETUP_DOC_FILE = "setup.pdf"
 USB_SERIAL_DEVICES = ["USB Seri", "Prolific"]
+INSTALLER_GROUP = ["habitron_admin", "habitron_installer"]
 
 
 class SMHUB_INFO:
