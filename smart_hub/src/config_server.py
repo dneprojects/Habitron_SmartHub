@@ -443,7 +443,7 @@ class ConfigServer:
     async def show_doc(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
         api_srv = request.app["api_srv"]
-        if not api_srv.is_addon:
+        if api_srv.is_addon:
             request.app.logger.info(f"Headers: {request.headers}")
             shutil.copy(WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + DOC_FILE)
             request.app.logger.info(
