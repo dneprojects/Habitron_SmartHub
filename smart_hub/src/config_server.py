@@ -199,7 +199,7 @@ class ConfigServer:
             web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{file_name}"
             return show_message_page(
                 "Dokumentation erzeugt.",
-                f'Datei unter <a href="{web_path}" target="_blank">{data_file_path + file_name}</a> abgelegt.',
+                f"Datei unter {web_path} abgelegt.",
             )
         else:
             data_file_path = DATA_FILES_DIR
@@ -446,18 +446,12 @@ class ConfigServer:
         if api_srv.is_addon:
             request.app.logger.info(f"Headers: {request.headers}")
             shutil.copy(WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + DOC_FILE)
-            try:
-                request.app.logger.info(
-                    f"Path: file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{DOC_FILE}"
-                )
-            except Exception as err:
-                request.app.logger.info(f"Error: {err}")
             web_path = (
                 f"file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{DOC_FILE}"
             )
             return show_message_page(
                 "Dokumentation erzeugt.",
-                f'Datei unter <a href="{web_path}" target="_blank">{DATA_FILES_ADDON_DIR + DOC_FILE}</a> abgelegt.',
+                f"Datei unter {web_path} abgelegt.",
             )
         else:
             with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
@@ -473,7 +467,7 @@ class ConfigServer:
             web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{SETUP_DOC_FILE}"
             return show_message_page(
                 "Dokumentation erzeugt.",
-                f'Datei unter <a href="{web_path}" target="_blank">{DATA_FILES_ADDON_DIR + SETUP_DOC_FILE}</a> abgelegt.',
+                f"Datei unter {web_path} abgelegt.",
             )
         else:
             with open(WEB_FILES_DIR + SETUP_DOC_FILE, "rb") as doc_file:
