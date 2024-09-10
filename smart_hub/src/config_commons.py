@@ -18,10 +18,19 @@ def inspect_header(req: web.Request):
     api_srv = req.app["api_srv"]
     if api_srv.is_addon:
         api_srv.user_login = req.headers["X-Remote-User-Name"]
-        if api_srv.user_login.lower() in INSTALLER_GROUP:
+        api_srv.hass_ip = req.headers["Host"].split(":")[0]
+        if (
+            api_srv.user_login.lower() in INSTALLER_GROUP
+            and req.app["is_install"] is False
+        ):
             req.app["is_install"] = True
-        else:
+            init_side_menu(req.app)
+        elif (
+            api_srv.user_login.lower() not in INSTALLER_GROUP
+            and req.app["is_install"] is True
+        ):
             req.app["is_install"] = False
+            init_side_menu(req.app)
     else:
         api_srv.user_login = ""
         req.app["is_install"] = False
