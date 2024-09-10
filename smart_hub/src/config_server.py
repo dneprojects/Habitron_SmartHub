@@ -1,6 +1,7 @@
 from aiohttp import web
 
 # import ssl
+import shutil
 from urllib.parse import parse_qs
 from multidict import MultiDict
 from config_settings import (
@@ -181,20 +182,21 @@ class ConfigServer:
             return show_not_authorized(request.app)
         file_name = request.query["file"]
         file_name = file_name.split(".")[0] + ".xlsx"
+        api_srv = request.app["api_srv"]
+        rtr = api_srv.routers[0]
+        create_documentation(rtr, file_name)
 
-        rtr = request.app["api_srv"].routers[0]
-        if rtr.api_srv.is_addon:
+        if api_srv.is_addon:
             data_file_path = DATA_FILES_ADDON_DIR
+            web_path = f"file://{api_srv._hass_ip}/addon_configs/{api_srv.slug_name}/{file_name}"
             return show_message_page(
                 "Dokumentation erzeugt.",
-                f">Datei unter '{data_file_path + file_name}' abgelegt.<",
+                f'Datei unter <a href="{web_path}" target="_blank">{data_file_path + file_name}</a> abgelegt.',
             )
         else:
             data_file_path = DATA_FILES_DIR
-            create_documentation(rtr, file_name)
             with open(data_file_path + file_name, "rb") as fid:
                 str_data = fid.read()
-            # Use ".txt" extension for passing download block of ingress
             return web.Response(
                 headers=MultiDict(
                     {"Content-Disposition": f"Attachment; filename = {file_name}"}
@@ -425,10 +427,14 @@ class ConfigServer:
 
     @routes.get(path="/Smart Center Documentation")
     async def show_doc(request: web.Request) -> web.Response:  # type: ignore
-        if request.app["api_srv"].is_addon:
+        api_srv = request.app["api_srv"]
+        if api_srv.is_addon:
+            request.app.logger.info(f"Headers: {request.headers}")
+            shutil.copy2(WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + DOC_FILE)
+            web_path = f"file://{api_srv._hass_ip}/addon_configs/{api_srv.slug_name}/{DOC_FILE}"
             return show_message_page(
                 "Dokumentation erzeugt.",
-                f"Datei unter '{DATA_FILES_ADDON_DIR + DOC_FILE}' abgelegt.",
+                f'Datei unter <a href="{web_path}" target="_blank">{DATA_FILES_ADDON_DIR + DOC_FILE}</a> abgelegt.',
             )
         else:
             with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
@@ -437,10 +443,15 @@ class ConfigServer:
 
     @routes.get(path="/Setup Guide")
     async def show_setup_doc(request: web.Request) -> web.Response:  # type: ignore
-        if request.app["api_srv"].is_addon:
+        api_srv = request.app["api_srv"]
+        if api_srv.is_addon:
+            shutil.copy2(
+                WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + SETUP_DOC_FILE
+            )
+            web_path = f"file://{api_srv._hass_ip}/addon_configs/{api_srv.slug_name}/{SETUP_DOC_FILE}"
             return show_message_page(
                 "Dokumentation erzeugt.",
-                f"Datei unter '{DATA_FILES_ADDON_DIR + SETUP_DOC_FILE}' abgelegt.",
+                f'Datei unter <a href="{web_path}" target="_blank">{DATA_FILES_ADDON_DIR + SETUP_DOC_FILE}</a> abgelegt.',
             )
         else:
             with open(WEB_FILES_DIR + SETUP_DOC_FILE, "rb") as doc_file:

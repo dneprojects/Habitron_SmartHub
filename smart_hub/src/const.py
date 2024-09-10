@@ -43,7 +43,7 @@ USB_SERIAL_DEVICES = ["USB Seri", "Prolific"]
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.5.7"
+    SW_VERSION = "1.5.8"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
