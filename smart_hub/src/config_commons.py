@@ -16,27 +16,28 @@ from const import (
 def inspect_header(req: web.Request):
     """Get login information from header."""
     if "api_srv" in req.app.keys():
-        api_srv = req.app["api_srv"]
+        main_app = req.app
     else:
-        api_srv = req.app["parent"]["api_srv"]
+        main_app = req.app["parent"]
+    api_srv = main_app["api_srv"]
     if api_srv.is_addon:
         api_srv.user_login = req.headers["X-Remote-User-Name"]
         api_srv.hass_ip = req.headers["Host"].split(":")[0]
         if (
             api_srv.user_login.lower() in INSTALLER_GROUP
-            and req.app["is_install"] is False
+            and main_app["is_install"] is False
         ):
-            req.app["is_install"] = True
-            init_side_menu(req.app)
+            main_app["is_install"] = True
+            init_side_menu(main_app)
         elif (
             api_srv.user_login.lower() not in INSTALLER_GROUP
-            and req.app["is_install"] is True
+            and main_app["is_install"] is True
         ):
-            req.app["is_install"] = False
-            init_side_menu(req.app)
+            main_app["is_install"] = False
+            init_side_menu(main_app)
     else:
         api_srv.user_login = ""
-        req.app["is_install"] = False
+        main_app["is_install"] = False
 
 
 def get_html(html_file) -> str:
