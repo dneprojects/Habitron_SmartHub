@@ -35,6 +35,9 @@ def inspect_header(req: web.Request):
         ):
             main_app["is_install"] = False
             init_side_menu(main_app)
+    elif api_srv.is_offline:
+        api_srv.user_login = ""
+        main_app["is_install"] = True
     else:
         api_srv.user_login = ""
         main_app["is_install"] = False

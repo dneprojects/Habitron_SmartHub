@@ -446,9 +446,12 @@ class ConfigServer:
         if api_srv.is_addon:
             request.app.logger.info(f"Headers: {request.headers}")
             shutil.copy(WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + DOC_FILE)
-            request.app.logger.info(
-                f"Path: file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{DOC_FILE}"
-            )
+            try:
+                request.app.logger.info(
+                    f"Path: file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{DOC_FILE}"
+                )
+            except Exception as err:
+                request.app.logger.info(f"Error: {err}")
             web_path = (
                 f"file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{DOC_FILE}"
             )
