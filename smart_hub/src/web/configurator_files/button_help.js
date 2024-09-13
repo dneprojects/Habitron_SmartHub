@@ -1,6 +1,8 @@
 var button_help_dict = {};
 button_help_dict["Updates"] = "Firmware von Router oder Modulen updaten";
+button_help_dict["Lokal"] = "Firmware von Router oder Modulen mit lokal verfügbarer Firmware updaten";
 button_help_dict["Systemkonfiguration"] = "Systemeinstellungen der Anlage sichern oder wiederherstellen";
+button_help_dict["aktuell"] = "Router Firmware aktuell"
 button_help_dict["Datei auswählen"] = "Dialog zur Auswahl der Datei öffnen";
 button_help_dict["schließen"] = "Aktuelles Fenster schließen";
 button_help_dict["Erzeugen"] = "Erzeugen einer Dokumentation der Ein- und Ausgänge aller Module";

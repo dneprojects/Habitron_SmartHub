@@ -44,7 +44,7 @@ INSTALLER_GROUP = ["habitron_admin", "habitron_installer"]
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.5.8"
+    SW_VERSION = "1.5.9"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"

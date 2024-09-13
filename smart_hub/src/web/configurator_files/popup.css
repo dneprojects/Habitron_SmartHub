@@ -115,6 +115,13 @@
     text-align: center;
 }
 
+#rtr_fw_upload, #mod_fw_upload {
+    float: right;
+}
+#loc_fw_update {
+    float: left;
+}
+
 #file_button,
 #close_file_popup,
 #close_updates_popup {
@@ -123,6 +130,19 @@
     top: 0;
     margin-right: 0px;
     margin-left: 10px;
+    font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
+    font: 11px arial, helvetica, clean, sans-serif;
+}
+#close_updates_popup {
+    margin-top: 40px;
+    margin-right: 30px;
+}
+#file_button_l  {
+    height: 22px;
+    width: 100px;
+    top: 0;
+    margin-right: 30px;
+    margin-left: 0px;
     font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
     font: 11px arial, helvetica, clean, sans-serif;
 }

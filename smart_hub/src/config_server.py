@@ -313,6 +313,48 @@ class ConfigServer:
                 app, mod_addr, success_msg
             )  # web.HTTPNoContent()
 
+    @routes.post("/loc_update")
+    async def post_loc_update(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        if client_not_authorized(request):
+            return show_not_authorized(request.app)
+        app = request.app
+        api_srv = app["api_srv"]
+        rtr = api_srv.routers[0]
+        data = await request.post()
+        if "mod_type_select" in data.keys():
+            module = rtr.get_module(int(data["mod_type_select"]))
+            with open(module.update_fw_file, "rb") as fid:
+                rtr.fw_upload = fid.read()
+            mod_type = module._typ
+            mod_type_str = module._type
+            fw_vers = rtr.fw_upload[-27:-5].decode().strip()
+            app.logger.info(
+                f"Firmware file v. {fw_vers} for '{MODULE_CODES[mod_type.decode()]}' modules uploaded"
+            )
+            mod_list = rtr.get_module_list()
+            upd_list = []
+            for mod in mod_list:
+                if mod.typ == mod_type:
+                    upd_list.append(mod)
+            return show_update_modules(upd_list, fw_vers, mod_type_str)
+        else:
+            with open(rtr.update_fw_file, "rb") as fid:
+                rtr.fw_upload = fid.read()
+            fw_vers = rtr.fw_upload[-27:-5]
+            app.logger.info(f"Firmware file for router {rtr._name} uploaded")
+            return show_update_router(rtr, fw_vers)
+
+    @routes.get("/loc_module_update")
+    async def get_loc_module_update(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        if client_not_authorized(request):
+            return show_not_authorized(request.app)
+        app = request.app
+        api_srv = app["api_srv"]
+        rtr = api_srv.routers[0]
+        return show_hub_overview(app)
+
     @routes.post("/upd_upload")
     async def get_upd_upload(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)

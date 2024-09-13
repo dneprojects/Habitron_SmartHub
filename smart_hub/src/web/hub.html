@@ -158,9 +158,7 @@
           </form>
         </div>
         <div id="close_file_popup_box">
-          <button id="close_file_popup">
-            schließen
-          </button>
+          <button id="close_file_popup">schließen</button>
         </div>
       </div>
     </div>
@@ -170,23 +168,29 @@
         <h1>Updates</h1>
         <h2>Upload der Firmware und Flashen von Router oder Modulen</h2>
         <h3>Router Update</h3>
-        <div>
+        <div style="position: relative; margin-bottom: 20px;">
+          <form id="loc_fw_update" action="loc_update" method="post">
+            <button name="LocUpload" id="file_button_l" type="submit" value="rtr">Lokal</button>
+          </form>
           <form id="rtr_fw_upload" action="upd_upload" enctype="multipart/form-data" method="post">
-            <div style="position: relative;">
-              <input id="file_updwnload" name="file" type="file" value="router.rbin" accept=".rbin" />
-              <button name="SysUpload" id="file_button" type="submit" value="rtr">Upload</button>
-            </div></form>
-          <h3>Modul Update</h3>
+            <input id="upd_updwnload" name="file" type="file" value="router.rbin" accept=".rbin" />
+            <button name="SysUpload" id="file_button" type="submit" value="rtr">Upload</button>
+          </form>
+        </div>
+        <h3>Modul Update</h3>
+        <div style="position: relative; margin-bottom: 20px;">
+          <form id="loc_mod_fw_update" action="loc_update" method="post">
+            <select id="file_button_l" title="Modultyp für Updates auswählen" name="mod_type_select">
+              <option value="">-- Modultyp --</option>
+            </select>
+          </form>
           <form id="mod_fw_upload" action="upd_upload" enctype="multipart/form-data" method="post">
-            <div style="position: relative;">
-              <input id="file_updwnload" name="file" type="file" value="module.bin" accept=".bin" />
-              <button name="SysUpload" id="file_button" type="submit" value="mod">Upload</button>
-            </div></form>
+            <input id="upd_updwnload" name="file" type="file" value="module.bin" accept=".bin" />
+            <button name="SysUpload" id="file_button" type="submit" value="mod">Upload</button>
+          </form>
         </div>
         <div id="close_file_popup_box">
-          <button id="close_updates_popup">
-            schließen
-          </button>
+          <button id="close_updates_popup">schließen</button>
         </div>
       </div>
     </div>

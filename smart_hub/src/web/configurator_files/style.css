@@ -1169,6 +1169,13 @@ input#file_updwnload {
    padding-right: 2px;
    text-align: left;
 }
+input#upd_updwnload {
+   width: 240px;
+   margin-left: 0px;
+   padding-left: 2px;
+   padding-right: 2px;
+   text-align: left;
+}
 
 /*input[type="text"] { background: url(design/formfeld_bg.gif) no-repeat left top; }*/
 input#clear:hover,

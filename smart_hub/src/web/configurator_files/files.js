@@ -6,6 +6,7 @@ const updates_butt = document.getElementById("updates_button");
 const updates_pop = document.getElementById("updates_popup");
 const close_updates_pop = document.getElementById("close_updates_popup");
 const form_doc = document.getElementById("file_doc");
+const mod_type_sel = document.getElementsByName("mod_type_select")[0];
 
 form_doc.addEventListener("submit", function () {
     file_popup.classList.remove("show");
@@ -37,6 +38,9 @@ form_rtr_update.addEventListener("submit", function () {
 });
 form_mod_update.addEventListener("submit", function () {
     openMsgPopup();
+});
+mod_type_sel.addEventListener("change", function () {
+    document.getElementById("loc_mod_fw_update").requestSubmit();
 });
 window.addEventListener("click", function (event) {
     if (event.target == file_popup) {

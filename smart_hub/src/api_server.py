@@ -58,7 +58,9 @@ class ApiServer:
         else:
             self.is_addon: bool = True
             self.logger.info("Smart Center running")
-        self.slug_name = "aed76be6_smart_hub"
+        self.slug_name: str | None = os.getenv("HOSTNAME")
+        if self.slug_name:
+            self.logger.info("Addon Slug name: " + self.slug_name)
 
     async def get_initial_status(self):
         """Starts router object and reads complete system status"""

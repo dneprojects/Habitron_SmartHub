@@ -136,6 +136,31 @@ def show_hub_overview(app) -> web.Response:
         .replace("\n", "</p>\n<p>")
         + "</p>",
     )
+    rtr = api_srv.routers[0]
+    if rtr.update_fw_file == "":
+        html_str = html_str.replace('"rtr">Lokal<', '"rtr" disabled="true">aktuell<')
+    opt_str = ""
+    mod_types: list[bytes] = []
+    for mod in rtr.modules:
+        if mod._typ not in mod_types and mod.update_available:
+            mod_types.append(mod._typ)
+            opt_str += f'\n<option value="{mod._id}">{mod._type}</option>'
+    if len(mod_types) > 0:
+        html_str = html_str.replace(
+            ">-- Modultyp --</option>", ">-- Modultyp --</option>" + opt_str
+        )
+    else:
+        html_str = html_str.replace(
+            'name="mod_type_select">', 'name="mod_type_select" disabled="true">'
+        )
+        html_str = html_str.replace(
+            'title="Modultyp für Updates auswählen"',
+            'title="Firmware aller Module aktuell"',
+        )
+        html_str = html_str.replace(
+            ">-- Modultyp --<",
+            ">alle aktuell<",
+        )
     html_str = html_str.replace("<!-- SideMenu -->", side_menu)
     return web.Response(text=html_str, content_type="text/html", charset="utf-8")
 
