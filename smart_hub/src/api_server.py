@@ -60,6 +60,7 @@ class ApiServer:
             self.logger.info("Smart Center running")
         self.slug_name: str | None = os.getenv("HOSTNAME")
         if self.slug_name:
+            self.slug_name = self.slug_name.replace("-", "_")
             self.logger.info("Addon Slug name: " + self.slug_name)
 
     async def get_initial_status(self):
