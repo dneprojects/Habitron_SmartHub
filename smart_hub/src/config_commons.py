@@ -252,7 +252,7 @@ def show_update_modules(mod_list, new_fw: str, mod_type: str) -> web.Response:
         else:
             images += f'<input type="checkbox" class="mod_chk" id="chk_{module.id}" name="chk_{module.id}" value="{module.id}">\n'
         images += f'<label for="chk_{module.id}">\n'
-        images += f'<img src="configurator_files/{pic_file}" alt="{module.name}">&nbsp;&nbsp;&nbsp;{module.name}&nbsp;&nbsp;&nbsp;\n'
+        images += f'<img src="configurator_files/{pic_file}" alt="{module.name}"><br>{module.name}\n'
         images += f'<p class="fw_subtext" id="stat_{module.id}">{module.fw}</p>\n'
         images += "</label>\n"
         images += "</div>\n"
