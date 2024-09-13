@@ -79,7 +79,7 @@ class ConfigServer:
             self._ip = api_srv.sm_hub._host_ip
             self._port = CONF_PORT
         self.conf_running = False
-        self.is_install = True  # Installer mode
+        self.is_install = True  # Install mode
 
     async def initialize(self):
         """Initialize config server."""
@@ -344,16 +344,6 @@ class ConfigServer:
             fw_vers = rtr.fw_upload[-27:-5]
             app.logger.info(f"Firmware file for router {rtr._name} uploaded")
             return show_update_router(rtr, fw_vers)
-
-    @routes.get("/loc_module_update")
-    async def get_loc_module_update(request: web.Request) -> web.Response:  # type: ignore
-        inspect_header(request)
-        if client_not_authorized(request):
-            return show_not_authorized(request.app)
-        app = request.app
-        api_srv = app["api_srv"]
-        rtr = api_srv.routers[0]
-        return show_hub_overview(app)
 
     @routes.post("/upd_upload")
     async def get_upd_upload(request: web.Request) -> web.Response:  # type: ignore

@@ -5,15 +5,19 @@ from configuration import ModuleSettingsLight
 from const import DATA_FILES_ADDON_DIR, DATA_FILES_DIR
 
 
+header_font = Font(b=True, sz=14.0)
+subheader_font = Font(b=True, sz=12.0)
+
+
 def create_documentation(router, filename):
     """Take settings information and create full domumentation."""
     doc = Workbook()
+    document_overview(doc, router.modules)
 
     for idx in range(len(router.modules)):
         mod = router.modules[idx]
-        ws = doc.create_sheet(mod._name, idx)
         # ws.add_image("./web/configurator_files/logo.png", "F1")
-        document_module(ws, mod)
+        document_module(doc, mod, idx)
     del doc["Sheet"]
     if router.api_srv.is_addon:
         data_file_path = DATA_FILES_ADDON_DIR
@@ -22,15 +26,53 @@ def create_documentation(router, filename):
     doc.save(data_file_path + filename)
 
 
-def document_module(ws, mod):
+def document_overview(doc, mods):
+    """Create system overview in excel sheet."""
+
+    ws = doc.create_sheet("System", 0)
+    row = 1
+    ws.cell(row, 1).value = "Systemübersicht"
+    ws.cell(row, 1).font = header_font
+    row += 2
+    ws.cell(row, 1).value = "Nr."
+    ws.cell(row, 2).value = "Name"
+    ws.cell(row, 3).value = "Typ"
+    ws.cell(row, 4).value = "Bereich"
+    ws.cell(row, 5).value = "Adr."
+    ws.cell(row, 6).value = "Kanal"
+    ws.cell(row, 1).font = subheader_font
+    ws.cell(row, 2).font = subheader_font
+    ws.cell(row, 3).font = subheader_font
+    ws.cell(row, 4).font = subheader_font
+    ws.cell(row, 5).font = subheader_font
+    ws.cell(row, 6).font = subheader_font
+    row += 2
+    mod_cnt = 1
+    for mod in mods:
+        ws.cell(row, 1).value = f"{mod_cnt}"
+        ws.cell(row, 2).value = mod._name
+        ws.cell(row, 3).value = mod._type
+        ws.cell(row, 4).value = f"{mod.area}"
+        ws.cell(row, 5).value = f"{mod._id}"
+        ws.cell(row, 6).value = f"{mod._channel}"
+        mod_cnt += 1
+        row += 1
+
+    ws.column_dimensions["A"].width = 8
+    ws.column_dimensions["B"].width = 28
+    ws.column_dimensions["C"].width = 28
+    ws.column_dimensions["D"].width = 28
+    ws.set_printer_settings(ws.PAPERSIZE_A4, ws.ORIENTATION_LANDSCAPE)
+
+
+def document_module(doc, mod, idx):
     """Export module information to excel sheet."""
 
+    ws = doc.create_sheet(mod._name, idx + 1)
     input_type = {1: "Taster", 2: "Schalter", 3: "Analog"}
     output_type = {1: "", 2: "Dimmbar"}
     cover_type = {-1: "Rollladen", 1: "Rollladen", -2: "Jalousie", 2: "Jalousie"}
     settings = mod.settings
-    header_font = Font(b=True, sz=14.0)
-    subheader_font = Font(b=True, sz=12.0)
 
     row = 1
     ws.cell(row, 1).value = mod._name
@@ -50,6 +92,7 @@ def document_module(ws, mod):
     ws.cell(row, 4).value = mod.get_sw_version()
     row += 1
     ws.cell(row, 1).value = "Bereich:"
+    # ws.cell(row, 1).value = mod.api_srv.routers[mod.rt_id - 1].areas[mod.area - 1]
 
     if settings is None:
         settings = ModuleSettingsLight(mod)
