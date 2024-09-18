@@ -1,7 +1,7 @@
 import logging
 import asyncio
 from math import ceil
-from const import MirrIdx, SMGIdx, RT_CMDS
+from const import MirrIdx, SMGIdx, RT_CMDS, NO_SMC_MODULES
 from hdlr_class import HdlrBase
 
 
@@ -150,6 +150,8 @@ class ModHdlr(HdlrBase):
     async def send_module_list(self, mod_addr: int):
         """Send SMC data from Smart Hub to router/module."""
 
+        if self.mod._typ in NO_SMC_MODULES:
+            return "OK"
         await self.api_srv.set_server_mode(self.rt_id)
         flg_250 = False
         mod_list = self.mod.list_upload
@@ -433,7 +435,7 @@ class ModHdlr(HdlrBase):
         """Send motion detection settings to module."""
         lvl_idx = SMGIdx.index(MirrIdx.MOV_LVL)
         tim_idx = SMGIdx.index(MirrIdx.MOV_TIME)
-        led_idx = SMGIdx.index(MirrIdx.LED_I)
+        led_idx = SMGIdx.index(MirrIdx.MOV_LED)
         lvl = self.mod.smg_upload[lvl_idx]
         tim = self.mod.smg_upload[tim_idx]
         led = self.mod.smg_upload[led_idx]

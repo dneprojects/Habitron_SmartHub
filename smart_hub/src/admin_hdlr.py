@@ -178,17 +178,12 @@ class AdminHdlr(HdlrBase):
                 if self.args_err:
                     return
                 chan_mask = self._p5
-                if chan_mask == 0:
-                    rt_command = RT_CMDS.GET_RT_CHAN_STAT
-                elif self._spec == spec.RT_CHAN_SET:
-                    rt_command = RT_CMDS.SET_RT_CHAN.replace("<msk>", chr(chan_mask))
+                if self._spec == spec.RT_CHAN_SET:
+                    mode = "on"
                 elif self._spec == spec.RT_CHAN_RST:
-                    rt_command = RT_CMDS.RES_RT_CHAN.replace("<msk>", chr(chan_mask))
-                await self.handle_router_cmd_resp(rt, rt_command)
-                self.response = self.rt_msg._resp_msg
-                if len(self.response) == 0:
-                    self.response = "OK"
-                return
+                    mode = "off"
+                rtr = self.api_srv.routers[rt - 1]
+                return await rtr.switch_chan_power(mode, chan_mask)
             case spec.MD_CHAN_SET | spec.MD_CHAN_RST:
                 self.check_router_module_no(rt, mod)
                 if self.args_err:

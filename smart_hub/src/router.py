@@ -1,3 +1,4 @@
+import asyncio
 from glob import glob
 from messages import calc_crc
 from os.path import isfile
@@ -156,7 +157,7 @@ class HbtnRouter:
             self.mod_addrs.remove(mod_addr)
 
     async def get_status(self) -> bytes:
-        """Returns router channel status"""
+        """Return router channel status and mod errors."""
         await self.api_srv.set_server_mode(self._id)
         self.chan_status = await self.hdlr.get_rt_status()
         self.comm_errors = await self.hdlr.get_mod_errors()
@@ -425,6 +426,27 @@ class HbtnRouter:
             await self.hdlr.send_rt_group_deps(settings.mode_dependencies[1:])
             await self.get_full_status()
             await self.api_srv.block_network_if(self._id, False)
+
+    async def switch_chan_power(self, mode: str, chan_mask: int):
+        """Switch router channel power on or off."""
+        if chan_mask == 0:
+            rt_command = RT_CMDS.GET_RT_CHAN_STAT
+        elif mode == "on":
+            rt_command = RT_CMDS.SET_RT_CHAN.replace("<msk>", chr(chan_mask))
+        elif mode == "off":
+            rt_command = RT_CMDS.RES_RT_CHAN.replace("<msk>", chr(chan_mask))
+        await self.hdlr.handle_router_cmd_resp(self._id, rt_command)
+        resp = self.hdlr.rt_msg._resp_msg
+        if len(resp) == 0:
+            resp = "OK"
+        return resp
+
+    async def reset_chan_power(self, chan_mask: int):
+        """Pulse router channel power for 1s."""
+        if chan_mask > 0:
+            await self.switch_chan_power("off", chan_mask)
+            await asyncio.sleep(1)
+            await self.switch_chan_power("on", chan_mask)
 
     def set_descriptions(self, settings: RouterSettings) -> None:
         """Store names into router descriptions."""

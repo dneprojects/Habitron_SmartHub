@@ -10,6 +10,20 @@ if (document.getElementById("files_button")) {
     });
 }
 
+if (document.getElementById("chan_reset_button")) {
+    chan_reset_button.addEventListener("click", function () {
+        chan_popup.classList.add("show");
+    });
+}
+
+
+if (document.getElementById("reset_button")) {
+    reset_button.addEventListener("click", function () {
+        document.getElementById("chan-select").requestSubmit();
+    });
+}
+
+
 if (protoc_butt) {
     protoc_butt.addEventListener("click", function () {
         msg_popup.classList.add("show");
@@ -27,6 +41,9 @@ close_resp_popup.addEventListener("click", function () {
 close_file_popup.addEventListener("click", function () {
     file_popup.classList.remove("show");
 });
+close_chan_popup.addEventListener("click", function () {
+    chan_popup.classList.remove("show");
+});
 
 
 form_upload.addEventListener("submit", function () {
@@ -39,5 +56,6 @@ window.addEventListener("click", function (event) {
 });
 function openMsgPopup() {
     file_popup.classList.remove("show");
+    chan_popup.classList.remove("show");
     msg_popup.classList.add("show");
 };

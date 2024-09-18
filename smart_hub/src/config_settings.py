@@ -102,6 +102,16 @@ class ConfigSettingsServer:
         for form_key in list(form_data.keys())[:-1]:
             if form_key == "area_member":
                 settings.__setattr__(form_key, int(form_data[form_key][0]))
+            elif form_key == "mov_led":
+                if form_data[form_key][0] == "on":
+                    settings.mov_led = 74  # "J"
+                else:
+                    settings.mov_led = 78  # "N"
+            elif form_key == "mov_level":
+                # special: if mov_led unchecked, no form_key is sent
+                if "mov_led" not in list(form_data.keys()):
+                    settings.mov_led = 78  # "N"
+                settings.__setattr__(form_key, form_data[form_key][0])
             else:
                 settings.__setattr__(form_key, form_data[form_key][0])
         args = form_data["ModSettings"][0]
@@ -571,6 +581,29 @@ def prepare_basic_settings(main_app, mod_addr, mod_type):
             indent(7)
             + f'<tr><td><label for="{id_name}">{prompt}</label></td><td><input name="{id_name}" '
             + f'type="number" min="1" max="240" id="{id_name}" value="{settings.displ_time}"/></td></tr>\n'
+        )
+    if settings.type in [
+        "Smart Detect 180",
+        "Smart Detect 360",
+        "Smart Detect 180-2",
+    ]:
+        id_name = "mov_led"
+        prompt = "LED-Anzeige"
+        if settings.mov_led == 74:
+            mov_led_str = "checked"
+        else:
+            mov_led_str = ""
+        tbl += (
+            indent(7)
+            + f'<tr><td><label for="{id_name}">{prompt}</label></td><td><input name="{id_name}" '
+            + f'type="checkbox" id="{id_name}" {mov_led_str}/></td></tr>\n'
+        )
+        id_name = "mov_level"
+        prompt = "Bewegungsschwelle"
+        tbl += (
+            indent(7)
+            + f'<tr><td><label for="{id_name}">{prompt}</label></td><td><input name="{id_name}" '
+            + f'type="number" min="1" max="250" id="{id_name}" value="{settings.mov_level}"/></td></tr>\n'
         )
     if mod_addr > 0:
         if len(settings.inputs) > 0:

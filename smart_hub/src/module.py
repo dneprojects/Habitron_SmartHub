@@ -443,7 +443,11 @@ class HbtnModule:
             + int.to_bytes(polarity, 2, "little")
             + self.status[MirrIdx.COVER_POL + 2 :]
         )
-        # self.area = int(smg[SMGIdx.index(MirrIdx.MOD_AREA)])
+        # if self._typ[0] == 80:
+        #     # detect modules use index for led status, so use next entry
+        #     self.area = int(smg[SMGIdx.index(MirrIdx.MOD_AREA + 1)])
+        # else:
+        #     self.area = int(smg[SMGIdx.index(MirrIdx.MOD_AREA)])
 
     def different_smg_crcs(self) -> bool:
         """Performs comparison, equals lengths of smg buffers."""
@@ -559,7 +563,11 @@ class HbtnModule:
             .decode("iso8859-1")
             .strip()
         )
-        self.area = self.status[MirrIdx.MOD_AREA]
+        if self._typ[0] == 80:
+            # detect modules use index for led status, so use next entry
+            self.area = self.status[MirrIdx.MOD_AREA + 1]
+        else:
+            self.area = self.status[MirrIdx.MOD_AREA]
         self.settings.status = self.status
         self.settings.list = self.list
 

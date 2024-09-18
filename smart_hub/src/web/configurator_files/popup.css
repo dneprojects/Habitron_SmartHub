@@ -12,7 +12,7 @@
     display: none;
 }
 
-#count_popup .popup-content, #logic_popup .popup-content, #file_popup .popup-content, #updates_popup .popup-content, #newmod-popup .popup-content, #resp-popup .popup-content {
+#count_popup .popup-content, #logic_popup .popup-content, #file_popup .popup-content, #updates_popup .popup-content, #newmod-popup .popup-content, #resp-popup .popup-content, #chan_popup .popup-content {
     background-color: white;
     margin: 10% auto;
     padding: 20px;
@@ -124,7 +124,10 @@
 
 #file_button,
 #close_file_popup,
-#close_updates_popup {
+#close_updates_popup,
+#reset_button, 
+#close_chan_popup
+ {
     height: 22px;
     width: 100px;
     top: 0;

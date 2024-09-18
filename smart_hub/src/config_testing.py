@@ -7,6 +7,7 @@ from config_commons import (
     show_not_authorized,
     fill_page_template,
     inspect_header,
+    adjust_settings_button,
 )
 from config_settings import activate_side_menu
 from const import CONF_PORT, MirrIdx, HA_EVENTS
@@ -26,6 +27,14 @@ class ConfigTestingServer:
         self.app = web.Application()
         self.app.add_routes(routes)
         self.app["parent"] = self.parent
+
+    @routes.get("/router")
+    async def test_router(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        if client_not_authorized(request):
+            return show_not_authorized(request.app)
+        main_app = request.app["parent"]
+        return await show_router_testpage(main_app)
 
     @routes.get("/modules")
     async def test_modules(request: web.Request) -> web.Response:  # type: ignore
@@ -91,6 +100,19 @@ class ConfigTestingServer:
         await mod.hdlr.set_output(int(out_args[0]), int(out_args[1]))
         return await show_module_testpage(main_app, mod_addr, False)
 
+    @routes.post("/chan_reset")
+    async def chan_reset(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        if client_not_authorized(request):
+            return show_not_authorized(request.app)
+        data = await request.post()
+        chan_mask = int(data["chan_select"])
+        main_app = request.app["parent"]
+        api_srv = main_app["api_srv"]
+        rtr = api_srv.routers[0]
+        await rtr.reset_chan_power(chan_mask)
+        return await show_router_testpage(main_app, "")
+
 
 def show_modules_overview(app) -> web.Response:
     """Prepare modules page."""
@@ -112,6 +134,98 @@ def show_modules_overview(app) -> web.Response:
     page = page.replace("<!-- ImageGrid -->", images)
     page = page.replace("const mod_addrs = [];", f"const mod_addrs = {rtr.mod_addrs};")
     return web.Response(text=page, content_type="text/html", charset="utf-8")
+
+
+async def show_router_testpage(main_app, popup_msg="") -> web.Response:
+    """Prepare overview page of module."""
+    api_srv = main_app["api_srv"]
+    rtr = api_srv.routers[0]
+    await rtr.get_status()
+    chan_stat = rtr.chan_status
+    error_stat = rtr.comm_errors
+    side_menu = main_app["side_menu"]
+    side_menu = activate_side_menu(
+        side_menu, ">Einrichten<", api_srv.is_offline or api_srv._pc_mode
+    )
+    side_menu = activate_side_menu(
+        side_menu, ">Router testen<", api_srv.is_offline or api_srv._pc_mode
+    )
+    type_desc = "Smart Router - Kommunikationsschnittstelle zwischen den Modulen"
+    if rtr.channels == b"":  #  and not main_app["is_install"]:
+        page = fill_page_template(
+            "Router", type_desc, "", "--", side_menu, "router.jpg", ""
+        )
+        page = adjust_settings_button(page, "", f"{0}")
+        return web.Response(text=page, content_type="text/html")
+    props = "<h3>Status</h3>\n"
+    props += "<table>\n"
+    if error_stat[0]:
+        last_err_str = f"Modul {error_stat[0]}: F{error_stat[1]}"
+    else:
+        last_err_str = "-"
+    mod_err_str = ""
+    for err_cnt in range(rtr.comm_errors[2]):
+        mod_err_str += f"Modul {rtr.comm_errors[3 + 2*err_cnt]}: F{rtr.comm_errors[4 + 2*err_cnt]}; "
+    if mod_err_str == "":
+        mod_err_str = "-"
+    else:
+        mod_err_str = mod_err_str[:-2]
+    if chan_stat[40] == 78:
+        mod_fdback_str = "Korrekt"
+    else:
+        mod_fdback_str = "Mit Fehlern"
+    if chan_stat[36] == 78:
+        sys_probl_str = "OK"
+    else:
+        sys_probl_str = "Fehler"
+    if chan_stat[39] == 78:
+        booting_str = "Beendet"
+    else:
+        booting_str = "Noch aktiv"
+
+    v_5 = (chan_stat[18] + chan_stat[19] * 256) / 10
+    v_24 = (chan_stat[16] + chan_stat[17] * 256) / 10
+    i_1 = chan_stat[20] + chan_stat[21] * 256
+    i_2 = chan_stat[22] + chan_stat[23] * 256
+    i_3 = chan_stat[24] + chan_stat[25] * 256
+    i_4 = chan_stat[26] + chan_stat[27] * 256
+    i_5 = chan_stat[28] + chan_stat[29] * 256
+    i_6 = chan_stat[30] + chan_stat[31] * 256
+    i_7 = chan_stat[32] + chan_stat[33] * 256
+    i_8 = chan_stat[34] + chan_stat[35] * 256
+
+    props += f"<tr><td>Bootvorgang:</td><td>{booting_str}</td></tr>\n"
+    props += f"<tr><td>Systemzustand:</td><td>{sys_probl_str}</td></tr>\n"
+    props += f"<tr><td>Modulanzahl:</td><td>{chan_stat[0]}</td></tr>\n"
+    props += f"<tr><td>Modulrückmeldungen:</td><td>{mod_fdback_str}</td></tr>\n"
+    props += f"<tr><td>Modulfehler:</td><td>{mod_err_str}</td></tr>\n"
+    props += f"<tr><td>Letzter Modulfehler:</td><td>{last_err_str}</td></tr>\n"
+    props += f"<tr><td>Fehler Speicherbank 1-2:</td><td>{chan_stat[2]+chan_stat[3]*256} | {chan_stat[4]+chan_stat[5]*256}</td></tr>\n"
+    props += f"<tr><td>Timeouts Kanäle 1-4:</td><td>{chan_stat[7]} | {chan_stat[8]} | {chan_stat[9]} | {chan_stat[10]}</td></tr>\n"
+    props += f"<tr><td>Fehler Masterring:</td><td>{chan_stat[11]}</td></tr>\n"
+    props += f"<tr><td>Einschaltvorgänge:</td><td>{chan_stat[14]+chan_stat[15]*256}</td></tr>\n"
+    props += f"<tr><td>Spannungen 5 V | 24 V:</td><td>{v_5} V | {v_24} V</td></tr>\n"
+    props += f"<tr><td>Kanalströme 1-4:</td><td>{i_1} mA | {i_2} mA | {i_3} mA | {i_4} mA</td></tr>\n"
+    props += f"<tr><td>Kanalströme 5-8:</td><td>{i_5} mA | {i_6} mA | {i_7} mA | {i_8} mA</td></tr>\n"
+
+    props += "</table>\n"
+    def_filename = "my_router.hrt"
+    page = fill_page_template(
+        f"Router '{rtr._name}'",
+        type_desc,
+        "",
+        props,
+        side_menu,
+        "router.jpg",
+        def_filename,
+    )
+    page = adjust_settings_button(page, "rtr_tst", f"{0}")
+    if len(popup_msg):
+        page = page.replace(
+            '<h3 id="resp_popup_txt">response_message</h3>',
+            f'<h3 id="resp_popup_txt">{popup_msg}</h3>',
+        ).replace('id="resp-popup-disabled"', 'id="resp-popup"')
+    return web.Response(text=page, content_type="text/html")
 
 
 async def show_module_testpage(main_app, mod_addr, update: bool) -> web.Response:

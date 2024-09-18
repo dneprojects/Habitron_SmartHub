@@ -44,7 +44,7 @@ INSTALLER_GROUP = ["habitron_admin", "habitron_installer"]
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.5.9"
+    SW_VERSION = "1.5.10"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
@@ -575,6 +575,7 @@ class MirrIdx:
     LUM = 27
     MOV = 29
     MOD_AREA = 30  # index of area list in router
+    MOV_LED = 30  # control led on/off
     GEN_1 = 31
     GEN_2 = 32
     IR_H = 31
@@ -799,6 +800,8 @@ MODULE_TYPES: Final[dict[str, str]] = {
     "\x50\x66": "Smart Detect 180-2",
     "\x50\x65": "Smart Detect 360",
 }
+
+NO_SMC_MODULES = [b"\x14\x01", b"\x50\x64", b"\x50\x65", b"\x50\x66"]
 
 MODULE_FIRMWARE: Final[dict[bytes, str]] = {
     b"\x00\x01": "scvmv30",

@@ -28,19 +28,22 @@ def inspect_header(req: web.Request):
             and main_app["is_install"] is False
         ):
             main_app["is_install"] = True
-            init_side_menu(main_app)
         elif (
             api_srv.user_login.lower() not in INSTALLER_GROUP
             and main_app["is_install"] is True
         ):
             main_app["is_install"] = False
             init_side_menu(main_app)
-    elif api_srv.is_offline:
+    elif api_srv._pc_mode:
         api_srv.user_login = ""
         main_app["is_install"] = True
-    else:
+    elif api_srv.is_offline:
         api_srv.user_login = ""
         main_app["is_install"] = False
+    else:  # Development
+        api_srv.user_login = ""
+        main_app["is_install"] = True
+    init_side_menu(main_app)
 
 
 def get_html(html_file) -> str:
@@ -340,6 +343,10 @@ def adjust_side_menu(modules, is_offline: bool, is_install: bool) -> str:
             )
             if not is_offline:
                 side_menu.append(
+                    '    <li class="setup sub"><a href="test/router" title="Router testen" class="setup sub">Router testen</a></li>\n'
+                )
+            if not is_offline:
+                side_menu.append(
                     '    <li class="setup sub"><a href="test/modules" title="Module testen" class="setup sub">Module testen</a></li>\n'
                 )
             side_menu.append(
@@ -477,6 +484,16 @@ def adjust_settings_button(page, type, addr: str) -> str:
         page = page.replace("ModSettings", "GtwSettings")
     elif type.lower() == "rtr":
         page = page.replace("ModSettings", "RtrSettings")
+    elif type.lower() == "rtr_tst":
+        page = page.replace("ModSettings", "RtrTesting")
+        page = page.replace(">Einstellungen<", ">Kanal rücksetzen<")
+        page = page.replace('action="settings/settings"', "")
+        page = page.replace(
+            'id="config_button" type="submit"', 'id="chan_reset_button" type="button"'
+        )
+        page = page.replace(
+            ">Konfigurationsdatei", ' hidden="true" >Konfigurationsdatei'
+        )
     elif type == "":
         page = page.replace(">Einstellungen", " disabled >Einstellungen")
         page = page.replace(">Konfigurationsdatei", " disabled >Konfigurationsdatei")

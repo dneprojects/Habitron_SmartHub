@@ -177,6 +177,11 @@ class ModuleSettings:
                 self.covers[c_idx] = IfDescriptor(cname.strip(), c_idx + 1, pol)
                 self.outputs[o_idx].type = -10  # disable light output
                 self.outputs[o_idx + 1].type = -10
+        if self.typ[0] == 80:
+            # Motion detectors
+            self.mov_led = conf[MirrIdx.MOV_LED]
+            self.logger.info(f"LED Status: {self.mov_led}")
+            self.mov_level = conf[MirrIdx.MOV_LVL]
         return True
 
     def get_pin(self) -> str:
@@ -235,11 +240,19 @@ class ModuleSettings:
 
     def set_module_settings(self, status: bytes) -> bytes:
         """Restore settings to module status."""
-        status = replace_bytes(
-            status,
-            int.to_bytes(int(self.area_member)),
-            MirrIdx.MOD_AREA,
-        )
+        if self.typ[0] == 80:
+            # detect modules use index for led status, so use next entry
+            status = replace_bytes(
+                status,
+                int.to_bytes(int(self.area_member)),
+                MirrIdx.MOD_AREA + 1,
+            )
+        else:
+            status = replace_bytes(
+                status,
+                int.to_bytes(int(self.area_member)),
+                MirrIdx.MOD_AREA,
+            )
         status = replace_bytes(
             status,
             (self.name + " " * (32 - len(self.name))).encode("iso8859-1"),
@@ -280,6 +293,21 @@ class ModuleSettings:
             int.to_bytes(int(self.t_dimm)),
             MirrIdx.T_DIM,
         )
+        if self.typ[0] == 80:
+            status = replace_bytes(
+                status,
+                int.to_bytes(int(self.mov_level)),
+                MirrIdx.MOV_LVL,
+            )
+            if self.mov_led == 78:
+                byte_mov_led = b"N"
+            else:
+                byte_mov_led = b"J"
+            status = replace_bytes(
+                status,
+                byte_mov_led,
+                MirrIdx.MOV_LED,
+            )
         if self.supply_prio == "230":
             byte_supply_prio = b"N"
         else:

@@ -693,7 +693,7 @@ body.produkte.sub #right h1 {
    padding-bottom: 8px;
 }
 
-#config_button, transfer_button, files_button {
+#config_button, transfer_button, files_button, #chan_reset_button {
    height: 22px;
    width: 140px;
    margin-left: 0px;
@@ -1151,6 +1151,10 @@ select {
    padding-top: 2px;
    margin-top: 0px;
    margin-right: 0px;
+}
+
+input#mov_led {
+   margin-left: 5px;
 }
 
 input#time-vals {

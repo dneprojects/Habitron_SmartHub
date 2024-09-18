@@ -419,8 +419,8 @@ async def main(ev_loop):
         # Instantiate config server object
         logger.debug("   Initializing config server")
         sm_hub.conf_srv = ConfigServer(sm_hub.api_srv)
-        logger.debug("   Initializing API server")
         await sm_hub.conf_srv.initialize()  # ignore_ type
+        logger.debug("   Initializing API server")
         if init_flag:
             await sm_hub.api_srv.get_initial_status()
         else:

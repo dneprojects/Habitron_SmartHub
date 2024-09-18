@@ -79,7 +79,7 @@ class ConfigServer:
             self._ip = api_srv.sm_hub._host_ip
             self._port = CONF_PORT
         self.conf_running = False
-        self.is_install = True  # Install mode
+        self.is_install = False  # Install mode default off
 
     async def initialize(self):
         """Initialize config server."""
@@ -520,11 +520,13 @@ class ConfigServer:
 
 @routes.get(path="/favicon.ico")
 async def do_nothing(request: web.Request) -> web.Response:
+    inspect_header(request)
     return web.HTTPNoContent()
 
 
 @routes.get(path="/{key:.*}")
 async def _(request):
+    inspect_header(request)
     app = request.app
     warning_txt = f"Route '{request.path}' not yet implemented"
     app.logger.warning(warning_txt)
@@ -544,6 +546,7 @@ async def _(request):
 
 @routes.post(path="/{key:.*}")
 async def _(request):
+    inspect_header(request)
     app = request.app
     warning_txt = f"Route '{request.path}' not yet implemented"
     app.logger.warning(warning_txt)
