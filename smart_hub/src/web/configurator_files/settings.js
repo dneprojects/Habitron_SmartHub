@@ -38,10 +38,19 @@ const max_btn = document.getElementById("max_cnt")
 const max_inpts = document.getElementById("max_inputs")
 const new_addr = document.getElementsByName("new_entry")[0]
 const setngs_tbl = document.getElementById("set_tbl");
+const new_modid = document.getElementById("new_mod_id");
+const rt_reboot = document.getElementById("btn_rt_reboot");
+
 if (new_addr != null) {
     new_addr.addEventListener("change", function () {
         parseNewAddr()
     })
+}
+if (new_modid != null) {
+    new_modid.addEventListener("change", function () {
+        parseNewId()
+    })
+    parseNewId()
 }
 if (new_cntr_btn != null) {
     new_cntr_btn.addEventListener("click", function () {
@@ -97,6 +106,11 @@ function controlDelButton() {
 
 if (save_btn != null) {
     save_btn.addEventListener("click", function () {
+        openMsgPopup();
+    });
+}
+if (rt_reboot != null) {
+    rt_reboot.addEventListener("click", function () {
         openMsgPopup();
     });
 }
@@ -175,6 +189,7 @@ function parseDayNightMode() {
 
 function parseNewAddr() {
     controlNewButton()
+
     existing_numbers = [];
     for (var i = 0; i < reserved_numbers.length; i++) {
         existing_numbers.push(String(reserved_numbers[i]));
@@ -201,4 +216,24 @@ function parseNewAddr() {
         }
     }
     new_addr.value = nn
+}
+function parseNewId() {
+
+    existing_numbers = [];
+    for (var i = 0; i < reserved_numbers.length; i++) {
+        existing_numbers.push(String(reserved_numbers[i]));
+    }
+    min_number = new_modid.min;
+    max_number = parseInt(new_modid.max);
+    let nn = new_modid.value
+    while (existing_numbers.includes(nn)) {
+        nn = String(parseInt(nn) + 1);
+    }
+    if (parseInt(nn) > max_number) {
+        nn = String(parseInt(nn) - 1)
+        while (existing_numbers.includes(nn)) {
+            nn = String(parseInt(nn) - 1);
+        }
+    }
+    new_modid.value = nn
 }

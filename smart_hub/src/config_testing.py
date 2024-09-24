@@ -8,10 +8,21 @@ from config_commons import (
     fill_page_template,
     inspect_header,
     adjust_settings_button,
+    indent,
+    hide_button,
 )
 from config_settings import activate_side_menu
-from const import CONF_PORT, MirrIdx, HA_EVENTS
+from const import (
+    CONF_PORT,
+    MirrIdx,
+    HA_EVENTS,
+    RT_ERROR_CODE,
+    MStatIdx,
+    WEB_FILES_DIR,
+    SETTINGS_TEMPLATE_FILE,
+)
 import json
+import datetime
 
 routes = web.RouteTableDef()
 
@@ -64,10 +75,19 @@ class ConfigTestingServer:
         events_dict: dict[str, list[list[int]]] = {}
         # get events
         events_buf = main_app["api_srv"].evnt_srv.get_events_buffer()
+        if main_app["module"]._typ in [b"\x14\x01", b"\x32\x28"]:
+            # nature / sensor module, get temperature every 10 s
+            ct = datetime.datetime.now()
+            if ct.second % 10 == 0 and ct.microsecond < 500000:
+                curr_temp = main_app["module"].comp_status[MStatIdx.TEMP_ROOM - 1]
+                events_dict["Temperature"] = [[curr_temp, 0]]
         for evnt in events_buf:
             if evnt[0] == mod_addr:
                 dict_str = HA_EVENTS.EVENT_DICT[evnt[1]].replace(" ", "_")
-                if dict_str in events_dict.keys():
+                if dict_str == "Motion" and main_app["module"]._typ[0] not in [80]:
+                    # skip motion events for test output if not detect module
+                    pass
+                elif dict_str in events_dict.keys():
                     events_dict[dict_str].append([evnt[2], evnt[3]])
                 else:
                     events_dict[dict_str] = [[evnt[2], evnt[3]]]
@@ -100,18 +120,68 @@ class ConfigTestingServer:
         await mod.hdlr.set_output(int(out_args[0]), int(out_args[1]))
         return await show_module_testpage(main_app, mod_addr, False)
 
+    @routes.get("/sys_settings")
+    async def sys_settings(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        if client_not_authorized(request):
+            return show_not_authorized(request.app)
+        main_app = request.app["parent"]
+        return await show_router_syspage(main_app, "")
+
+    @routes.post("/master_timeout")
+    async def set_sys_settings(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        if client_not_authorized(request):
+            return show_not_authorized(request.app)
+        data = await request.post()
+        main_app = request.app["parent"]
+        api_srv = main_app["api_srv"]
+        rtr = api_srv.routers[0]
+        t_out = int(int(data["rtr_timeout"]) / 10)
+        rtr.settings.timeout = t_out * 10
+        rtr.timeout = chr(t_out).encode("iso8859-1")
+        await rtr.hdlr.send_rt_timeout(t_out)
+        return await show_router_syspage(main_app, "")
+
+    @routes.post("/rt_reboot")
+    async def rt_reboot(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        if client_not_authorized(request):
+            return show_not_authorized(request.app)
+        main_app = request.app["parent"]
+        api_srv = main_app["api_srv"]
+        rtr = api_srv.routers[0]
+        await rtr.hdlr.rt_reboot()
+        rtr.__init__(api_srv, rtr._id)
+        await rtr.get_full_system_status()
+        return await show_router_syspage(main_app, "")
+
     @routes.post("/chan_reset")
     async def chan_reset(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         data = await request.post()
-        chan_mask = int(data["chan_select"])
+        chan_mask = 1 << (int(data["reset_ch"]) - 1)
         main_app = request.app["parent"]
         api_srv = main_app["api_srv"]
         rtr = api_srv.routers[0]
         await rtr.reset_chan_power(chan_mask)
-        return await show_router_testpage(main_app, "")
+        return await show_router_syspage(main_app, "")
+
+    @routes.post("/new_chan_id")
+    async def new_chan_id(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        if client_not_authorized(request):
+            return show_not_authorized(request.app)
+        data = await request.post()
+        id = int(data["new_mod_id"])
+        chan = int(data["new_mod_ch"])
+        main_app = request.app["parent"]
+        api_srv = main_app["api_srv"]
+        rtr = api_srv.routers[0]
+        await rtr.hdlr.set_module_address(0, chan, id)
+        return await show_router_syspage(main_app, "")
 
 
 def show_modules_overview(app) -> web.Response:
@@ -141,6 +211,7 @@ async def show_router_testpage(main_app, popup_msg="") -> web.Response:
     api_srv = main_app["api_srv"]
     rtr = api_srv.routers[0]
     await rtr.get_status()
+    await rtr.get_module_boot_status()
     chan_stat = rtr.chan_status
     error_stat = rtr.comm_errors
     side_menu = main_app["side_menu"]
@@ -160,12 +231,13 @@ async def show_router_testpage(main_app, popup_msg="") -> web.Response:
     props = "<h3>Status</h3>\n"
     props += "<table>\n"
     if error_stat[0]:
-        last_err_str = f"Modul {error_stat[0]}: F{error_stat[1]}"
+        last_err_str = f'Modul {error_stat[0]}: <a title="{RT_ERROR_CODE[error_stat[1]]}">F{error_stat[1]}</a>'
     else:
         last_err_str = "-"
     mod_err_str = ""
     for err_cnt in range(rtr.comm_errors[2]):
-        mod_err_str += f"Modul {rtr.comm_errors[3 + 2*err_cnt]}: F{rtr.comm_errors[4 + 2*err_cnt]}; "
+        err_code = rtr.comm_errors[4 + 2 * err_cnt]
+        mod_err_str += f'Modul {rtr.comm_errors[3 + 2*err_cnt]}: <a title="{RT_ERROR_CODE[err_code]}">F{err_code}</a>; '
     if mod_err_str == "":
         mod_err_str = "-"
     else:
@@ -194,10 +266,17 @@ async def show_router_testpage(main_app, popup_msg="") -> web.Response:
     i_7 = chan_stat[32] + chan_stat[33] * 256
     i_8 = chan_stat[34] + chan_stat[35] * 256
 
+    mod_boot_status_txt = ""
+    for mod_err in list(rtr.mod_boot_errors.keys()):
+        mod_boot_status_txt += f"Module {mod_err}: {rtr.mod_boot_errors[mod_err]} \n"
+    mod_boot_status_txt = mod_boot_status_txt[:-1]
     props += f"<tr><td>Bootvorgang:</td><td>{booting_str}</td></tr>\n"
     props += f"<tr><td>Systemzustand:</td><td>{sys_probl_str}</td></tr>\n"
     props += f"<tr><td>Modulanzahl:</td><td>{chan_stat[0]}</td></tr>\n"
-    props += f"<tr><td>Modulrückmeldungen:</td><td>{mod_fdback_str}</td></tr>\n"
+    if mod_boot_status_txt == "":
+        props += f"<tr><td>Modulrückmeldungen:</td><td>{mod_fdback_str}</td></tr>\n"
+    else:
+        props += f'<tr><td>Modulrückmeldungen:</td><td><a title="{mod_boot_status_txt}">{mod_fdback_str}</a></td></tr>\n'
     props += f"<tr><td>Modulfehler:</td><td>{mod_err_str}</td></tr>\n"
     props += f"<tr><td>Letzter Modulfehler:</td><td>{last_err_str}</td></tr>\n"
     props += f"<tr><td>Fehler Speicherbank 1-2:</td><td>{chan_stat[2]+chan_stat[3]*256} | {chan_stat[4]+chan_stat[5]*256}</td></tr>\n"
@@ -267,6 +346,80 @@ async def show_module_testpage(main_app, mod_addr, update: bool) -> web.Response
     page = page.replace("config.js", "update_testing.js")
     tbl_str = await build_status_table(main_app, mod_addr, update)
     page = page.replace("<p></p>", tbl_str)
+    return web.Response(text=page, content_type="text/html")
+
+
+async def show_router_syspage(main_app, popup_msg="") -> web.Response:
+    """Prepare page for router system settings."""
+    api_srv = main_app["api_srv"]
+    rtr = api_srv.routers[0]
+    main_app["settings"] = rtr.settings
+    settings = main_app["settings"]
+
+    with open(
+        WEB_FILES_DIR + SETTINGS_TEMPLATE_FILE, mode="r", encoding="utf-8"
+    ) as tplf_id:
+        page = tplf_id.read()
+    mod_image, subtitle = get_module_image(settings.typ)
+    page = (
+        page.replace("ContentTitle", f"Router '{rtr._name}'")
+        .replace("ContentSubtitle", "Systemeinstellungen")
+        .replace("controller.jpg", mod_image)
+        .replace("ModAddress", "0-0")
+        .replace("Einstellungen speichern", "Router bootet")
+    )
+
+    page = hide_button("zurück", page)
+    page = hide_button("weiter", page)
+    page = hide_button("Speichern", page)
+    page = page.replace(">Abbruch<", ">Beenden<")
+    page = page.replace('action="settings/step"', 'action="test/router"')
+    page = page.replace(
+        "reserved_numbers = [];", f"reserved_numbers = {rtr.mod_addrs};"
+    )
+    tbl = indent(5) + "<table><tbody>\n"
+    id_name = "rt_reboot"
+    prompt = "Router neu starten"
+    tbl += indent(6) + '<form action="test/rt_reboot" method="post">\n'
+    tbl += (
+        indent(7)
+        + f'<tr><td><label for="{id_name}">{prompt}</label></td><td></td><td></td>'
+        + f'<td><input name="btn_{id_name}" type="submit" id="btn_{id_name}" value="Neustart"/></td></tr>\n'
+    )
+    tbl += indent(6) + "</form>"
+    id_name = "chan_reset"
+    prompt = "Spannungsreset auf Routerkanal"
+    tbl += indent(6) + '<form action="test/chan_reset" method="post">\n'
+    tbl += (
+        indent(7)
+        + f'<tr><td><label for="{id_name}">{prompt}</label></td><td></td>'
+        + '<td><input name="reset_ch" type="number" min="1" max="4" id="reset_ch" value="1" title="Routerkanal"/></td>\n'
+        + f'<td><input name="btn_{id_name}" type="submit" id="btn_{id_name}" value="Rücksetzen"/></td></tr>\n'
+    )
+    tbl += indent(6) + "</form>"
+    id_name = "new_mod_id"
+    prompt = "Neue Moduladresse auf Kanal anbieten"
+    tbl += indent(6) + '<form action="test/new_chan_id" method="post">\n'
+    tbl += (
+        indent(7)
+        + f'<tr><td><label for="{id_name}">{prompt}</label></td>'
+        + f'<td><input name="{id_name}" type="number" min="1" max="64" id="{id_name}" value="1" title="neue Moduladresse"/></td>\n'
+        + '<td><input name="new_mod_ch" type="number" min="1" max="4" id="new_mod_ch" value="1" title="Routerkanal"/></td>\n'
+        + f'<td><input name="btn_{id_name}" type="submit" id="btn_{id_name}" value="Anbieten"/></td></tr>\n'
+    )
+    tbl += indent(6) + "</form>"
+    id_name = "rtr_timeout"
+    prompt = "Master-Timeout [ms]"
+    tbl += indent(6) + '<form action="test/master_timeout" method="post">\n'
+    tbl += (
+        indent(7)
+        + f'<tr><td><label for="{id_name}">{prompt}</label></td><td></td>'
+        + f'<td><input name="{id_name}" type="number" min="0" step="10" max="2550" id="{id_name}" value="{settings.timeout}"/></td>\n'
+        + f'<td><input name="btn_{id_name}" type="submit" id="btn_{id_name}" value="Speichern"/></td></tr>\n'
+    )
+    tbl += indent(6) + "</form>"
+    tbl += indent(5) + "</tbody></table>\n"
+    page = page.replace("<p>ContentText</p>", tbl)
     return web.Response(text=page, content_type="text/html")
 
 

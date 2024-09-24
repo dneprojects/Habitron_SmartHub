@@ -47,22 +47,32 @@ class RtHdlr(HdlrBase):
             self.logger.warning(
                 f"Router {self.rt_id} running, boot finished with module problems:"
             )
-            boot_status = await self.rtr.get_boot_stat()
-            for err in range(boot_status[0]):
-                mod = boot_status[2 * err + 1]
-                err_mask = boot_status[2 * err + 2]
-                mod_errs = ""
-                if err_mask & 0x04:
-                    mod_errs += " Unknown module type "
-                if err_mask & 0x02:
-                    mod_errs += " Mirror problems "
-                if err_mask & 0x01:
-                    mod_errs += " Forward problems"
-                mod_errs = mod_errs.replace("  ", ", ")
-                self.logger.warning(f"   Boot error with module {mod}: {mod_errs}")
-
+            await self.get_module_boot_status()
         else:
             self.logger.info(f"Router {self.rt_id} running")
+
+    async def get_module_boot_status(self):
+        """Return boot status text."""
+        self.rtr.mod_boot_status = await self.rtr.get_boot_stat()
+        self.rtr.mod_boot_errors: dict[int, str] = {}  # type: ignore
+        for err in range(self.rtr.mod_boot_status[0]):
+            mod = self.rtr.mod_boot_status[2 * err + 1]
+            err_mask = self.rtr.mod_boot_status[2 * err + 2]
+            mod_boot_errs = ""
+            if err_mask & 0x04:
+                mod_boot_errs += " Unknown module type "
+            if err_mask & 0x02:
+                mod_boot_errs += " Mirror problems "
+            if err_mask & 0x01:
+                mod_boot_errs += " Forward problems"
+            mod_boot_errs = mod_boot_errs.replace("  ", ", ")
+            if len(mod_boot_errs) > 0:
+                self.rtr.mod_boot_errors[mod] = mod_boot_errs
+        self.rtr.mod_boot_errors = dict(sorted(self.rtr.mod_boot_errors.items()))
+        for mod_err in list(self.rtr.mod_boot_errors.keys()):
+            self.logger.warning(
+                f"   Boot error with module {mod_err}: {self.rtr.mod_boot_errors[mod_err]}"
+            )
 
     async def set_mode(self, group: int, new_mode):
         """Changes system or group mode to new_mode"""
@@ -481,6 +491,14 @@ class RtHdlr(HdlrBase):
         """Restart router after firmware update."""
         await self.handle_router_cmd_resp(self.rt_id, RT_CMDS.SYSTEM_RESTART)
         self.logger.info(f"Router {self.rt_id} system restarted")
+
+    async def del_mod_addr(self, mod_addr):
+        """Remove module from router."""
+        await self.handle_router_cmd_resp(
+            self.rt_id, RT_CMDS.DEL_MD_ADDR.replace("<mod>", chr(mod_addr))
+        )
+        self.logger.debug(f"Module address {mod_addr} removed from router")
+        return self.rt_msg._resp_msg
 
     async def upload_router_firmware(
         self, rt_type, progress_fun: Callable[[int, int, int], Awaitable[None]]

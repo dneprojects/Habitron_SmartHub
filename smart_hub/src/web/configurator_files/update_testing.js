@@ -90,6 +90,8 @@ function setEventStatus(jsonString) {
     modeStat = eventStat.Mode;
     flagStat = eventStat.Flag;
     analogStat = eventStat.Analog_value;
+    motionStat = eventStat.Motion;
+    tempStat = eventStat.Temperature;
     if (outputStat) {
         for (let i = 0; i < outputStat.length; i++) {
             row = outTable.rows[outputStat[i][0]];
@@ -177,6 +179,19 @@ function setEventStatus(jsonString) {
             msg2 = "aktiv";
         else
             msg2 = "inaktiv";
+        logEvent(msg1, msg2)
+    }
+    if (motionStat) {
+        msg1 = "Bewegung erkannt";
+        if (motionStat[motionStat.length - 1][1] > 0) {
+            msg2 = (motionStat[motionStat.length - 1][1]).toString()
+            logEvent(msg1, msg2)
+        }
+
+    }
+    if (tempStat) {
+        msg1 = "Temperatur";
+        msg2 = (tempStat[tempStat.length - 1][0] / 10).toString()
         logEvent(msg1, msg2)
     }
 }

@@ -1190,6 +1190,13 @@ input#send:hover {
    /*   cursor:crosshair;*/
 }
 
+input#rtr_timeout, input#new_mod_id, input#new_mod_ch, input#chan_reset, input#reset_ch {
+   width: 50px;
+}
+#btn_rtr_timeout, #btn_new_mod_id, #btn_chan_reset, #btn_rt_reboot {
+   width: 80px;
+   height: 22px;
+}
 textarea {
    background: url(design/input_shadow.gif) no-repeat left top;
    font-family: Verdana, Arial, Helvetica, sans-serif;

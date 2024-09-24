@@ -180,7 +180,6 @@ class ModuleSettings:
         if self.typ[0] == 80:
             # Motion detectors
             self.mov_led = conf[MirrIdx.MOV_LED]
-            self.logger.info(f"LED Status: {self.mov_led}")
             self.mov_level = conf[MirrIdx.MOV_LVL]
         return True
 
@@ -1039,7 +1038,7 @@ class RouterSettings:
         self.desc = rtr.descriptions
         self.logger = logging.getLogger(__name__)
         self.channels = rtr.channels
-        self.timeout = rtr.timeout
+        self.timeout = rtr.timeout[0] * 10
         self.mode_dependencies = rtr.mode_dependencies[1:]
         self.user_modes = rtr.user_modes
         self.serial = rtr.serial

@@ -7,6 +7,7 @@ from config_commons import (
     show_not_authorized,
     activate_side_menu,
     inspect_header,
+    show_homepage,
 )
 from const import (
     CONF_PORT,
@@ -84,6 +85,15 @@ class ConfigSetupServer:
         main_app = request.app["parent"]
         return show_setup_page(main_app, "Änderungen verworfen")
 
+    @routes.get("/table_transfer")
+    async def tbl_transfer(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        main_app = request.app["parent"]
+        if request.query["ModSettings"] == "transfer":
+            return await transfer_setup_table_changes(main_app)
+        else:
+            return await re_init_hub(main_app)
+
     @routes.get("/adapt")
     async def mod_adapt(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
@@ -135,8 +145,13 @@ def show_setup_page(app, popup_msg="") -> web.Response:
             + "&nbsp;&nbsp;&nbsp;&nbsp;Die Änderungen können mit 'Abbruch' auch verworfen werden.<br>"
             + "4. Mit dem Button 'Übertragen' auf dieser Seite wird die Konfiguration in die <br>"
             + "&nbsp;&nbsp;&nbsp;&nbsp;Habitron-Anlage übertragen und dort umgesetzt.<br>"
+            + "&nbsp;&nbsp;&nbsp;&nbsp;Mit 'Neustart' werden Änderungen zurück gesetzt.<br>"
             + "5. Über 'Systemkonfiguration' kann die Konfiguration auch als Download gespeichert<br>"
             + "&nbsp;&nbsp;&nbsp;&nbsp;werden, um später in die Anlage übertragen zu werden."
+            + "<h3>Router testen</h3>"
+            + "1. Status des Routers wird aktuell ausgelesen:<br>"
+            + "&nbsp;&nbsp;&nbsp;&nbsp;Kommunikationsfehler werden angezeigt.<br>"
+            + "2. Systemeinstellungen des Routers (Timeout) können verändert werden."
             + "<h3>Module testen</h3>"
             + "1. Bereits angelegte und in der Habitron-Anlage eingespeicherte Module<br>"
             + "&nbsp;&nbsp;&nbsp;&nbsp;können ausgewählt werden.<br>"
@@ -172,6 +187,16 @@ def show_setup_page(app, popup_msg="") -> web.Response:
         ).replace('id="resp-popup-disabled"', 'id="resp-popup"')
     if app["api_srv"].is_offline:
         page = page.replace(">Übertragen<", ' style="visibility: hidden;">Übertragen<')
+        page = page.replace(
+            'action="setup/table_transfer"', 'action="setup/table_close"'
+        )
+    else:
+        page = page.replace(
+            'value="cancel" style="visibility: hidden;"',
+            'value="cancel" style="width: 140px;"',
+        )
+        page = page.replace("Abbruch", "Neustart")
+
     return web.Response(text=page, content_type="text/html", charset="utf-8")
 
 
@@ -263,6 +288,23 @@ def show_module_table(app) -> web.Response:
             f'><input type="checkbox" class="mod_sels" name="modsel_{mod._id}" id="mod-{mod._id}"><',
         )
         table_str += tre_line
+    for mod in rtr.err_modules:
+        table_str += tr_line
+        table_str += td_line.replace("><", f">{mod._name}<")
+        table_str += td_line.replace(
+            "><",
+            f'><input type="number" value="{mod._id}" class="mod_ids" name="modid_unknown{mod._id}" id="modno-{mod._serial}" min="1" max="64"><',
+        )
+        table_str += td_line.replace("><", f">{mod._type}<")
+        table_str += td_line.replace(
+            "><",
+            f'><input type="number" value="{mod._channel}" class="mod_chans" name="modchan_unknown{mod._id}" id="modch-{mod._serial}" min="1" max="4"><',
+        )
+        table_str += td_line.replace(
+            "><",
+            f'><input type="checkbox" class="mod_sels" name="modsel_{mod._id}" id="mod-{mod._id}"><',
+        )
+        table_str += tre_line
     table_str += tend_lines
     page = page.replace("ContentText", table_str)
     page = page.replace(
@@ -272,4 +314,43 @@ def show_module_table(app) -> web.Response:
     page = page.replace(
         '">Systemkonfiguration<', ' visibility: hidden;">Systemkonfiguration<'
     )
+    page = page.replace('action="setup/table_transfer"', 'action="setup/table_close"')
     return web.Response(text=page, content_type="text/html", charset="utf-8")
+
+
+async def transfer_setup_table_changes(main_app) -> web.Response:
+    """Make all changes from setup table permanent in router and system."""
+
+    api_srv = main_app["api_srv"]
+    rtr = api_srv.routers[0]
+    for mod in rtr.removed_modules:
+        await rtr.hdlr.del_mod_addr(mod._id)
+        rtr.mod_addrs.remove(mod._id)
+    rtr.removed_modules = []
+    # save new model address/channel
+    for mod in rtr.modules:
+        if mod.changed:
+            # change model internal address to new value
+            # (module needs to be connected to old channel)
+            if "old_id" in mod.__dir__() and mod.old_id != mod._id:
+                await rtr.hdlr.set_module_address(2, mod.old_id, mod._id)
+                await rtr.hdlr.del_mod_addr(mod.old_id)
+            # register new mod addr in router channel list
+            await rtr.hdlr.set_module_address(1, mod._channel, mod._id)
+            # save changed group list?
+            mod.changed = False
+    return show_setup_page(
+        main_app,
+        "Änderungen an Moduladressen<br>und Kanalzuordnungen<br>wurden umgesetzt.<br><br>"
+        + "Die entfernten Module<br>wurden aus der Router-Liste gelöscht.",
+    )
+
+
+async def re_init_hub(main_app) -> web.Response:
+    """Revert all changes from setup table, re-init hub."""
+
+    api_srv = main_app["api_srv"]
+    rtr = api_srv.routers[0]
+    rtr.__init__(api_srv, rtr._id)
+    await rtr.get_full_system_status()
+    return show_homepage(main_app)

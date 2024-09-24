@@ -248,11 +248,9 @@ class AdminHdlr(HdlrBase):
                     mod_list = self.api_srv.routers[rt - 1].mod_addrs
                 else:
                     mod_list = [mod]
+                rtr = self.api_srv.routers[rt - 1]
                 for mod in mod_list:
-                    await self.handle_router_cmd_resp(
-                        rt, RT_CMDS.DEL_MD_ADDR.replace("<mod>", chr(mod))
-                    )
-                self.response = self.rt_msg._resp_msg
+                    self.response = await rtr.hdlr.del_mod_addr(mod)
                 return
             case spec.DO_FW_UPDATE:
                 rtr = self.api_srv.routers[rt - 1]

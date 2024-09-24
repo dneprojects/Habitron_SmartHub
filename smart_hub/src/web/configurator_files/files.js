@@ -8,14 +8,24 @@ const close_updates_pop = document.getElementById("close_updates_popup");
 const form_doc = document.getElementById("file_doc");
 const mod_type_sel = document.getElementsByName("mod_type_select")[0];
 
-form_doc.addEventListener("submit", function () {
-    file_popup.classList.remove("show");
-});
+if (document.getElementById("form_doc")) {
+    form_doc.addEventListener("submit", function () {
+        file_popup.classList.remove("show");
+    });
+}
+if (document.getElementById("form_upload")) {
+    form_upload.addEventListener("submit", function () {
+        openMsgPopup();
+    });
+}
 
-form_upload.addEventListener("submit", function () {
-    openMsgPopup();
-});
-
+if (document.getElementById("config_button")) {
+    document.getElementById("config_button").addEventListener("click", function () {
+        msg_popup.innerHTML = msg_popup.innerHTML.replace("ContentTitle", "Neue Initialisierung")
+        msg_popup.innerHTML = msg_popup.innerHTML.replace("Upload", "Bitte warten...")
+        openMsgPopup();
+    });
+}
 files_button.addEventListener("click", function () {
     file_popup.classList.add("show");
 });
@@ -39,9 +49,11 @@ form_rtr_update.addEventListener("submit", function () {
 form_mod_update.addEventListener("submit", function () {
     openMsgPopup();
 });
-mod_type_sel.addEventListener("change", function () {
-    document.getElementById("loc_mod_fw_update").requestSubmit();
-});
+if (mod_type_sel) {
+    mod_type_sel.addEventListener("change", function () {
+        document.getElementById("loc_mod_fw_update").requestSubmit();
+    });
+}
 window.addEventListener("click", function (event) {
     if (event.target == file_popup) {
         openMsgPopup();

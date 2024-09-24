@@ -140,15 +140,20 @@ def show_hub_overview(app) -> web.Response:
         + "</p>",
     )
     rtr = api_srv.routers[0]
+    rtr.check_firmware()
     if rtr.update_fw_file == "":
         html_str = html_str.replace('"rtr">Lokal<', '"rtr" disabled="true">aktuell<')
     opt_str = ""
     mod_types: list[bytes] = []
+    mod_updates: list[bytes] = []
     for mod in rtr.modules:
-        if mod._typ not in mod_types and mod.update_available:
+        if mod._typ not in mod_types:
             mod_types.append(mod._typ)
-            opt_str += f'\n<option value="{mod._id}">{mod._type}</option>'
-    if len(mod_types) > 0:
+            mod.check_firmware()
+            if mod.update_available:
+                opt_str += f'\n<option value="{mod._id}">{mod._type}</option>'
+                mod_updates.append(mod._typ)
+    if len(mod_updates) > 0:
         html_str = html_str.replace(
             ">-- Modultyp --</option>", ">-- Modultyp --</option>" + opt_str
         )
@@ -485,15 +490,11 @@ def adjust_settings_button(page, type, addr: str) -> str:
     elif type.lower() == "rtr":
         page = page.replace("ModSettings", "RtrSettings")
     elif type.lower() == "rtr_tst":
-        page = page.replace("ModSettings", "RtrTesting")
-        page = page.replace(">Einstellungen<", ">Kanal rücksetzen<")
-        page = page.replace('action="settings/settings"', "")
-        page = page.replace(
-            'id="config_button" type="submit"', 'id="chan_reset_button" type="button"'
-        )
-        page = page.replace(
-            ">Konfigurationsdatei", ' hidden="true" >Konfigurationsdatei'
-        )
+        page = page.replace("ConfigFile", "RtrTesting")
+        page = page.replace(">Konfigurationsdatei<", ">Kanal rücksetzen<")
+        page = page.replace('action="settings/settings"', "action=test/sys_settings")
+        page = page.replace('id="files_button"', 'id="chan_reset_button" type="button"')
+        page = page.replace(">Einstellungen", ">System-Einstellungen")
     elif type == "":
         page = page.replace(">Einstellungen", " disabled >Einstellungen")
         page = page.replace(">Konfigurationsdatei", " disabled >Konfigurationsdatei")

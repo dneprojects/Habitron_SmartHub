@@ -39,6 +39,7 @@ class HbtnModule:
         self.list: bytes = b""  # SMC information: labels, commands
         self.list_upload: bytes = b""  # buffer for SMC upload
         self.settings = None
+        self.changed = False  # Flag to indicate id/chan/remove changes in setup
         self.update_available = False
         self.update_version = ""
 

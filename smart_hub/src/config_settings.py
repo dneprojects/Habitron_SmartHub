@@ -32,6 +32,7 @@ from const import (
     LgcDescriptor,
     DAY_NIGHT_MODES,
     DAY_NIGHT_MODES_HELP,
+    RT_ERROR_CODE,
 )
 from configuration import set_cover_name, set_cover_output_name
 from multidict import MultiDict
@@ -238,12 +239,13 @@ def show_router_overview(main_app, popup_msg="") -> web.Response:
         props += "<tr><td>Events:</td><td>inaktiv</td></tr>\n"
     props += f"<tr><td>Modulanzahl:</td><td>{rtr.chan_status[0]}</td></tr>\n"
     if rtr.comm_errors[0]:
-        last_err_str = f"Modul {rtr.comm_errors[0]}: F{rtr.comm_errors[1]}"
+        last_err_str = f'Modul {rtr.comm_errors[0]}: <a title="{RT_ERROR_CODE[rtr.comm_errors[1]]}">F{rtr.comm_errors[1]}</a>'
     else:
         last_err_str = "-"
     mod_err_str = ""
     for err_cnt in range(rtr.comm_errors[2]):
-        mod_err_str += f"Modul {rtr.comm_errors[3 + 2*err_cnt]}: F{rtr.comm_errors[4 + 2*err_cnt]}; "
+        err_code = rtr.comm_errors[4 + 2 * err_cnt]
+        mod_err_str += f'Modul {rtr.comm_errors[3 + 2*err_cnt]}: <a title="{RT_ERROR_CODE[err_code]}">F{err_code}</a>; '
     if mod_err_str == "":
         mod_err_str = "-"
     else:

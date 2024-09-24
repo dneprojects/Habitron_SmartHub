@@ -35,6 +35,8 @@ class HbtnRouter:
         self.status_idx = []
         self.mod_addrs = []
         self.modules = []
+        self.err_modules = []
+        self.removed_modules = []
         self.hdlr = RtHdlr(self, self.api_srv)
         self.descriptions: str = ""
         self.smr: bytes = b""
@@ -150,6 +152,7 @@ class HbtnRouter:
                 self.logger.info(f"   Module {mod_addr} initialized")
             except Exception as err_msg:
                 self.logger.error(f"   Failed to setup module {mod_addr}: {err_msg}")
+                self.err_modules.append(self.modules[-1])
                 self.modules.remove(self.modules[-1])
                 mods_to_remove.append(mod_addr)
                 self.logger.warning(f"   Module {mod_addr} removed")
@@ -162,6 +165,10 @@ class HbtnRouter:
         self.chan_status = await self.hdlr.get_rt_status()
         self.comm_errors = await self.hdlr.get_mod_errors()
         return self.chan_status
+
+    async def get_module_boot_status(self):
+        """Get module boot status properties."""
+        await self.hdlr.get_module_boot_status()
 
     def get_module(self, mod_id: int) -> HbtnModule | None:
         """Return module object."""
@@ -578,32 +585,43 @@ class HbtnRouter:
         rm_list = []
         for m_i in range(len(self.modules)):
             mod = self.modules[m_i]
+            mod.changed = False
             mod_group = old_groups[mod._id - 1]
             if "modid_" + mod._serial in changes_dict.keys():
                 new_id = int(changes_dict["modid_" + mod._serial])
                 new_chan = int(changes_dict["modchan_" + mod._serial])
-                self.mod_addrs[m_i] = new_id
-                self.modules[m_i]._id = new_id
-                self.modules[m_i]._channel = new_chan
-                self.modules[m_i].status = (
-                    chr(new_id).encode("iso8859-1") + self.modules[m_i].status[1:]
-                )
+                if new_id != mod._id:
+                    self.mod_addrs[m_i] = new_id
+                    mod.old_id = mod._id
+                    mod._id = new_id
+                    mod.status = chr(new_id).encode("iso8859-1") + mod.status[1:]
+                    mod.changed = True
+                if new_chan != mod._channel:
+                    mod._channel = new_chan
+                    mod.changed = True
 
-                # build new channel list
-                self.channel_list[new_chan].append(new_id)
-                # build new group list
-                self.groups = (
-                    self.groups[: new_id - 1]
-                    + int.to_bytes(mod_group)  # type: ignore
-                    + self.groups[new_id:]
-                )
+                if mod.changed:
+                    # build new channel list
+                    self.channel_list[new_chan].append(new_id)
+                    # build new group list
+                    self.groups = (
+                        self.groups[: new_id - 1]
+                        + int.to_bytes(mod_group)  # type: ignore
+                        + self.groups[new_id:]
+                    )
             else:
                 # remember model to be removed
                 rm_list.append(mod._serial)
         for m_ser in rm_list:
             # remove in second loop to not change order in fist loop
             mod = self.get_module_by_serial(m_ser)
+            self.removed_modules.append(mod)
             self.modules.remove(mod)
+        for mod in self.err_modules:
+            if f"modid_unknown{mod._id}" not in changes_dict.keys():
+                # remove router module entry from list
+                self.removed_modules.append(mod)
+                self.err_modules.remove(mod)
         # prepare channels byte string from channel list
         for ch_i in range(1, 5):
             channels_str += f"{chr(ch_i)}{chr(len(self.channel_list[ch_i]))}"
