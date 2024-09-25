@@ -451,9 +451,11 @@ class HbtnRouter:
     async def reset_chan_power(self, chan_mask: int):
         """Pulse router channel power for 1s."""
         if chan_mask > 0:
+            await self.api_srv.block_network_if(self._id, True)
             await self.switch_chan_power("off", chan_mask)
             await asyncio.sleep(1)
             await self.switch_chan_power("on", chan_mask)
+            await self.api_srv.block_network_if(self._id, False)
 
     def set_descriptions(self, settings: RouterSettings) -> None:
         """Store names into router descriptions."""

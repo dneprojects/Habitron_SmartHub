@@ -491,10 +491,13 @@ def adjust_settings_button(page, type, addr: str) -> str:
         page = page.replace("ModSettings", "RtrSettings")
     elif type.lower() == "rtr_tst":
         page = page.replace("ConfigFile", "RtrTesting")
-        page = page.replace(">Konfigurationsdatei<", ">Kanal rücksetzen<")
         page = page.replace('action="settings/settings"', "action=test/sys_settings")
         page = page.replace('id="files_button"', 'id="chan_reset_button" type="button"')
         page = page.replace(">Einstellungen", ">System-Einstellungen")
+        page = page.replace(
+            '">Konfigurationsdatei<',
+            ' visibility: hidden;">Konfigurationsdatei<',
+        )
     elif type == "":
         page = page.replace(">Einstellungen", " disabled >Einstellungen")
         page = page.replace(">Konfigurationsdatei", " disabled >Konfigurationsdatei")

@@ -151,9 +151,11 @@ class ConfigTestingServer:
         main_app = request.app["parent"]
         api_srv = main_app["api_srv"]
         rtr = api_srv.routers[0]
+        await api_srv.block_network_if(rtr._id, True)
         await rtr.hdlr.rt_reboot()
         rtr.__init__(api_srv, rtr._id)
         await rtr.get_full_system_status()
+        await api_srv.block_network_if(rtr._id, False)
         return await show_router_syspage(main_app, "")
 
     @routes.post("/chan_reset")
@@ -210,8 +212,10 @@ async def show_router_testpage(main_app, popup_msg="") -> web.Response:
     """Prepare overview page of module."""
     api_srv = main_app["api_srv"]
     rtr = api_srv.routers[0]
+    await api_srv.block_network_if(rtr._id, True)
     await rtr.get_status()
     await rtr.get_module_boot_status()
+    await api_srv.block_network_if(rtr._id, False)
     chan_stat = rtr.chan_status
     error_stat = rtr.comm_errors
     side_menu = main_app["side_menu"]
