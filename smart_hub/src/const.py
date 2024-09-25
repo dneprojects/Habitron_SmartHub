@@ -41,18 +41,18 @@ USB_SERIAL_DEVICES = ["USB Seri", "Prolific"]
 INSTALLER_GROUP = ["habitron_admin", "habitron_installer"]
 RT_ERROR_CODE = {
     1: "Timeout Modulkommunikation",
-    2: "F2-Fehler",
-    4: "F4-Fehler",
+    2: "Fehler Modulkommunikation",
+    4: "Abspeicherfehler",
     8: "F8-Fehler",
-    16: "F16-Fehler",
-    32: "Ekey-Fehler",
+    16: "Fehler Leistungsteil",
+    32: "Fehler Ekey/GSM-Kommunikation",
 }
 
 
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.5.13"
+    SW_VERSION = "1.5.14"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"

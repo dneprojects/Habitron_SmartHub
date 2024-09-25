@@ -38,7 +38,6 @@ class ApiServer:
         self.api_msg = ApiMessage(self, const.def_cmd, const.def_len)
         self._running = True
         self._client_ip: str = ""
-        self._hass_ip: str = ""
         self.hass_ip: str = ""
         self.mirror_mode_enabled: bool = True
         self.event_mode_enabled: bool = True

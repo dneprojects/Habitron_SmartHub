@@ -30,7 +30,7 @@ class AdminHdlr(HdlrBase):
             case spec.SMHUB_NET_INFO:
                 await self.api_srv.set_server_mode(rt)
                 ip_len = self._args[0]
-                self.api_srv._hass_ip = self._args[1 : ip_len + 1].decode("iso8859-1")
+                self.api_srv.hass_ip = self._args[1 : ip_len + 1].decode("iso8859-1")
                 # tok_len = self._args[ip_len + 1]
                 ip_len = len(self.api_srv._client_ip)
                 cl_ip_str = (chr(ip_len) + self.api_srv._client_ip).encode("iso8859-1")
