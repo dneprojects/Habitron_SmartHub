@@ -22,6 +22,7 @@
     line-height: 16px;
     height: fit-content;
     width: fit-content;
+    min-width: 250px;
 }
 
 #msg_popup .popup-content {
@@ -153,10 +154,10 @@
     height: 22px;
     width: 100px;
     top: 0;
-    margin-right: 100px;
-    margin-left: 100px;
     font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
-    font: 11px arial, helvetica, clean, sans-serif;
+    font: 11px arial, helvetica, clean, sans-serif;    
+    margin-left: 50%;
+    transform: translateX(-50px);
 }
 
 #max_count_input{

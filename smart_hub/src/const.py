@@ -52,7 +52,7 @@ RT_ERROR_CODE = {
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.5.14"
+    SW_VERSION = "1.6.0"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
@@ -465,6 +465,9 @@ class RT_CMDS:
     SET_ISP_MODE = "\x2a<rtr>\x0b\xc9\x49\x53\x50\x53<lenl><lenh>\xff"
     SYSTEM_RESTART = "\x2a<rtr>\x08\xc9\x4e\x45\x55\xff"
 
+    CAL_SENS_MOD = "\x2a<rtr>\x0b\x44<mod>\x07\xd2\x02\x47<md>\xff"
+    CAL_SENSOR = "\x2a<rtr>\xff\x44<mod>\xff<cal_cmd>"
+
 
 class RT_RESP:
     """Define router command ids."""
@@ -532,8 +535,9 @@ class MStatIdx:
     LUM = 28
     MOV = 30
     IR_H = 31  # General field 1
-    IR_L = 32  # General field 2
     WIND = 31
+    OUTDOOR_MODE = 31  # sensor module
+    IR_L = 32  # General field 2
     WINDP = 32
     ROLL_POS = 33  # 1..8: 33..40 bei SC: Roll 3..5
     BLAD_POS = 41  # 1..8: 41..48
@@ -588,6 +592,7 @@ class MirrIdx:
     GEN_2 = 32
     IR_H = 31
     IR_L = 32
+    OUTDOOR_MODE = 31  # sensor module
     WIND = 33  # for smart nature (wrong indices?)
     WINDP = 34  # for smart nature (wrong indices?)
     COVER_T = 33  # 1..8

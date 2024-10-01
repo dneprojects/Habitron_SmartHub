@@ -97,6 +97,9 @@ class ModHdlr(HdlrBase):
                 self.logger.info(f"Changed SIM Pin: {self.mod.settings.sim_pin}")
                 # await self.set_pin()
             await self.set_logic_units()
+        if self.mod._typ == b"\x32\x28":
+            # Smart Sensor set sensor mode
+            await self.set_outdoor_mode()
         await self.api_srv.set_operate_mode()
 
     async def get_module_list(self, mod_addr: int) -> bytes:
@@ -225,6 +228,18 @@ class ModHdlr(HdlrBase):
         await self.handle_router_cmd_resp(self.rt_id, cmd)
         return "OK"
 
+    async def set_outdoor_mode(self):
+        """Send outdoor mode to module."""
+        base_idx = SMGIdx.index(MirrIdx.GEN_4)
+        md = self.mod.smg_upload[base_idx]
+        cmd = (
+            RT_CMDS.CAL_SENS_MOD.replace("<rtr>", chr(self.rt_id))
+            .replace("<mod>", chr(self.mod_id))
+            .replace("<md>", chr(md))
+        )
+        await self.handle_router_cmd_resp(self.rt_id, cmd)
+        return "OK"
+
     async def set_module_name(self):
         """Send module name to module."""
         base_idx = SMGIdx.index(MirrIdx.MOD_NAME)
@@ -291,18 +306,6 @@ class ModHdlr(HdlrBase):
         if self.rt_msg._resp_msg[0] == 83:  # "S" for serial
             return self.rt_msg._resp_msg[1:].decode("iso8859-1")
         return ""
-
-    async def set_area_index(self):
-        """Send area index setting to module."""
-        base_idx = SMGIdx.index(MirrIdx.MOD_AREA)
-        val = self.mod.smg_upload[base_idx]
-        cmd = (
-            RT_CMDS.SET_AREA_IDX.replace("<rtr>", chr(self.rt_id))
-            .replace("<mod>", chr(self.mod_id))
-            .replace("<set>", chr(val))
-        )
-        await self.handle_router_cmd_resp(self.rt_id, cmd)
-        return "OK"
 
     async def set_display_constrast(self):
         """Send display contrast setting to module."""
