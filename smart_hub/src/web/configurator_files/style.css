@@ -1089,26 +1089,9 @@ select {
    margin-right: 10px;
    accent-color: #C0372D;
 }
-input[type="radio"]#temp_ctl_cl1, 
-input[type="radio"]#temp_ctl_cl2, 
-input[type="radio"]#temp_ctl_cl3, 
-input[type="radio"]#temp_ctl_cl4, 
-input[type="radio"]#temp_1_2_s1, 
-input[type="radio"]#temp_1_2_s2 {
-   margin-left: 5px
-}
-input[type="radio"]#temp_ctl_cl4 {
-   margin-bottom: 5px;
-}
+
 input[type="checkbox"].sel_element {
    margin-left: 5px
-}
-
-input[type="checkbox"]#sens_type {
-   margin-top: 5px;
-   margin-left: 5px;
-   margin-bottom: 5px;
-   accent-color: #C0372D;
 }
 
 input[type="number"].mod_ids, input[type="number"].mod_chans {
@@ -1207,10 +1190,10 @@ input#send:hover {
    /*   cursor:crosshair;*/
 }
 
-input#rtr_timeout, input#new_mod_id, input#new_mod_ch, input#chan_reset, input#reset_ch, input#cov_autostop_cnt {
+input#rtr_timeout, input#new_mod_id, input#new_mod_ch, input#chan_reset, input#reset_ch {
    width: 50px;
 }
-#btn_rtr_timeout, #btn_new_mod_id, #btn_chan_reset, #btn_rt_reboot, #btn_cov_autostop_cnt {
+#btn_rtr_timeout, #btn_new_mod_id, #btn_chan_reset, #btn_rt_reboot {
    width: 80px;
    height: 22px;
 }
@@ -1322,15 +1305,6 @@ form#confbuttons {
 
 
 /*----------------------------------------------------------Diverse-----------------------------------*/
-select.mod_chans {
-   width: 50px;
-   border: 0px
-}
-
-select#new_mod_ch {
-   width: 55px;
-}
-
 p#button-evnt {
    color: #c0372d;
    font-weight: bold;

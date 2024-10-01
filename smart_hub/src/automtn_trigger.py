@@ -336,22 +336,13 @@ class AutomationTrigger:
                 SelSensCodes["wind_peak"]: "Wind",
             }
         if mod_typ == b"\x32\x28":
-            if self.settings.status[MirrIdx.OUTDOOR_MODE] == 65:
-                # outdoor configuration
-                self.triggers_dict = {
-                    SelTrgCodes["sensor"]: "Sensor",
-                }
-                self.sensors_dict = {
-                    SelSensCodes["temp_int"]: "Temperatur außen",
-                }
-            else:
-                self.triggers_dict = {
-                    SelTrgCodes["climate"]: "Klimaregelung",
-                    SelTrgCodes["sensor"]: "Sensor",
-                }
-                self.sensors_dict = {
-                    SelSensCodes["temp_int"]: "Temperatur innen",
-                }
+            self.triggers_dict = {
+                SelTrgCodes["climate"]: "Klimaregelung",
+                SelTrgCodes["sensor"]: "Sensor",
+            }
+            self.sensors_dict = {
+                SelSensCodes["temp_int"]: "Temperatur innen",
+            }
         if mod_typ[0] == 10:
             self.triggers_dict = {
                 SelTrgCodes["output"]: "Ausgangsänderung",

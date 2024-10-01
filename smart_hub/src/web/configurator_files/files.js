@@ -7,8 +7,6 @@ const updates_pop = document.getElementById("updates_popup");
 const close_updates_pop = document.getElementById("close_updates_popup");
 const form_doc = document.getElementById("file_doc");
 const mod_type_sel = document.getElementsByName("mod_type_select")[0];
-const sys_download = document.getElementsByName("SysDownload")[0];
-const sys_doc = document.getElementsByName("SysDoc")[0];
 
 if (document.getElementById("form_doc")) {
     form_doc.addEventListener("submit", function () {
@@ -26,16 +24,6 @@ if (document.getElementById("config_button")) {
         msg_popup.innerHTML = msg_popup.innerHTML.replace("ContentTitle", "Neue Initialisierung")
         msg_popup.innerHTML = msg_popup.innerHTML.replace("Upload", "Bitte warten...")
         openMsgPopup();
-    });
-}
-if (sys_download) {
-    sys_download.addEventListener("click", function () {
-        file_popup.classList.remove("show");
-    });
-}
-if (sys_doc) {
-    sys_doc.addEventListener("click", function () {
-        file_popup.classList.remove("show");
     });
 }
 files_button.addEventListener("click", function () {

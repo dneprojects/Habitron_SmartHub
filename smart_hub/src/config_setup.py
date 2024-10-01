@@ -258,7 +258,7 @@ def show_module_table(app) -> web.Response:
         + "            <th>Name</th>\n"
         + "            <th data-sort-method='number' data-sort-input-attr='value'>Adr.</th>\n"
         + "            <th>Typ</th>\n"
-        + "            <th data-sort-method='number' data-sort-input-attr='selected_value'>Kanalpaar</th>\n"
+        + "            <th data-sort-method='number' data-sort-input-attr='value'>Kanal</th>\n"
         + "            <th></th>\n"
         + "        </tr>\n"
         + "    </thead>\n"
@@ -272,18 +272,6 @@ def show_module_table(app) -> web.Response:
 
     table_str = thead_lines
     for mod in rtr.modules:
-        sel_str1 = ""
-        sel_str2 = ""
-        sel_str3 = ""
-        sel_str4 = ""
-        if mod._channel == 1:
-            sel_str1 = "selected"
-        if mod._channel == 2:
-            sel_str2 = "selected"
-        if mod._channel == 3:
-            sel_str3 = "selected"
-        if mod._channel == 4:
-            sel_str4 = "selected"
         table_str += tr_line
         table_str += td_line.replace("><", f">{mod._name}<")
         table_str += td_line.replace(
@@ -293,7 +281,7 @@ def show_module_table(app) -> web.Response:
         table_str += td_line.replace("><", f">{mod._type}<")
         table_str += td_line.replace(
             "><",
-            f'><select class="mod_chans" name="modchan_{mod._serial}" id="modch-{mod._serial}"><option value="1" {sel_str1}>1 + 2</option><option value="2" {sel_str2}>3 + 4</option><option value="3" {sel_str3}>5 + 6</option><option value="4" {sel_str4}>7 + 8</option></select><',
+            f'><input type="number" value="{mod._channel}" class="mod_chans" name="modchan_{mod._serial}" id="modch-{mod._serial}" min="1" max="4"><',
         )
         table_str += td_line.replace(
             "><",

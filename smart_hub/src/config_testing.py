@@ -143,20 +143,6 @@ class ConfigTestingServer:
         await rtr.hdlr.send_rt_timeout(t_out)
         return await show_router_syspage(main_app, "")
 
-    @routes.post("/cov_autostop")
-    async def set_cov_autostop(request: web.Request) -> web.Response:  # type: ignore
-        inspect_header(request)
-        if client_not_authorized(request):
-            return show_not_authorized(request.app)
-        data = await request.post()
-        main_app = request.app["parent"]
-        api_srv = main_app["api_srv"]
-        rtr = api_srv.routers[0]
-        c_cnt = int(data["cov_autostop_cnt"])
-        rtr.settings.cov_autostop_cnt = c_cnt
-        rtr.set_descriptions(rtr.settings)
-        return await show_router_syspage(main_app, "")
-
     @routes.post("/rt_reboot")
     async def rt_reboot(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
@@ -411,18 +397,18 @@ async def show_router_syspage(main_app, popup_msg="") -> web.Response:
     tbl += (
         indent(7)
         + f'<tr><td><label for="{id_name}">{prompt}</label></td><td></td>'
-        + '<td><input name="reset_ch" type="number" min="1" max="8" id="reset_ch" value="1" title="Routerkanal"/></td>\n'
+        + '<td><input name="reset_ch" type="number" min="1" max="4" id="reset_ch" value="1" title="Routerkanal"/></td>\n'
         + f'<td><input name="btn_{id_name}" type="submit" id="btn_{id_name}" value="Rücksetzen"/></td></tr>\n'
     )
     tbl += indent(6) + "</form>"
     id_name = "new_mod_id"
-    prompt = "Neue Moduladresse auf Kanalpaar anbieten"
+    prompt = "Neue Moduladresse auf Kanal anbieten"
     tbl += indent(6) + '<form action="test/new_chan_id" method="post">\n'
     tbl += (
         indent(7)
         + f'<tr><td><label for="{id_name}">{prompt}</label></td>'
         + f'<td><input name="{id_name}" type="number" min="1" max="64" id="{id_name}" value="1" title="neue Moduladresse"/></td>\n'
-        + '<td><select name="new_mod_ch" id="new_mod_ch" title="Routerkanalpaar"><option value="1">1 + 2</option><option value="2">3 + 4</option><option value="3">5 + 6</option><option value="4">7 + 8</option></select></td>\n'
+        + '<td><input name="new_mod_ch" type="number" min="1" max="4" id="new_mod_ch" value="1" title="Routerkanal"/></td>\n'
         + f'<td><input name="btn_{id_name}" type="submit" id="btn_{id_name}" value="Anbieten"/></td></tr>\n'
     )
     tbl += indent(6) + "</form>"
@@ -433,16 +419,6 @@ async def show_router_syspage(main_app, popup_msg="") -> web.Response:
         indent(7)
         + f'<tr><td><label for="{id_name}">{prompt}</label></td><td></td>'
         + f'<td><input name="{id_name}" type="number" min="0" step="10" max="2550" id="{id_name}" value="{settings.timeout}"/></td>\n'
-        + f'<td><input name="btn_{id_name}" type="submit" id="btn_{id_name}" value="Speichern"/></td></tr>\n'
-    )
-    tbl += indent(6) + "</form>"
-    id_name = "cov_autostop_cnt"
-    prompt = "Rollladen Autostop-Zähler (0 = inaktiv)"
-    tbl += indent(6) + '<form action="test/cov_autostop" method="post">\n'
-    tbl += (
-        indent(7)
-        + f'<tr><td><label for="{id_name}">{prompt}</label></td><td></td>'
-        + f'<td><input name="{id_name}" type="number" min="0" max="10" id="{id_name}" value="{settings.cov_autostop_cnt}"/></td>\n'
         + f'<td><input name="btn_{id_name}" type="submit" id="btn_{id_name}" value="Speichern"/></td></tr>\n'
     )
     tbl += indent(6) + "</form>"

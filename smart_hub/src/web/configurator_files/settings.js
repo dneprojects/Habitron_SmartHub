@@ -40,7 +40,6 @@ const new_addr = document.getElementsByName("new_entry")[0]
 const setngs_tbl = document.getElementById("set_tbl");
 const new_modid = document.getElementById("new_mod_id");
 const rt_reboot = document.getElementById("btn_rt_reboot");
-const chk_sens_type = document.getElementById("sens_type");
 
 if (new_addr != null) {
     new_addr.addEventListener("change", function () {
@@ -62,12 +61,6 @@ if (new_lgc_btn != null) {
     new_lgc_btn.addEventListener("click", function () {
         getLogicOptions()
     })
-}
-if (chk_sens_type != null) {
-    chk_sens_type.addEventListener("change", function () {
-        setHeatingVis(chk_sens_type)
-    })
-    setHeatingVis(chk_sens_type)
 }
 if (max_inpts != null) {
     max_inpts.addEventListener("click", function () {
@@ -99,10 +92,6 @@ function controlNewButton() {
     }
 
 }
-function setHeatingVis(chk_box) {
-    document.getElementsByTagName("tr")[4].hidden = chk_box.checked
-}
-
 function controlDelButton() {
     if (del_btn != null) {
         del_btn.disabled = true;  // for modules only

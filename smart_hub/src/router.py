@@ -218,9 +218,7 @@ class HbtnRouter:
 
     def get_area_name(self, area_idx: int) -> str:
         """Return area name from index."""
-        if area_idx > 0:
-            return self.settings.areas[area_idx - 1].name
-        return "unbekannt"
+        return self.settings.areas[area_idx - 1].name
 
     def build_smr(self) -> None:
         """Build SMR file content from status."""
@@ -464,7 +462,6 @@ class HbtnRouter:
         # groups, group names, mode dependencies
         self.descriptions = settings.set_glob_descriptions()
         self.save_descriptions()
-        settings.desc = self.descriptions
 
     def get_properties(self) -> tuple[dict[str, int], list[str]]:
         """Return number of flags, commands, etc."""

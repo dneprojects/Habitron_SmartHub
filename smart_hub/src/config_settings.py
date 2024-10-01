@@ -113,16 +113,8 @@ class ConfigSettingsServer:
                 if "mov_led" not in list(form_data.keys()):
                     settings.mov_led = 78  # "N"
                 settings.__setattr__(form_key, form_data[form_key][0])
-            elif form_key == "sens_type":
-                settings.is_outdoor = form_data[form_key][0] == "on"
             else:
                 settings.__setattr__(form_key, form_data[form_key][0])
-
-        if settings.typ == b"\x32\x28" and "sens_type" not in list(
-            form_data.keys()
-        ):  # Smart Sensor
-            # if unchecekd no form_key is sent
-            settings.is_outdoor = False
         args = form_data["ModSettings"][0]
         return await show_next_prev(request.app["parent"], args)
 
@@ -491,7 +483,7 @@ def get_module_properties(mod) -> str:
     props = "<h3>Eigenschaften</h3>\n"
     props += "<table>\n"
     props += f'<tr><td style="width:80px;">Adresse:</td><td>{mod._id}</td></tr>\n'
-    props += f"<tr><td>Kanalpaar:</td><td>{mod._channel*2 - 1} + {mod._channel*2}</td></tr>\n"
+    props += f"<tr><td>Kanal:</td><td>{mod._channel}</td></tr>\n"
     props += f"<tr><td>Bereich:</td><td>{mod.get_area_name()}</td></tr>\n"
     props += f"<tr><td>Gruppe:</td><td>{mod.get_group_name()}</td></tr>\n"
     props += f"<tr><td>Hardware:</td><td>{mod._serial}</td></tr>\n"
@@ -591,18 +583,6 @@ def prepare_basic_settings(main_app, mod_addr, mod_type):
             indent(7)
             + f'<tr><td><label for="{id_name}">{prompt}</label></td><td><input name="{id_name}" '
             + f'type="number" min="1" max="240" id="{id_name}" value="{settings.displ_time}"/></td></tr>\n'
-        )
-    if settings.type in ["Smart Sensor"]:
-        id_name = "sens_type"
-        prompt = "Verwendung als Außensensor"
-        if settings.is_outdoor:
-            sens_type_str = "checked"
-        else:
-            sens_type_str = ""
-        tbl += (
-            indent(7)
-            + f'<tr><td><label for="{id_name}">{prompt}</label></td><td><input name="{id_name}" '
-            + f'type="checkbox" id="{id_name}" {sens_type_str}/></td></tr>\n'
         )
     if settings.type in [
         "Smart Detect 180",

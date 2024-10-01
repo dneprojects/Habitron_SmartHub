@@ -51,9 +51,6 @@ class ModuleSettings:
         self.automtns_def = AutomationsSet(self)
         self.sim_pin: str = ""
         self.sim_pin_changed = False
-        self.is_outdoor = (
-            self.status[MirrIdx.OUTDOOR_MODE] == 65
-        )  # only for sensor module
 
     def get_io_interfaces(self):
         """Parse config files to extract names, etc."""
@@ -70,7 +67,7 @@ class ModuleSettings:
             IoDescriptor("", i + 1, 1, 0) for i in range(self.properties["outputs"])
         ]
         self.covers = [
-            IoDescriptor("", i + 1, 0, 0) for i in range(self.properties["covers"])
+            IfDescriptor("", i + 1, 0) for i in range(self.properties["covers"])
         ]
         self.dimmers = [
             IfDescriptor("", i + 1, -1) for i in range(self.properties["outputs_dimm"])
@@ -148,7 +145,6 @@ class ModuleSettings:
         self.t_short = conf[MirrIdx.T_SHORT] * 10
         self.t_long = conf[MirrIdx.T_LONG] * 10
         self.t_dimm = conf[MirrIdx.T_DIM]
-        self.is_outdoor = conf[MirrIdx.OUTDOOR_MODE] == 65
         inp_state = int.from_bytes(
             conf[MirrIdx.SWMOD_1_8 : MirrIdx.SWMOD_1_8 + 3], "little"
         )
@@ -178,9 +174,7 @@ class ModuleSettings:
                 tilt = 1 + (self.blade_times[c_idx] > 0)
                 pol = polarity * tilt  # +-1 for shutters, +-2 for blinds
                 cname = set_cover_name(self.outputs[o_idx].name.strip())
-                self.covers[c_idx] = IoDescriptor(
-                    cname.strip(), c_idx + 1, pol, self.outputs[o_idx].area
-                )
+                self.covers[c_idx] = IfDescriptor(cname.strip(), c_idx + 1, pol)
                 self.outputs[o_idx].type = -10  # disable light output
                 self.outputs[o_idx + 1].type = -10
         if self.typ[0] == 80:
@@ -396,12 +390,6 @@ class ModuleSettings:
         if self.typ == b"\x1e\x03":  # Smart GSM
             self.logger.info(f"SIM Pin: {self.sim_pin}")
             self.set_pin()  # to smg
-        if self.typ == b"\x32\x28":  # Smart Sensor
-            if self.is_outdoor:
-                stat_byte = b"A"
-            else:
-                stat_byte = b"U"
-            status = replace_bytes(status, stat_byte, MirrIdx.OUTDOOR_MODE)
         return status
 
     def get_names(self) -> bool:
@@ -409,6 +397,7 @@ class ModuleSettings:
 
         self.logger.debug("Getting module names from list")
         self.all_fingers = {}
+        area_count = [0 for i in range(len(self.module.get_rtr().settings.areas))]
         list = self.list
         no_lines = int.from_bytes(list[:2], "little")
         list = list[4 : len(list)]  # Strip 4 header bytes
@@ -473,6 +462,7 @@ class ModuleSettings:
                                 self.inputs[arg_code - 10].nmbr = arg_code - 9
                                 if int(line[1]) > 0:
                                     self.inputs[arg_code - 10].area = int(line[1])
+                                    area_count[line[1] - 1] += 1
                         elif arg_code in range(18, 26):
                             # Description of module LEDs
                             self.leds[arg_code - 17] = IfDescriptor(
@@ -487,12 +477,14 @@ class ModuleSettings:
                                     # Set area index, where included, else apply module area later
                                     if int(line[1]) > 0:
                                         self.inputs[arg_code - 44].area = int(line[1])
+                                        area_count[line[1] - 1] += 1
                             else:  # sc inputs 24V
                                 self.inputs[arg_code - 40].name = text
                                 self.inputs[arg_code - 40].nmbr = arg_code - 39
                                 # Set area index, where included, else apply module area later
                                 if int(line[1]) > 0:
                                     self.inputs[arg_code - 40].area = int(line[1])
+                                    area_count[line[1] - 1] += 1
 
                         elif arg_code in range(110, 120):
                             # Description of counters
@@ -508,9 +500,6 @@ class ModuleSettings:
                         elif arg_code in range(120, 136):
                             # Description of flags
                             self.flags.append(IfDescriptor(text, arg_code - 119, 0))
-                        elif arg_code == 136:
-                            # Description of module area
-                            self.area_member = line[1]
                         elif arg_code in range(140, 173):
                             # Description of vis commands (max 32)
                             self.vis_cmds.append(
@@ -526,17 +515,23 @@ class ModuleSettings:
                             # Set area index, where included, else apply module area later
                             if int(line[1]) > 0:
                                 self.outputs[arg_code - 60].area = int(line[1])
+                                area_count[line[1] - 1] += 1
                         else:
                             # Description of outputs
                             self.outputs[arg_code - 60].name = text
                             if int(line[1]) > 0:
                                 self.outputs[arg_code - 60].area = int(line[1])
+                                area_count[line[1] - 1] += 1
                     except Exception as err_msg:
                         self.logger.error(
                             f"Parsing of names for module {self.name} failed: {err_msg}: Code {arg_code}, Text {text}"
                         )
 
             list = list[line_len : len(list)]  # Strip processed line
+
+        if sum(area_count) > 0:
+            self.area_member = area_count.index(max(area_count)) + 1
+            self.module.area = self.area_member
 
         if self.type == "Smart Controller Mini":
             self.leds[0].name = "Ambient"
@@ -549,6 +544,9 @@ class ModuleSettings:
             self.outputs[11].type = 2
             self.leds[0].name = "Nachtlicht"
             self.leds[0].nmbr = 0
+            # if self.typ == b"\x01\x03":
+            #     self.inputs[-2].name = "A/D-Kanal 1"
+            #     self.inputs[-1].name = "A/D-Kanal 2"
             return True
         if self.type[:10] == "Smart Dimm":
             self.dimmers[0].name = self.outputs[0].name
@@ -894,16 +892,13 @@ class ModuleSettings:
             if len(desc.strip()) > 0 or self.module._typ[0] == 11:
                 desc += " " * (32 - len(desc))
                 desc = desc[:32]
-                if self.typ not in [
-                    b"\x0b\x01",
-                    b"\x0b\x1e",
-                ]:  # Smart In 24, Smart In 230
+                if self.typ[0] == 11:
                     new_list.append(
-                        f"\xff\x00\xeb{chr(inpt_offs + inpt.nmbr)}\x01\x23\0\xeb" + desc
+                        f"\xff\x00\xeb{chr(inpt_offs + inpt.nmbr)}\1\x23\0\xeb" + desc
                     )
                 else:
                     new_list.append(
-                        f"\xff{chr(inpt.area)}\xeb{chr(inpt_offs + inpt.nmbr)}\x01\x23\0\xeb"
+                        f"\xff{chr(inpt.area)}\xeb{chr(inpt_offs + inpt.nmbr)}\1\x23\0\xeb"
                         + desc
                     )
         for outpt in self.outputs:
@@ -961,20 +956,13 @@ class ModuleSettings:
             desc = msg.name
             desc += " " * (32 - len(desc))
             new_list.append(f"\xff\0\xeb{chr(msg.nmbr)}\x01\x23\0\xeb" + desc)
-        # append area member @ 136
-        desc = self.module.get_rtr().settings.areas[self.area_member - 1].name
-        desc += " " * (32 - len(desc))
-        new_list.append(
-            f"\xff{chr(self.area_member)}\xeb{chr(136)}\x01\x23\0\xeb" + desc
-        )
         return self.adapt_list_header(new_list)
 
     def adapt_list_header(self, new_list: list[str]) -> bytes:
         """Adapt line and char numbers in header, sort, and return as byte."""
-        if self.typ != b"\x0b\x1f":  # not Smart In 24-1
-            sort_list = new_list[1:]
-            sort_list.sort()
-            new_list[1:] = sort_list
+        sort_list = new_list[1:]
+        sort_list.sort()
+        new_list[1:] = sort_list
         no_lines = len(new_list) - 1
         no_chars = 0
         for line in new_list:
@@ -1051,7 +1039,6 @@ class RouterSettings:
         self.logger = logging.getLogger(__name__)
         self.channels = rtr.channels
         self.timeout = rtr.timeout[0] * 10
-        self.cov_autostop_cnt = 1
         self.mode_dependencies = rtr.mode_dependencies[1:]
         self.user_modes = rtr.user_modes
         self.serial = rtr.serial
@@ -1142,8 +1129,6 @@ class RouterSettings:
                 pass
             elif content_code == 2815:  # FF 0A: areas
                 self.areas.append(IfDescriptor(entry_name, entry_no, 0))
-            elif content_code == 3071:  # FF 0B: cover autostop count
-                self.cov_autostop_cnt = entry_no
             resp = resp[line_len:]
         if len(self.groups) == 0:
             self.groups.append(IfDescriptor("general", 0, 0))
@@ -1160,7 +1145,7 @@ class RouterSettings:
         no_lines = int.from_bytes(resp[:2], "little")
         line_no = 0
         resp = resp[4:]
-        # Remove all global flags, coll commands, areas, cov_autostop, and group names
+        # Remove all global flags, coll commands, and group names
         # Leave rest unchanged
         for _ in range(no_lines):
             if resp == b"":
@@ -1168,7 +1153,7 @@ class RouterSettings:
             line_len = int(resp[8]) + 9
             line = resp[:line_len]
             content_code = int.from_bytes(line[1:3], "little")
-            if content_code not in [767, 1023, 2047, 2815, 3071]:
+            if content_code not in [767, 1023, 2047]:
                 desc += line.decode("iso8859-1")
                 line_no += 1
             resp = resp[line_len:]
@@ -1184,10 +1169,7 @@ class RouterSettings:
         for area in self.areas:
             desc += f"\x01\xff\x0a{chr(area.nmbr)}\x00\x00\x00\x00{chr(len(area.name))}{area.name}"
             line_no += 1
-        desc += f"\x01\xff\x0b{chr(self.cov_autostop_cnt)}\x00\x00\x00\x00\x00"
-        line_no += 1
-        self.desc = chr(line_no & 0xFF) + chr(line_no >> 8) + desc[2:]
-        return self.desc
+        return chr(line_no & 0xFF) + chr(line_no >> 8) + desc[2:]
 
     def get_day_night(self) -> None:
         """Prepare day and night table."""
