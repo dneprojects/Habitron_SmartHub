@@ -24,6 +24,9 @@
   };
 
   var getInnerText = function (el, options, key) {
+    if (key == "selected_value") {
+      return el.getElementsByTagName("select")[0].value || '';
+    }
     if (key) {
       return el.getElementsByTagName("input")[0].getAttribute(key) || '';
     }

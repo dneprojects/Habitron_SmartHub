@@ -405,6 +405,13 @@ class HbtnModule:
         smg_data += self.calc_cover_times()
         for si in SMGIdx[36:]:
             smg_data += self.status[si : si + 1]
+        if self._type == "Smart Sensor":
+            idx = SMGIdx.index(MirrIdx.GEN_4)
+            smg_data = (
+                smg_data[:idx]
+                + self.status[MirrIdx.OUTDOOR_MODE : MirrIdx.OUTDOOR_MODE + 1]
+                + smg_data[idx + 1 :]
+            )
         return smg_data
 
     def build_status(self, smg: bytes):
@@ -444,11 +451,13 @@ class HbtnModule:
             + int.to_bytes(polarity, 2, "little")
             + self.status[MirrIdx.COVER_POL + 2 :]
         )
-        # if self._typ[0] == 80:
-        #     # detect modules use index for led status, so use next entry
-        #     self.area = int(smg[SMGIdx.index(MirrIdx.MOD_AREA + 1)])
-        # else:
-        #     self.area = int(smg[SMGIdx.index(MirrIdx.MOD_AREA)])
+        if self._type == "Smart Sensor":
+            idx = SMGIdx.index(MirrIdx.GEN_4)
+            self.status = (
+                self.status[: MirrIdx.OUTDOOR_MODE]
+                + smg[idx : idx + 1]
+                + self.status[MirrIdx.OUTDOOR_MODE + 1 :]
+            )
 
     def different_smg_crcs(self) -> bool:
         """Performs comparison, equals lengths of smg buffers."""
@@ -564,11 +573,6 @@ class HbtnModule:
             .decode("iso8859-1")
             .strip()
         )
-        if self._typ[0] == 80:
-            # detect modules use index for led status, so use next entry
-            self.area = self.status[MirrIdx.MOD_AREA + 1]
-        else:
-            self.area = self.status[MirrIdx.MOD_AREA]
         self.settings.status = self.status
         self.settings.list = self.list
 
@@ -730,8 +734,8 @@ class HbtnModule:
         """If descriptions in desc file, store them into module and remove them from file."""
         if self.api_srv.is_offline:
             return
-        if self._typ[0] not in [1, 10, 50]:
-            return
+        # if self._typ[0] not in [1, 10, 50]:
+        #     return
         # Instantiate settings and parse descriptions
         self.settings = self.get_settings_def()
         if self.settings.save_desc_file_needed:
