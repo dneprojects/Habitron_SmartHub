@@ -218,8 +218,9 @@ class HbtnRouter:
 
     def get_area_name(self, area_idx: int) -> str:
         """Return area name from index."""
-        if area_idx > 0:
-            return self.settings.areas[area_idx - 1].name
+        for area in self.settings.areas:
+            if area_idx == area.nmbr:
+                return area.name
         return "unbekannt"
 
     def build_smr(self) -> None:
@@ -316,9 +317,9 @@ class HbtnRouter:
             file_path = DATA_FILES_ADDON_DIR
         else:
             file_path = DATA_FILES_DIR
-        if not isfile(file_path + file_name):
-            file_path = DATA_FILES_DIR
-            self.logger.debug(f"Add-on config path not found, using {file_path}")
+        # if not isfile(file_path + file_name):
+        #     file_path = DATA_FILES_DIR
+        #     self.logger.debug(f"Add-on config path not found, using {file_path}")
         try:
             fid = open(file_path + file_name, "w")
             desc_buf = self.pack_descriptions()

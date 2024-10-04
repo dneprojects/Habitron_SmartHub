@@ -962,7 +962,7 @@ class ModuleSettings:
             desc += " " * (32 - len(desc))
             new_list.append(f"\xff\0\xeb{chr(msg.nmbr)}\x01\x23\0\xeb" + desc)
         # append area member @ 136
-        desc = self.module.get_rtr().settings.areas[self.area_member - 1].name
+        desc = self.module.get_rtr().get_area_name(self.area_member)
         desc += " " * (32 - len(desc))
         new_list.append(
             f"\xff{chr(self.area_member)}\xeb{chr(136)}\x01\x23\0\xeb" + desc

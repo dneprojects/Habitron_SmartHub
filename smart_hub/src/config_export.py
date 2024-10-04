@@ -56,9 +56,7 @@ def document_overview(doc, mods):
         ws.cell(row, 1).alignment = left_aligned
         ws.cell(row, 2).value = mod._name
         ws.cell(row, 3).value = mod._type
-        ws.cell(row, 4).value = (
-            mod.api_srv.routers[mod.rt_id - 1].settings.areas[mod.area - 1].name
-        )
+        ws.cell(row, 4).value = mod.get_area_name()
         ws.cell(row, 5).value = f"{mod._id}"
         ws.cell(row, 6).value = f"{mod._channel}"
         mod_cnt += 1
@@ -100,9 +98,7 @@ def document_module(doc, mod, idx):
     ws.cell(row, 4).value = mod.get_sw_version()
     row += 1
     ws.cell(row, 1).value = "Bereich:"
-    ws.cell(row, 2).value = (
-        mod.api_srv.routers[mod.rt_id - 1].settings.areas[mod.area - 1].name
-    )
+    ws.cell(row, 2).value = mod.get_area_name()
 
     if settings is None:
         settings = ModuleSettingsLight(mod)
@@ -203,6 +199,6 @@ def get_area_name(entity, mod) -> str:
     """Return name of area."""
 
     if entity.area:
-        return mod.api_srv.routers[mod.rt_id - 1].settings.areas[entity.area - 1].name
+        return mod.api_srv.routers[mod.rt_id - 1].get_area_name(entity.area)
     else:
-        return mod.api_srv.routers[mod.rt_id - 1].settings.areas[mod.area - 1].name
+        return mod.get_area_name()
