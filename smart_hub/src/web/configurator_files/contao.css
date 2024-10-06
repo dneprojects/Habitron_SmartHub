@@ -5,6 +5,110 @@ body {
     font-size: 100.01%;
     text-align: left;
     position: relative;
+    background: #FFF;
+}
+
+html,
+body,
+#container,
+#content {
+   min-height: 100%;
+   width: 100%
+}
+
+#container {
+   z-index: 2;
+   color: #6b6c6e;
+   font-size: 11px;
+   line-height: 16px;
+   max-width: 1000px;
+}
+
+#content {
+   padding: 0;
+   margin: 0;
+   text-align: left;
+   position: relative;
+   z-index: 3;
+   padding-right: 10px;
+   padding-left: 10px;
+}
+
+/* ---------------------------------------------------------Anordnung Design---------------------------- */
+#header {
+   position: relative;
+   height: 280px;
+   z-index: 10;
+   margin-bottom: -150px;
+}
+
+#header_lg {
+    height:20px;
+    text-align: right;
+    padding-top: 35px;
+    padding-right: 60px;
+}
+
+#header_bg {
+    width: auto;
+}
+
+#logo_habitron {
+    width: 220px;
+    height: 38px;
+}
+
+#inhalt {
+   position: relative;
+   min-height: 100%;
+   z-index: 100;
+}
+
+#right {
+   float: right;
+   position: relative;
+   left: -40px;
+   top: 0px;
+   z-index: 450;
+   width: 150px;
+   overflow: visible;
+   min-height: 300px;
+   padding-top: 59px;
+   background: #FFF;
+}
+
+#mitte {
+    width: 600px;
+    padding-bottom: 20px;
+    padding-right: 10px;
+    padding-top: 40px;
+ }
+ 
+#mitte_automtn {
+    width: 750px;
+    padding-bottom: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 40px;
+ }
+
+#mitte, #mitte_automtn {
+   z-index: 400;
+   padding-left: 10px;
+   position: relative;
+   background: #FFF;
+}
+
+#footer {
+   position: relative;
+   background: #c0372d;
+   border-top: 1px solid #722e29;
+   width: 98%
+}
+
+.image_container {
+    width: 98%;
+    overflow: hidden;
 }
 
 select,
@@ -22,19 +126,61 @@ img {
     border: 0;
 }
 
-#left {
-    float: left;
+#acc_img {
+    width: 40px;
+    height: 40px;
+    top: 10px;
+    left: 5px;
+    z-index: 0;
 }
 
 #mitte, #mitte_automtn {
     float: left;
-    min-height: 300px;
-    max-height: 600px;
-    overflow-y: scroll;
+    min-height: 400px;
 }
 
 #right {
     float: right;
+    width: 170px;
+}
+
+
+#left {
+    position: relative;
+    margin-left: 20px;
+    padding-top: 59px;
+    background: #FFF;
+    float: left;
+    z-index: 1000;
+    width: 170px;
+    overflow: visible;
+    margin-right: -1px;
+    visibility: visible;
+}
+
+
+@media (aspect-ratio < 0.7) or (max-width: 980px) {
+    #acc_img {
+        position: absolute;
+    }
+    #mitte, #mitte_automtn {
+        width: 92%;
+        margin-left: 20px;
+    }
+    #left {
+        margin-left: 20px;
+        width: 0px;
+        position: absolute;
+        padding-right: 20px;
+        background-color: #f9f9f9;
+        visibility: hidden;
+    }
+    #right {
+        width: 0px;
+    }
+    #footer .inside {
+        margin-left: 10px;
+    }
 }
 
 #main {

@@ -199,6 +199,8 @@ def show_router_overview(main_app, popup_msg="") -> web.Response:
     props += (
         f"<tr><td>Firmware:</td><td>{rtr.version.decode('iso8859-1')[1:]}</td></tr>\n"
     )
+    if api_srv.is_offline or api_srv._pc_mode:
+        rtr.chan_status = f"{chr(len(rtr.modules))}\x20".encode("iso8859-1")
     mode0 = rtr.chan_status[1]
     config_mode = mode0 == SYS_MODES.Config
     day_mode = mode0 & 0x3

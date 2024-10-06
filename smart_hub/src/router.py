@@ -46,6 +46,7 @@ class HbtnRouter:
         self.name: bytes = b""
         self.channels: bytes = b""
         self.channel_list: dict[int, list[int]] = {}
+        self.comm_errors = b"\x00\x00\x00"
         self.timeout: bytes = b"\x14"
         self.groups: bytes = b"\0" * 80
         self.mode_dependencies: bytes = b"\0" * 80
@@ -75,6 +76,11 @@ class HbtnRouter:
 
     def check_firmware(self) -> None:
         """Check local update files and set flag."""
+        if self.api_srv.is_offline or self.api_srv._pc_mode:
+            self.update_available = False
+            self.update_fw_file = ""
+            self.update_version = ""
+            return
         fw_files = FW_FILES_DIR + "*.rbin"
         file_found = False
         # uploaded_fw_file = (

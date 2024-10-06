@@ -9,7 +9,10 @@
 	Copyright ©2005-2023 by Leo Feyer :: Extensions are copyright of their respective owners
 	Visit the project website at http://www.contao.org for more information
 
+  pip-licenses --output-file ./web/license_table.html --format html --with-authors --with-urls --with-description --python=./.venv/bin/python
+
   //-->
+
   <base href="/">
 
   <title>habitron - Smart Configurator</title>
@@ -22,6 +25,7 @@
   <link href="configurator_files/style.css" rel="stylesheet" type="text/css" media="screen">
   <link href="configurator_files/nav.css" rel="stylesheet" type="text/css" media="screen">
   <link href="configurator_files/popup.css" rel="stylesheet" type="text/css" media="screen">
+  <link href="configurator_files/tablesort.css" rel="stylesheet" type="text/css" media="screen">
   <!--[if IE]>
 <link href="tl_files/habitron/style_ie.css" rel="stylesheet" type="text/css" media="screen"  />
 <![endif]-->
@@ -36,6 +40,7 @@
   <link rel="stylesheet" href="configurator_files/contao.css" type="text/css" media="screen">
   <!--[if lte IE 7]><link rel="stylesheet" href="system/iefixes.css" type="text/css" media="screen" /><![endif]-->
   <link rel="stylesheet" href="configurator_files/tinymce.css" type="text/css" media="screen">
+  <script type="text/javascript" src="configurator_files/tablesort.js"></script>
 </head>
 
 <body id="top" class="modules">
@@ -64,42 +69,21 @@
         </div>
       </div>
       <div id="inhalt">
-        <div id="left">
-          <div class="inside">
-            <!-- indexer::stop -->
-            <div class="mod_navigation block" id="subnavi">
-              <!-- SideMenu -->
-            </div>
-            <!-- indexer::continue -->
-          </div>
-        </div>
-        <div id="right">
-          <div class="inside">
-            <div class="mod_article block" id="bild-rechts">
-              <div class="ce_image block">
-                <div class="image_container">
-                  <img src="configurator_files/controller.jpg" width="216" height="217" alt="Habitron GmbH">
-                </div>
-
-              </div>
-
-            </div>
-          </div>
-        </div>
-        <div id="mitte">
+        
+        <div id="mitte" style="width: 920px; margin-left: 20px">
           <div class="inside">
             <div class="mod_article block" id="text-231">
 
 
               <div class="ce_text block">
                 <!-- MainContentStart -->
-                <h1> </h1>
+                <h1>Smart Hub</h1>
 
-                <h2>Smart Configurator</h2>
-                <h3>Passen Sie hier die Grundeinstellungen des Systems an.</h3>
-                <br><br><br><br><br><br><br><br><br><br>
-                <a id="lic-info" href="licenses">Lizenzinformation</a>
-                <!-- MainContentEnd -->
+                <h2>Zugriff nicht erlaubt.</h2>
+                <h3>Anmeldung über Home Assistant nötig.</h3>
+
+                <table></table>
+
               </div>
 
             </div>
@@ -118,40 +102,11 @@
       </div>
            
       </div>
-      
-      
-    <div id="msg_popup" class="popup">
-      <div class="popup-content">
-        <h1 id="msg_popup_txt">Lizenzinformationen</h1>
-        <h3 id="msg_popup_txt">Erzeuge Tabelle</h3>
-        <div id="image_container_wait">
-          <img src="configurator_files/wait_red.gif" alt="Please wait" id="msg_popup_img">
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <script type="text/javascript" src="configurator_files/button_help.js"></script>
-  <script type="text/javascript" src="configurator_files/acc_menu.js"></script>
-  <script>
-    const build_lic_table = document.getElementById("lic-info");
-    
-    build_lic_table.addEventListener("click", function () {
-      openMsgPopup();
-    });
-
-    function openMsgPopup() {
-      msg_popup.classList.add("show");
-    };
-    const header = document.getElementsByTagName("h3")[0];
-    if (header.innerHTML == "Beendet.") {
-      setTimeout(function(){
-        let new_wd = window.open(window.location, '_self');
-        new_wd.close(); 
-      }, 1000);
-    }
-  </script>
+      <script>
+        new Tablesort(document.getElementById('lic-hub-table'));
+        new Tablesort(document.getElementById('lic-hai-table'));
+      </script>
+      <script type="text/javascript" src="configurator_files/acc_menu.js"></script>
       </body>
       
       </html>

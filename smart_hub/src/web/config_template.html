@@ -43,28 +43,24 @@
       <div id="content">
         <div id="header">
           <div class="inside">
-            <div style="height:20px; text-align: right; padding-top: 35px; padding-right: 60px;"><a
-                href="http://habitron.de/habitron.html"><img id="logo_habitron" src="configurator_files/logo.png"
-                  width="267" height="47"></a>
+            <div id="header_lg">
+              <a href="http://habitron.de/habitron.html"><img id="logo_habitron" src="configurator_files/logo.png"></a>
               <a href="./">
                 <div>
                   <h0>Smart Configurator</h0>
                 </div>
               </a>
             </div>
+          
             <div class="mod_article block" id="pic">
-
-
               <div class="ce_image block">
-
                 <div class="image_container">
-                  <img src="configurator_files/configuration.jpg" width="980" height="200" alt="Habitron GmbH">
+                  <img id="header_bg" src="configurator_files/configuration.jpg" alt="Habitron GmbH">
+                  <img id="acc_img" src="configurator_files/acc_white.png" alt="menu">
                 </div>
-
               </div>
-
             </div>
-
+          
           </div>
         </div>
         <div id="inhalt">
@@ -118,10 +114,10 @@
               <form action="settings/settings" style="width:200px">
                 <button name="ModSettings" id="config_button" type="submit" value="ModAddress">Einstellungen</button>
                   <!--<button name="EditAutomtns" id="automtns_button" form="atm_form" type="submit" value="ModAddress"
-                  style="float: center; position: absolute; top: 0; left: 280px;">Automatisierungen</button>-->
+                  style="float: center; position: absolute; top: 0; left: 50%;">Automatisierungen</button>-->
               </form>
               <button name="ConfigFiles" id="files_button"
-                style="float: right; position: absolute; top: 0; left: 560px;">Konfigurationsdatei</button>
+                style="float: right; position: absolute; top: 0; left: 100%;">Konfigurationsdatei</button>
             </div>
           </div>
         </div>
@@ -206,5 +202,6 @@
 
     <script type="text/javascript" src="configurator_files/config.js"></script>
     <script type="text/javascript" src="configurator_files/button_help.js"></script>
+    <script type="text/javascript" src="configurator_files/acc_menu.js"></script>
   </body>
 </html>

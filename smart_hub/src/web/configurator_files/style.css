@@ -1,11 +1,3 @@
-/*************************************************************/
-/*                    Habitron                               */
-/*                                                           */
-/*            Stylesheet von C.Stetter                       */
-/*        für Blueforest Design - und Medienbüro             */
-/*               http://www.blueforest.ch                    */
-/*                        									 */
-/*************************************************************/
 * {
    margin: 0;
    padding: 0;
@@ -77,21 +69,6 @@ strong {
    font-weight: bold !important;
 }
 
-/* tables still need 'cellspacing="0"' in the markup */
-/*table {
-   border-collapse:collapse;
-   border-spacing: 0;
-   font-size:inherit;
-   font:100%;
-}
-td { vertical-align: top; }
-
-caption,
-th,
-td {
-   text-align: left;
-   font-weight: normal;
-}*/
 table { width: 100%}
 table#set_tbl { width: auto}
 
@@ -209,19 +186,6 @@ fieldset {
    border: none;
 }
 
-/* .ce_text a::before {
-content: "\00BB\00A0";
-}
- a[href^='mailto:']::before {
-/*content: "\25A0\00A0" !important;
-content: "\2709\00A0 ";
-
-}*/
-*/ body.kooperation .ce_text a::before,
-table.schnellzugriff a::before {
-   content: "\00A0\00A0" !important;
-}
-
 span.mandatory {
    color: #c0372d;
    font-weight: bold;
@@ -259,11 +223,6 @@ p.back {
 .checkbox_container span {
    float: left;
    clear: both;
-}
-
-body.kontakt table td.submit_container {
-   padding-top: 10px;
-   padding-bottom: 25px;
 }
 
 div.tableform input.checkbox {
@@ -304,15 +263,7 @@ form table td.col_first {
    padding-right: 10px;
 }
 
-body.kontakt table td {
-   vertical-align: top;
-   padding-top: 3px;
-}
 
-body.kontakt table td.explanation {
-   padding-top: 8px;
-   padding-bottom: 5px;
-}
 
 .pagination {
    text-align: center;
@@ -396,17 +347,17 @@ li {
 
 .ce_accordion .toggler,
 .ce_accordion .toggler.inactive {
-   background: url(design/acc.gif) no-repeat left bottom;
+   background: url(configurator_files/acc.gif) no-repeat left bottom;
    border: 1px solid #d0d0d0;
 }
 
 .ce_accordion .toggler:hover {
-   background: url(design/acc.gif) no-repeat left top;
+   background: url(configurator_files/acc.gif) no-repeat left top;
    border: 1px solid #d0d0d0;
 }
 
 .ce_accordion .toggler.active {
-   background: url(design/acc.gif) no-repeat left -23px;
+   background: url(configurator_files/acc.gif) no-repeat left -23px;
    color: #666;
 }
 
@@ -490,34 +441,6 @@ hr {
 }
 
 /* ----------CONTAINER---------------------------- */
-html,
-body,
-#container,
-#content {
-   min-height: 100%;
-}
-
-#container {
-   position: relative;
-   width: 1000px;
-   margin-right: auto;
-   margin-left: auto;
-   z-index: 2;
-   background: #FFF;
-   color: #6b6c6e;
-   font-size: 11px;
-   line-height: 16px;
-}
-
-#content {
-   padding: 0;
-   margin: 0;
-   text-align: left;
-   position: relative;
-   z-index: 3;
-   padding-right: 10px;
-   padding-left: 10px;
-}
 
 
 a {
@@ -530,52 +453,6 @@ a:hover {
    text-decoration: underline;
 }
 
-/* ---------------------------------------------------------Anordnung Design---------------------------- */
-#header {
-   position: relative;
-   height: 280px;
-   z-index: 10;
-   margin-bottom: -150px;
-}
-
-#inhalt {
-   position: relative;
-   min-height: 100%;
-   z-index: 100;
-}
-
-#right {
-   float: right;
-   position: relative;
-   left: -48px;
-   top: 0px;
-   z-index: 450;
-   width: 180px;
-   overflow: visible;
-   min-height: 300px;
-   padding-top: 59px;
-   background: #FFF;
-}
-
-#mitte, #mitte_automtn {
-   z-index: 400;
-   position: relative;
-   background: #FFF;
-}
-
-#left {
-   position: relative;
-   z-index: 450;
-   margin-left: 49px;
-   padding-top: 59px;
-   background: #FFF;
-}
-
-#footer {
-   position: relative;
-   background: #c0372d;
-   border-top: 1px solid #722e29;
-}
 
 th {
    background-color: #af6258;
@@ -600,7 +477,6 @@ tr#lic-tr:nth-child(odd) {
 
 #pic {
    height: 150px;
-   width: 980px;
    position: relative;
    z-index: 90;
    top: 20px;
@@ -609,25 +485,11 @@ tr#lic-tr:nth-child(odd) {
 
 #header #logo_habitron {
    position: absolute;
-   top: 15px;
+   top: 20px;
    left: 50px;
 }
 
-#mitte {
-   width: 570px;
-   padding-bottom: 20px;
-   padding-left: 10px;
-   padding-right: 10px;
-   padding-top: 40px;
-}
 
-#mitte_automtn {
-   width: 750px;
-   padding-bottom: 20px;
-   padding-left: 10px;
-   padding-right: 10px;
-   padding-top: 40px;
-}
 
 /* ---------------------------------------------------------Rechte Spalte---------------------------- */
 
@@ -695,16 +557,15 @@ body.produkte.sub #right h1 {
 
 #config_button, transfer_button, files_button, #chan_reset_button {
    height: 22px;
-   width: 140px;
+   width: 125px;
    margin-left: 0px;
-   margin-right: 40px;
    font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
    font: 11px arial, helvetica, clean, sans-serif;
 }
 
 #add-mod-ok {
    height: 22px;
-   width: 140px;
+   width: 125px;
    margin-top: 40px;
    margin-left: 5px;
    margin-right: 5px;
@@ -714,7 +575,7 @@ body.produkte.sub #right h1 {
 
 #close-button {
    height: 22px;
-   width: 140px;
+   width: 125px;
    margin-top: 40px;
    margin-left: 5px;
    margin-right: 40px;
@@ -728,7 +589,7 @@ div#setup-buttons {
 }
 #test-button {
    height: 22px;
-   width: 140px;
+   width: 125px;
    margin-left: 220px;
    margin-right: 40px;
    font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
@@ -736,7 +597,7 @@ div#setup-buttons {
 }
 #rem-button {
    height: 22px;
-   width: 140px;
+   width: 125px;
    margin-left: 0px;
    margin-right: 40px;
    font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
@@ -745,7 +606,7 @@ div#setup-buttons {
 }
 #upd_button {
    height: 22px;
-   width: 140px;
+   width: 125px;
    margin-left: 0px;
    margin-top: 20px;
    margin-right: 40px;
@@ -754,7 +615,7 @@ div#setup-buttons {
 }
 #flash_button {
    height: 22px;
-   width: 140px;
+   width: 125px;
    margin-left: 0px;
    margin-top: 20px;
    margin-right: 40px;
@@ -779,9 +640,8 @@ div#setup-buttons {
 
 #config_button.config_button {
    height: 22px;
-   width: 100px;
+   width: 80px;
    margin-left: 0px;
-   margin-right: 40px;
    font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
    font: 11px arial, helvetica, clean, sans-serif;
 
@@ -789,9 +649,8 @@ div#setup-buttons {
 
 #config_button_sv.config_button {
    height: 22px;
-   width: 100px;
+   width: 80px;
    margin-left: 0px;
-   margin-right: 40px;
    font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
    font: 11px arial, helvetica, clean, sans-serif;
 
@@ -810,7 +669,7 @@ div#setup-buttons {
 
 #automtns_button, #showlogs_button, #updates_button {
    height: 22px;
-   width: 140px;
+   width: 125px;
    margin-left: 0px;
    margin-right: 40px;
    font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
@@ -819,7 +678,7 @@ div#setup-buttons {
 
 #tbl-button {
    height: 22px;
-   width: 140px;
+   width: 125px;
    margin-top: 30px;
    margin-bottom: 30px;
    margin-left: 0px;
@@ -830,7 +689,7 @@ div#setup-buttons {
 
 #files_button {
    height: 22px;
-   width: 140px;
+   width: 125px;
    margin-left: 0px;
    margin-right: 40px;
    font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
@@ -839,7 +698,7 @@ div#setup-buttons {
 
 #finish_button {
    height: 22px;
-   width: 140px;
+   width: 125px;
    margin-left: 0px;
    margin-right: 40px;
    font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
@@ -848,7 +707,7 @@ div#setup-buttons {
 
 #transfer_button {
    height: 22px;
-   width: 140px;
+   width: 125px;
    margin-left: 0px;
    margin-right: 40px;
    font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
@@ -857,7 +716,7 @@ div#setup-buttons {
 
 #exit_button {
    height: 22px;
-   width: 140px;
+   width: 125px;
    margin-left: 35px;
    margin-right: 40px;
    font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
@@ -925,41 +784,6 @@ body.start #right img {
    top: 0px;
    padding-bottom: 0px;
 }
-
-body.start #footertop {
-   padding-left: 190px;
-   height: 105px;
-   background: url(design/footertop.jpg) no-repeat center top;
-}
-
-body.start #footertop h1 {
-   padding-left: 20px;
-   padding-top: 10px;
-   padding-bottom: 10px;
-}
-
-table.schnellzugriff {
-   width: 940px;
-   margin-left: 20px;
-}
-
-table.schnellzugriff td a {
-   color: #6b6b6d;
-}
-
-table.schnellzugriff td a:hover {
-   text-decoration: none;
-}
-
-table.schnellzugriff td.odd {
-   width: 80px;
-}
-
-table.schnellzugriff td.even {
-   vertical-align: middle;
-   padding-left: 5px;
-}
-
 
 /* ---------------------------------------------------------Design Fullwidth---------------------------- */
 
@@ -1094,10 +918,12 @@ input[type="radio"]#temp_ctl_cl2,
 input[type="radio"]#temp_ctl_cl3, 
 input[type="radio"]#temp_ctl_cl4, 
 input[type="radio"]#temp_1_2_s1, 
-input[type="radio"]#temp_1_2_s2 {
+input[type="radio"]#temp_1_2_s2, 
+input[type="radio"]#supply_prio_230, 
+input[type="radio"]#supply_prio_24 {
    margin-left: 5px
 }
-input[type="radio"]#temp_ctl_cl4 {
+input[type="radio"]#temp_ctl_cl4,input[type="radio"]#temp_1_2_s2 {
    margin-bottom: 5px;
 }
 input[type="checkbox"].sel_element {
@@ -1255,6 +1081,9 @@ body.login .mod_article {
 }
 
 /*---------------------------------------------------------Contao Suche-------------------------------*/
+div#confbutton {
+   margin-left: 20px;
+}
 form#confbutton {
    padding-right: 10px;
    padding-top: 20px;
@@ -1342,9 +1171,9 @@ div#autmnbuttons {
 }
 
 button.config_button {
-   width: 100px;
+   width: 80px;
    height: 20px;
-   margin-right: 20px;
+   margin-right: 25px;
 }
 
 .grid_row {

@@ -175,6 +175,11 @@ class HbtnModule:
 
     def check_firmware(self) -> None:
         """Check local update files and set flag."""
+        if self.api_srv.is_offline or self.api_srv._pc_mode:
+            self.update_available = False
+            self.update_fw_file = ""
+            self.update_version = ""
+            return
         fw_files = FW_FILES_DIR + MODULE_FIRMWARE[self._typ] + "*.bin"
         file_found = False
         # uploaded_fw_file = (
