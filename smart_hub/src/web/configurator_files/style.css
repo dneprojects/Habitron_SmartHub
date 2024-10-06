@@ -486,7 +486,7 @@ tr#lic-tr:nth-child(odd) {
 #header #logo_habitron {
    position: absolute;
    top: 20px;
-   left: 50px;
+   left: 22px;
 }
 
 
@@ -658,7 +658,7 @@ div#setup-buttons {
 
 #config_button.new_button, #config_button.new_cntr_button, #config_button.new_lgc_button {
    height: 21.78px;
-   width: 70px;
+   width: 55px;
    margin-left: 5px;
    margin-right: 2px;
    font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
@@ -898,7 +898,7 @@ input[type="password"],
 textarea,
 select {
    background: url(design/input_shadow.gif) no-repeat left top;
-   width: 172px;
+   width: 165px;
    padding-top: 2px;
    padding-bottom: 1px;
    color: #333;
@@ -987,7 +987,7 @@ form.select,
 select {
    background: url(design/input_shadow.gif) no-repeat left top;
    height: 21.78px;
-   width: 177px;
+   width: 170px;
    padding-left: 0px;
    margin-left: 5px;
    border: 1px solid #C0372D;
@@ -1326,6 +1326,7 @@ input[type="time"].daytime {
    padding-bottom: 1px;
    color: #333;
    border: 1px solid #C0372D;
+   width: 55px;
 }
 
 .disabled {
@@ -1334,7 +1335,7 @@ input[type="time"].daytime {
 }
 
 input[type="number"].daytime {
-   width: 55px;
+   width: 35px;
 }
 input[type="number"].disabled {
    color: hsl(0, 0%, 70%);

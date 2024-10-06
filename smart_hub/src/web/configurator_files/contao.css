@@ -45,8 +45,8 @@ body,
 #header_lg {
     height:20px;
     text-align: right;
-    padding-top: 35px;
-    padding-right: 60px;
+    padding-top: 25px;
+    padding-right: 30px;
 }
 
 #header_bg {
@@ -80,7 +80,6 @@ body,
 #mitte {
     width: 600px;
     padding-bottom: 20px;
-    padding-right: 10px;
     padding-top: 40px;
  }
  
@@ -166,6 +165,7 @@ img {
     #mitte, #mitte_automtn {
         width: 92%;
         margin-left: 20px;
+        overflow-x: scroll;
     }
     #left {
         margin-left: 20px;
@@ -180,6 +180,22 @@ img {
     }
     #footer .inside {
         margin-left: 10px;
+        margin-right: 10px;
+    }
+    #config_button.config_button, #config_button_sv.config_button, button.config_button {
+        width: 60px;
+    }
+    .ce_text.block, .mod_article.block {
+        overflow:visible; 
+    }
+    input.desc_input1, input.desc_input2 {
+        width: 140px;
+    }
+    select.daytime {
+        width: 90px;
+    }
+    h0 {
+        font-size: 20px;
     }
 }
 

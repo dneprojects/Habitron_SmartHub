@@ -15,7 +15,7 @@ else {
 
 function toggle_acc_btn() {
     if (el_left.getBoundingClientRect().width < 50) {
-        el_left.style.width = "160px"
+        el_left.style.width = "180px"
         el_left.style.visibility = "visible"
     }
     else {

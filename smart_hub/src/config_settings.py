@@ -906,11 +906,11 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
             tbl += (
                 indent(7)
                 + f'<tr><td><label for="{id_name}">{prompt}</label></td><td><input name="data[{ci},0]" '
-                + f'type="text" id="{id_name}" maxlength="{maxl}" title="Beschriftung (max. {maxl} Zeichen)"value="{tbl_data[ci].name[:maxl].strip()}"></td>'
+                + f'type="text" id="{id_name}" class="desc_input1" maxlength="{maxl}" title="Beschriftung (max. {maxl} Zeichen)"value="{tbl_data[ci].name[:maxl].strip()}"></td>'
             )
         if key in ["leds", "buttons", "dir_cmds", "messages"]:
             tbl += (
-                f'<td><input name="data[{ci},1]" type="text" id="{id_name}" maxlength="14" '
+                f'<td><input name="data[{ci},1]" type="text" id="{id_name}" class="desc_input2" maxlength="14" '
                 + f'title="2. Zeile (max. 14 Zeichen)" value="{tbl_data[ci].name[18:].strip()}"></td>'
             )
         elif key == "inputs":
@@ -1115,7 +1115,7 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
         "gsm_numbers",
         "gsm_messages",
     ]:
-        # Add additional line to append or delete element
+        # Add additional lines to append or delete element
         prompt = key_prompt
         id_name = key[:-1] + str(ci + 1)
         elem_nmbrs = []
@@ -1147,11 +1147,16 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
             max_new = 10
         elif key in ["gsm_numbers"]:
             max_new = 50
-        tbl += indent(7) + "<tr><td>&nbsp;</td></tr>"
+        tbl += indent(7) + "<tr><td>&nbsp;</td></tr>\n"
+        tbl += (
+            indent(7) + "<tr><td>&nbsp;</td><td></td><td>"
+            + '<button name="ModSettings" class="new_button" id="config_button" type="submit" '
+            + f'form="settings_table" value="del-{mod_addr}-{step}">entfernen</button></td></tr>\n'
+            )
         tbl += (
             indent(7)
             + f'<tr><td><label for="{id_name}">{prompt}</label></td><td><input name="new_entry" '
-            + f'type="number" min="{min_new}" max="{max_new}" placeholder="Neue Nummer eintragen" id="{id_name}"/></td>\n'
+            + f'type="number" class="desc_input1"  min="{min_new}" max="{max_new}" placeholder="Neue Nummer eintragen" id="{id_name}"/></td>\n'
         )
         if key == "counters":
             tbl += (
@@ -1178,9 +1183,6 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
             )
         tbl += (
             indent(7)
-            + '<button name="ModSettings" class="new_button" id="config_button" type="submit" '
-            + f'form="settings_table" value="del-{mod_addr}-{step}">entfernen</button></td>\n'
-            + indent(7)
             + "</tr>\n"
         )
     tbl += indent(5) + "</table>\n"
