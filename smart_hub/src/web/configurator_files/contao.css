@@ -182,8 +182,17 @@ img {
         margin-left: 10px;
         margin-right: 10px;
     }
-    #config_button.config_button, #config_button_sv.config_button, button.config_button {
+    #config_button.config_button, #config_button_sv.config_button, button.config_button, #file_button, #close_file_popup, #reset_button, #close_chan_popup {
         width: 60px;
+    }
+    #automtns_button, #config_button, #files_button, #finish_button {
+        width: 110px;
+    }
+    input#file_updwnload {
+        width:250px;
+    }
+    #btn_rtr_timeout, #btn_new_mod_id, #btn_chan_reset, #btn_rt_reboot, #btn_cov_autostop_cnt {
+    width: 60px;
     }
     .ce_text.block, .mod_article.block {
         overflow:visible; 
@@ -195,7 +204,11 @@ img {
         width: 90px;
     }
     h0 {
-        font-size: 20px;
+        font-size: 18px;
+    }
+    #logo_habitron {
+        width: 180px;
+        height: 30px;
     }
 }
 

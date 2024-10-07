@@ -116,7 +116,7 @@
                       style="float: center; position: absolute; top: 0; left: 280px;">Automatisierungen</button>-->
             </form>
             <button name="ConfigFiles" id="files_button"
-              style="float: right; position: absolute; top: 0; left: 560px;">Systemkonfiguration</button>
+              style="float: right; position: absolute; top: 0; left: 50%;">Systemkonfiguration</button>
           </div>
         </div>
       </div>
@@ -168,6 +168,7 @@
           <form id="loc_fw_update" action="loc_update" method="post">
             <button name="LocUpload" id="file_button_l" type="submit" value="rtr">Lokal</button>
           </form>
+          <br><br>
           <form id="rtr_fw_upload" action="upd_upload" enctype="multipart/form-data" method="post">
             <input id="upd_updwnload" name="file" type="file" value="router.rbin" accept=".rbin" />
             <button name="SysUpload" id="file_button" type="submit" value="rtr">Upload</button>
@@ -180,6 +181,7 @@
               <option value="">-- Modultyp --</option>
             </select>
           </form>
+          <br><br>
           <form id="mod_fw_upload" action="upd_upload" enctype="multipart/form-data" method="post">
             <input id="upd_updwnload" name="file" type="file" value="module.bin" accept=".bin" />
             <button name="SysUpload" id="file_button" type="submit" value="mod">Upload</button>

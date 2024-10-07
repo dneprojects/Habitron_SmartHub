@@ -117,7 +117,7 @@
 }
 
 #rtr_fw_upload, #mod_fw_upload {
-    float: right;
+    float: left;
 }
 #loc_fw_update {
     float: left;
@@ -143,7 +143,7 @@
 }
 #file_button_l  {
     height: 22px;
-    width: 100px;
+    width: 245px;
     top: 0;
     margin-right: 30px;
     margin-left: 0px;
