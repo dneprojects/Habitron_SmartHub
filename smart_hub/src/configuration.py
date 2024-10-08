@@ -538,6 +538,10 @@ class ModuleSettings:
 
             list = list[line_len : len(list)]  # Strip processed line
 
+        # Bug fix for input modules
+        if len(list) > 16 and list[3] == 136:
+            self.area_member = list[1]
+
         if self.type == "Smart Controller Mini":
             self.leds[0].name = "Ambient"
             self.leds[0].nmbr = 0
@@ -894,7 +898,7 @@ class ModuleSettings:
             if len(desc.strip()) > 0 or self.module._typ[0] == 11:
                 desc += " " * (32 - len(desc))
                 desc = desc[:32]
-                if self.typ not in [
+                if self.typ in [
                     b"\x0b\x01",
                     b"\x0b\x1e",
                 ]:  # Smart In 24, Smart In 230
@@ -964,9 +968,16 @@ class ModuleSettings:
         # append area member @ 136
         desc = self.module.get_rtr().get_area_name(self.area_member)
         desc += " " * (32 - len(desc))
-        new_list.append(
-            f"\xff{chr(self.area_member)}\xeb{chr(136)}\x01\x23\0\xeb" + desc
-        )
+        if self.module._typ[0] != 11:
+            new_list.append(
+                f"\xff{chr(self.area_member)}\xeb{chr(136)}\x01\x23\0\xeb" + desc
+            )
+        else:
+            desc = self.name
+            desc += " " * (32 - len(desc))
+            new_list.append(
+                f"\xff{chr(self.area_member)}\xeb{chr(136)}\x01\x23\0\xeb" + desc
+            )
         return self.adapt_list_header(new_list)
 
     def adapt_list_header(self, new_list: list[str]) -> bytes:

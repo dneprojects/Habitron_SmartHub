@@ -878,7 +878,7 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
                 + f'<td><input name="data[{ci},0]" '
                 + f'type="time" title="Uhrzeit" class="daytime" id="{id_name}" maxlength="{maxl}" value="{tbl_data[ci]["hour"]:02}:{tbl_data[ci]["minute"]:02}"></td>'
                 + indent(8)
-                + f'<td><input title="Helligkeitswert" name="data[{ci},1]" type="number" min="0" max="2550" step="10" class="daytime" id="{id_name}" value="{tbl_data[ci]["light"] * 10}">&nbsp;Lux</td>'
+                + f'<td><input title="Helligkeitswert" name="data[{ci},1]" type="number" min="0" max="2550" step="10" class="daytime" id="{id_name}" value="{tbl_data[ci]["light"] * 10}">&nbsp;lx</td>'
             )
             if entry[0]:
                 tbl += indent(8) + "<td></td>\n"
@@ -1149,10 +1149,11 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
             max_new = 50
         tbl += indent(7) + "<tr><td>&nbsp;</td></tr>\n"
         tbl += (
-            indent(7) + "<tr><td>&nbsp;</td><td></td><td>"
+            indent(7)
+            + "<tr><td>&nbsp;</td><td></td><td>"
             + '<button name="ModSettings" class="new_button" id="config_button" type="submit" '
             + f'form="settings_table" value="del-{mod_addr}-{step}">entfernen</button></td></tr>\n'
-            )
+        )
         tbl += (
             indent(7)
             + f'<tr><td><label for="{id_name}">{prompt}</label></td><td><input name="new_entry" '
@@ -1181,10 +1182,7 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
                 '<button name="ModSettings" class="new_button" id="config_button" type="submit" ',
                 '<button name="TeachNewFinger" class="new_button" id="config_button" type="button" ',
             )
-        tbl += (
-            indent(7)
-            + "</tr>\n"
-        )
+        tbl += indent(7) + "</tr>\n"
     tbl += indent(5) + "</table>\n"
     tbl += indent(4) + "</form>\n"
     return tbl

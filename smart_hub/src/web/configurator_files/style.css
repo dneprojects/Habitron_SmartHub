@@ -69,7 +69,7 @@ strong {
    font-weight: bold !important;
 }
 
-table { width: 100%}
+table { width: 99.8%}
 table#set_tbl { width: auto}
 
 address,
@@ -1019,8 +1019,7 @@ input#file_updwnload {
 input#upd_updwnload {
    width: 240px;
    margin-left: 0px;
-   padding-left: 2px;
-   padding-right: 2px;
+   padding: 2px;
    text-align: left;
 }
 

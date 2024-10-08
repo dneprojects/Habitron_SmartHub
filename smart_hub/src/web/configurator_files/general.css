@@ -1,4 +1,3 @@
-/* Contao Open Source CMS :: Copyright (C) 2005-2011 Leo Feyer :: LGPL license */
 body {
     margin: 0;
     padding: 0;
@@ -34,7 +33,7 @@ body,
    padding-left: 10px;
 }
 
-/* ---------------------------------------------------------Anordnung Design---------------------------- */
+/* --------------------------------------------------------- Anordnung Design ---------------------------- */
 #header {
    position: relative;
    height: 280px;
@@ -64,38 +63,51 @@ body,
    z-index: 100;
 }
 
+#left {
+    position: relative;
+    margin-left: 20px;
+    padding-top: 59px;
+    background: #FFF;
+    float: left;
+    z-index: 1000;
+    width: 170px;
+    overflow: visible;
+    margin-right: -1px;
+    visibility: visible;
+}
+
 #right {
    float: right;
    position: relative;
    left: -40px;
    top: 0px;
    z-index: 450;
-   width: 150px;
+   width: 170px;
    overflow: visible;
    min-height: 300px;
    padding-top: 59px;
    background: #FFF;
 }
 
+
+#mitte, #mitte_automtn {
+    z-index: 400;
+    padding-left: 10px;
+    padding-top: 40px;
+    padding-bottom: 20px;
+    position: relative;
+    float: left;
+    min-height: 400px;
+    background: #FFF;
+}
+
 #mitte {
     width: 600px;
-    padding-bottom: 20px;
-    padding-top: 40px;
- }
+}
  
 #mitte_automtn {
     width: 750px;
-    padding-bottom: 20px;
-    padding-left: 10px;
     padding-right: 10px;
-    padding-top: 40px;
- }
-
-#mitte, #mitte_automtn {
-   z-index: 400;
-   padding-left: 10px;
-   position: relative;
-   background: #FFF;
 }
 
 #footer {
@@ -131,85 +143,6 @@ img {
     top: 10px;
     left: 5px;
     z-index: 0;
-}
-
-#mitte, #mitte_automtn {
-    float: left;
-    min-height: 400px;
-}
-
-#right {
-    float: right;
-    width: 170px;
-}
-
-
-#left {
-    position: relative;
-    margin-left: 20px;
-    padding-top: 59px;
-    background: #FFF;
-    float: left;
-    z-index: 1000;
-    width: 170px;
-    overflow: visible;
-    margin-right: -1px;
-    visibility: visible;
-}
-
-
-@media (aspect-ratio < 0.7) or (max-width: 980px) {
-    #acc_img {
-        position: absolute;
-    }
-    #mitte, #mitte_automtn {
-        width: 92%;
-        margin-left: 20px;
-        overflow-x: scroll;
-    }
-    #left {
-        margin-left: 20px;
-        width: 0px;
-        position: absolute;
-        padding-right: 20px;
-        background-color: #f9f9f9;
-        visibility: hidden;
-    }
-    #right {
-        width: 0px;
-    }
-    #footer .inside {
-        margin-left: 10px;
-        margin-right: 10px;
-    }
-    #config_button.config_button, #config_button_sv.config_button, button.config_button, #file_button, #close_file_popup, #reset_button, #close_chan_popup {
-        width: 60px;
-    }
-    #automtns_button, #config_button, #files_button, #finish_button {
-        width: 110px;
-    }
-    input#file_updwnload {
-        width:250px;
-    }
-    #btn_rtr_timeout, #btn_new_mod_id, #btn_chan_reset, #btn_rt_reboot, #btn_cov_autostop_cnt {
-    width: 60px;
-    }
-    .ce_text.block, .mod_article.block {
-        overflow:visible; 
-    }
-    input.desc_input1, input.desc_input2 {
-        width: 140px;
-    }
-    select.daytime {
-        width: 90px;
-    }
-    h0 {
-        font-size: 18px;
-    }
-    #logo_habitron {
-        width: 180px;
-        height: 30px;
-    }
 }
 
 #main {
@@ -255,4 +188,74 @@ img {
     height: 0;
     clear: both;
     visibility: hidden;
+}
+
+/* --------------------------------------------------------- Responsive Design ---------------------------- */
+
+@media (aspect-ratio < 0.7) or (max-width: 980px) {
+    #acc_img {
+        position: absolute;
+    }
+    #mitte, 
+    #mitte_automtn {
+        width: 92%;
+        margin-left: 20px;
+        overflow-x: scroll;
+    }
+    #left {
+        margin-left: 20px;
+        width: 0px;
+        position: absolute;
+        padding-right: 20px;
+        background-color: #f9f9f9;
+        visibility: hidden;
+    }
+    #right {
+        width: 0px;
+    }
+    #footer .inside {
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+    #config_button.config_button, 
+    #config_button_sv.config_button, 
+    button.config_button, #file_button, 
+    #close_file_popup, #reset_button, 
+    #close_chan_popup, 
+    #btn_rtr_timeout, 
+    #btn_new_mod_id, 
+    #btn_chan_reset, 
+    #btn_rt_reboot, 
+    #btn_cov_autostop_cnt {
+        width: 60px;
+        font-size: 90%;
+    }
+    #automtns_button, 
+    #config_button, 
+    #files_button, 
+    #finish_button {
+        width: 110px;
+        font-size: 90%;
+    }
+    input#file_updwnload {
+        width:250px;
+    }
+    .ce_text.block, 
+    .mod_article.block {
+        overflow:visible; 
+    }
+    input.desc_input1, 
+    input.desc_input2 {
+        width: 140px;
+    }
+    select.daytime {
+        width: 90px;
+    }
+    h0 {
+        font-size: 18px;
+    }
+    #logo_habitron {
+        width: 180px;
+        height: 30px;
+    }
 }
