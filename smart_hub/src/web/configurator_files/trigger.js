@@ -2,6 +2,7 @@ const flag_trg = new Set([6])
 const logic_trg = new Set([8])
 const count_trg = new Set([9])
 const output_trg = new Set([10])
+const cover_trg = new Set([17])
 const remote_trg = new Set([23])
 const viscmd_trg = new Set([31])
 const move_trg = new Set([40, 41])
@@ -35,6 +36,14 @@ function initTrigElements(trg_code, trg_arg1, trg_arg2, trg_time) {
         setElement("switch-select", trg_arg1);
         setElement("onoff-select", trg_code - 151);
     }
+    else if (cover_trg.has(trg_code)) {
+        setElement("trigger-select", 17);
+        cov_md = Math.round(trg_arg1 / 10) * 10;
+        cov_no = trg_arg1 - cov_md;
+        setElement("cover-select", cov_no);
+        setElement("covpos-select", cov_md);
+        setElement("cov_pos_val", trg_arg2);
+    }
     else if (dimm_trg.has(trg_code)) {
         setElement("trigger-select", 149);
         setElement("button-select", trg_arg1);
@@ -51,6 +60,14 @@ function initTrigElements(trg_code, trg_arg1, trg_arg2, trg_time) {
             setElement("onoff-select", 1);
         else
             setElement("onoff-select", 2);
+    }
+    else if (dimm_trg.has(trg_code)) {
+        setElement("trigger-select", 17);
+        cov_md = Math.round(trg_arg1 / 10) * 10;
+        cov_no = trg_arg1 - cov_md;
+        setElement("trigger_cover", cov_no);
+        setElement("trigger_covpos", cov_md);
+        setElement("cov_pos_val", trg_arg2);
     }
     else if (climate_trg.has(trg_code)) {
         setElement("trigger-select", 220);
@@ -205,6 +222,9 @@ function setTriggerSels() {
     setElementVisibility("sys-select", "hidden");
     setElementVisibility("supply-select", "hidden");
     setElementVisibility("syserr-div", "hidden");
+    setElementVisibility("cover-select", "hidden");
+    setElementVisibility("covpos-select", "hidden");
+    setElementVisibility("cov-pos-val", "hidden");
 
     if (selectn == "150") {
         setElementVisibility("button-select", "visible");
@@ -223,6 +243,12 @@ function setTriggerSels() {
     if (selectn == "10") {
         setElementVisibility("output-select", "visible");
         setElementVisibility("onoff-select", "visible");
+    }
+    if (selectn == "17") {
+        setElementVisibility("cover-select", "visible");
+        setElementVisibility("covpos-select", "visible");
+        setBladeModes();
+        setCoverValues();
     }
     if (selectn == "50") {
         setElementVisibility("collcmd-select", "visible");
@@ -256,7 +282,7 @@ function setTriggerSels() {
     if (selectn == "9") {
         setElementVisibility("counter-select", "visible");
         setElementVisibility("count-vals", "visible");
-        setMaxCount()
+        setMaxCount();
     }
     if (selectn == "40") {
         setElementVisibility("mov-select", "visible");
@@ -340,6 +366,39 @@ function setSysTrigger() {
     else if (selectn == 101) {
         setElementVisibility("supply-select", "hidden");
         setElementVisibility("syserr-div", "visible");
+    }
+}
+document.getElementById("covpos-select").addEventListener("change", function () {
+    setCoverValues();
+});
+document.getElementById("cover-select").addEventListener("change", function () {
+    setBladeModes();
+});
+function setCoverValues() {
+    if (document.getElementById("covpos-select").value >= 20)
+        setElementVisibility("cov-pos-val", "visible");
+    else
+        setElementVisibility("cov-pos-val", "hidden");
+}
+
+function setBladeModes() {
+    let cov_no = document.getElementById("cover-select").value
+    const cov_md = document.getElementById("covpos-select")
+    if (is_blades[cov_no - 1]) {
+        cov_md.options[2].hidden = false;
+        cov_md.options[6].hidden = false;
+        cov_md.options[7].hidden = false;
+        cov_md.options[8].hidden = false;
+    }
+    else {
+        cov_md.options[2].hidden = true;
+        cov_md.options[6].hidden = true;
+        cov_md.options[7].hidden = true;
+        cov_md.options[8].hidden = true;
+        if ((cov_md.value > 40) || (cov_md.value == 10)) {
+            cov_md.options[0].selected = true;
+            setElementVisibility("cov-pos-val", "hidden");
+        }
     }
 }
 

@@ -54,6 +54,7 @@
         const amb_warm = [0, 0, 0];
         const amb_cool = [0, 0, 0];
         const counter_numbers = [];
+        const is_blades = [];
     </script>
 </head>
 
@@ -127,6 +128,10 @@
                                         <select name="trigger_output" style="visibility: hidden; position: absolute"
                                             id="output-select">
                                             <option value="">-- Ausgang oder LED wählen --</option>
+                                        </select>
+                                        <select name="trigger_cover" style="visibility: hidden; position: absolute"
+                                            id="cover-select">
+                                            <option value="">-- Rolladen/Jalousie wählen --</option>
                                         </select>
                                         <select name="trigger_logic" style="visibility: hidden; position: absolute"
                                             id="logic-select">
@@ -368,6 +373,19 @@
                                             <option value="1">Heizen</option>
                                             <option value="2">Kühlen</option>
                                         </select>
+                                        <select name="trigger_covpos" style="visibility: hidden; position: absolute"
+                                            id="covpos-select">
+                                            <option value="">-- Abfragebedingung wählen --</option>
+                                            <option value="0">Wert setzen</option>
+                                            <option value="10">Kippwert setzen</option>
+                                            <option value="20">Wert kleiner als</option>
+                                            <option value="30">Wert gleich</option>
+                                            <option value="40">Wert größer als</option>
+                                            <option value="60">Kippwert kleiner als</option>
+                                            <option value="70">Kippwert gleich</option>
+                                            <option value="80">Kippwert größer als</option>
+                                        </select>
+                                        <div id=cov-pos-val><input type="number" id="cov_pos_val" class="sens_no" name="cov_pos_val" min="0" max="100" value="1"/><a style="font-size: 125%;">%</a></div>
                                     </div>
                                     <hr class="solid_line">
                                     <h3>Bedingung</h3>

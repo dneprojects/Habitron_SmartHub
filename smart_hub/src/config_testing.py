@@ -362,6 +362,11 @@ async def show_module_testpage(main_app, mod_addr, update: bool) -> web.Response
     page = page.replace('id="files_button"', 'id="finish_button"')
     page = page.replace("left: 560px;", "left: 200px;")
     page = page.replace("config.js", "update_testing.js")
+    if module._typ == b"\x1e\x01":
+        page = page.replace(
+            '<h3 id="msg_popup_txt">Upload</h3>',
+            '<h3 id="msg_popup_txt">Kopplung</h3>',
+        )
     tbl_str = await build_status_table(main_app, mod_addr, update)
     page = page.replace("<p></p>", tbl_str)
     return web.Response(text=page, content_type="text/html")
@@ -608,10 +613,10 @@ async def build_status_table(app, mod_addr: int, update: bool) -> str:
             thead_lines.replace("<tbl_id>", "mod-outputs-table")
             .replace('            <th style="width: 10%;">Nr.</th>\n', "")
             .replace('            <th style="width: 15%;">Typ</th>\n', "")
-            .replace(">Name<", ">Kopplung starten<")
+            .replace(">Name<", ' style="width: 132px;">Kopplung starten<')
         ).replace(
             '<th style="width: 10%;">Aktiv<',
-            '<th style="width: 25%;"><button form="pair_ekey" style="width:90%; margin-left:5%;" title="Betätigen, um Kopplung zwischen FanSer und Ekey zu starten (nur einmalig nötig)" class="ekey_pair" name="ekey_pair">Koppeln<',
+            '<th style="width: 100px;"><button form="pair_ekey" title="Betätigen, um Kopplung zwischen FanSer und Ekey zu starten (nur einmalig nötig)" class="ekey_pair" name="ekey_pair">Koppeln<',
         )
         table_str += tbl_end_line
         table_str += "  </form>"

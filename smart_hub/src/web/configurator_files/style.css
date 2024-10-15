@@ -69,8 +69,9 @@ strong {
    font-weight: bold !important;
 }
 
-table { width: 99.8%}
-table#set_tbl { width: auto}
+table#set_tbl { 
+   width: auto
+}
 
 address,
 caption,
@@ -644,7 +645,13 @@ div#setup-buttons {
    margin-left: 0px;
    font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
    font: 11px arial, helvetica, clean, sans-serif;
-
+}
+button.ekey_pair {
+   height: 22px;
+   width: 60px;
+   margin-left: 20px;
+   font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
+   font: 11px arial, helvetica, clean, sans-serif;
 }
 
 #config_button_sv.config_button {
@@ -1350,6 +1357,9 @@ input.sens_no {
    margin-left: 0px; 
    margin-right: 12px; 
    text-align: center;
+}
+input#cov_pos_val {
+   margin-left:200px;
 }
 div.sens_lims {
    display: flex;

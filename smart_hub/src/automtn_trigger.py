@@ -7,6 +7,8 @@ EventCodes = {
     8: "Logikfunktion",
     10: "Ausgangsänderung",
     12: "Netzspannung",
+    15: "Dimmwert",
+    17: "Rollladenposition",
     23: "IR-Befehl kurz",
     24: "IR-Befehl lang",
     25: "IR-Befehl lang Ende",
@@ -59,6 +61,7 @@ EventCodesSel = {
     31: "Visualisierungsbefehl",
     6: "Merker",
     8: "Logikfunktion",
+    17: "Rollladenposition",
     137: "Modusänderung",
     40: "Bewegung",
     41: "Bewegung",
@@ -96,6 +99,8 @@ SelTrgCodes = {
     "logic": 8,
     "count": 9,
     "output": 10,
+    "dimmval": 15,
+    "covpos": 17,
     "remote": 23,
     "viscmd": 31,
     "move": 40,
@@ -118,6 +123,8 @@ EventsSets = {
     8: [8],
     9: [9],
     10: [10],
+    15: [15],
+    17: [17],
     23: [23],
     31: [31],
     40: [40, 41],
@@ -281,6 +288,7 @@ class AutomationTrigger:
                 SelTrgCodes["dimm"]: "Dimmen",
                 SelTrgCodes["remote"]: "IR-Fernbedienung",
                 SelTrgCodes["output"]: "Ausgangsänderung",
+                SelTrgCodes["covpos"]: "Rollladenposition",
                 SelTrgCodes["climate"]: "Klimaregelung",
                 SelTrgCodes["dircmd"]: "Direktbefehl",
                 SelTrgCodes["collcmd"]: "Sammelbefehl",
@@ -355,6 +363,7 @@ class AutomationTrigger:
         if mod_typ[0] == 10:
             self.triggers_dict = {
                 SelTrgCodes["output"]: "Ausgangsänderung",
+                SelTrgCodes["covpos"]: "Rollladenposition",
                 SelTrgCodes["collcmd"]: "Sammelbefehl",
                 SelTrgCodes["viscmd"]: "Visualisierungsbefehl",
                 SelTrgCodes["logic"]: "Logikfunktion",
@@ -495,6 +504,38 @@ class AutomationTrigger:
                             trig_command = f"Counter {self.event_arg_name}"
                             event_desc = f"Wert {self.value} erreicht"
                             break
+            elif self.event_code in EventsSets[SelTrgCodes["dimmval"]]:
+                if self.settings.typ[0] == 1:
+                    # for SC: dimmer 1 = output 11
+                    self.event_arg1 += 10
+                if self.event_arg1 in range(1, 9):
+                    trig_command = f"Wertübergabe Dimmer '{self.get_dict_entry('outputs', self.event_arg1)}'"
+                elif self.event_arg1 in range(21, 29):
+                    trig_command = f"Dimmwert '{self.get_dict_entry('outputs', self.event_arg1 - 20)}' kleiner {self.event_arg2}%"
+                elif self.event_arg1 in range(31, 29):
+                    trig_command = f"Dimmwert '{self.get_dict_entry('outputs', self.event_arg1 - 30)}' gleich {self.event_arg2}%"
+                elif self.event_arg1 in range(41, 29):
+                    trig_command = f"Dimmwert '{self.get_dict_entry('outputs', self.event_arg1 - 40)}' größer {self.event_arg2}%"
+            elif self.event_code in EventsSets[SelTrgCodes["covpos"]]:
+                if self.event_arg1 in range(1, 9):
+                    trig_command = f"Wertübergabe Rollladen '{self.get_dict_entry('covers', self.event_arg1)}'"
+                if self.event_arg1 in range(11, 19):
+                    trig_command = f"Wertübergabe Jalousie '{self.get_dict_entry('covers', self.event_arg1 - 10)}'"
+                elif self.event_arg1 in range(21, 29):
+                    trig_command = f"Position Rollladen '{self.get_dict_entry('covers', self.event_arg1 - 20)}' kleiner {self.event_arg2}%"
+                elif self.event_arg1 in range(31, 39):
+                    trig_command = f"Position Rollladen '{self.get_dict_entry('covers', self.event_arg1 - 30)}' gleich {self.event_arg2}%"
+                elif self.event_arg1 in range(41, 49):
+                    trig_command = f"Position Rollladen '{self.get_dict_entry('covers', self.event_arg1 - 40)}' größer {self.event_arg2}%"
+                elif self.event_arg1 in range(61, 69):
+                    trig_command = f"Öffnung Jalousie '{self.get_dict_entry('covers', self.event_arg1 - 60)}' kleiner {self.event_arg2}%"
+                elif self.event_arg1 in range(71, 79):
+                    trig_command = f"Öffnung Jalousie '{self.get_dict_entry('covers', self.event_arg1 - 70)}' gleich {self.event_arg2}%"
+                elif self.event_arg1 in range(81, 89):
+                    trig_command = f"Öffnung Jalousie '{self.get_dict_entry('covers', self.event_arg1 - 80)}' größer {self.event_arg2}%"
+                elif self.event_arg1 == 200:
+                    trig_command = f"Automatik Rollladenpaar {self.event_arg2}"
+                event_desc = ""
             elif self.event_code in EventsSets[SelTrgCodes["mode"]]:
                 trig_command = (
                     f"Modus neu: '{self.automation.get_mode_desc(self.event_arg2)}'"
@@ -705,6 +746,21 @@ class AutomationTrigger:
             '<option value="">-- Ausgang oder LED wählen --</option>', opt_str
         )
 
+        opt_str = '<option value="">-- Rolladen/Jalousie wählen --</option>'
+        for cov in self.settings.covers:
+            if len(cov.name.strip()) > 0:
+                opt_str += f'<option value="{cov.nmbr}">{cov.name}</option>'
+        page = page.replace(
+            '<option value="">-- Rolladen/Jalousie wählen --</option>', opt_str
+        )
+        is_blades = []
+        for cov in self.settings.covers:
+            if abs(cov.type) > 1:
+                is_blades.append(1)
+            else:
+                is_blades.append(0)
+        page = page.replace("is_blades = []", f"is_blades = {is_blades}")
+
         opt_str = '<option value="">-- Logikfunktion wählen --</option>'
         for lgc in self.settings.logic:
             if len(lgc.name.strip()) > 0:
@@ -895,6 +951,12 @@ class AutomationTrigger:
             else:
                 self.event_arg1 = 0
                 self.event_arg2 = self.automation.get_sel(form_data, "trigger_output")
+        elif self.event_code in EventsSets[SelTrgCodes["covpos"]]:
+            cov_no = int(self.automation.get_sel(form_data, "trigger_cover"))
+            self.event_arg1 = (
+                int(self.automation.get_sel(form_data, "trigger_covpos")) + cov_no
+            )
+            self.event_arg2 = int(self.automation.get_sel(form_data, "cov_pos_val"))
         elif self.event_code in EventsSets[SelTrgCodes["dircmd"]]:
             self.event_code = 253
             self.event_arg1 = self.automation.get_sel(form_data, "trigger_dircmd")

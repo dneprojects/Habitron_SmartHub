@@ -240,6 +240,9 @@ img {
     input#file_updwnload {
         width:250px;
     }
+    table {
+        font-size: 90%
+    }
     .ce_text.block, 
     .mod_article.block {
         overflow:visible; 

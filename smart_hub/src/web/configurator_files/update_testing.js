@@ -5,6 +5,7 @@ const out_check_boxes = document.getElementsByClassName("out_chk");
 const inTable = document.getElementById("mod-inputs-table")
 const outTable = document.getElementById("mod-outputs-table")
 const evntTable = document.getElementById("mod-events-table")
+const pairBtn = document.getElementsByClassName("ekey_pair")[0]
 
 refresh_btn.addEventListener("click", function () {
     getStatus();
@@ -22,6 +23,12 @@ for (let i = 0; i < out_check_boxes.length; i++) {
 }
 
 watchEventStatus();
+
+if (pairBtn) {
+    pairBtn.addEventListener("click", function () {
+        msg_popup.classList.add("show");
+    })
+}
 
 async function watchEventStatus() {
 

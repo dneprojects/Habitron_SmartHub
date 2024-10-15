@@ -721,10 +721,23 @@ class ModHdlr(HdlrBase):
 
     async def set_ekey_pairing(self):
         """Set Ekey module into paring mode."""
+        await self.api_srv.block_network_if(self.rt_id, True)
+        await self.api_srv.set_server_mode()
+        self.logger.info("Set FanSer into pairing mode")
         cmd = RT_CMDS.SET_EKEY_PAIR.replace("<rtr>", chr(self.rt_id)).replace(
             "<mod>", chr(self.mod_id)
         )
         await self.handle_router_cmd_resp(self.rt_id, cmd)
+        await asyncio.sleep(0.5)
+        ch_pair = self.mod._channel
+        self.logger.info(
+            f"Switching channel power on channels {2*ch_pair - 1} and {2*ch_pair}"
+        )
+        ch_low = 1 << (2 * ch_pair - 2)
+        ch_high = 1 << (2 * ch_pair - 1)
+        await self.mod.get_rtr().reset_chan_power(ch_low)
+        await self.mod.get_rtr().reset_chan_power(ch_high)
+        await self.api_srv.block_network_if(self.rt_id, False)
         return "OK"
 
     async def get_ekey_status(self):

@@ -19,6 +19,7 @@ from config_commons import (
     show_not_authorized,
     inspect_header,
 )
+from config_testing import show_module_testpage
 from const import (
     LGC_TYPES,
     WEB_FILES_DIR,
@@ -175,8 +176,8 @@ class ConfigSettingsServer:
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         module = request.app["parent"]["module"]
-        await module.set_ekey_pairing()
-        return web.HTTPNoContent()
+        await module.hdlr.set_ekey_pairing()
+        return await show_module_testpage(request.app["parent"], module._id, True)
 
 
 def show_router_overview(main_app, popup_msg="") -> web.Response:
@@ -592,7 +593,7 @@ def prepare_basic_settings(main_app, mod_addr, mod_type):
         tbl += (
             indent(7)
             + f'<tr><td><label for="{id_name}">{prompt}</label></td><td><input name="{id_name}" '
-            + f'type="number" min="1" max="240" id="{id_name}" value="{settings.displ_time}"/></td></tr>\n'
+            + f'type="number" min="1" max="255" id="{id_name}" value="{settings.displ_time}"/></td></tr>\n'
         )
     if settings.type in ["Smart Sensor"]:
         id_name = "sens_type"
@@ -1383,7 +1384,7 @@ def parse_response_form(main_app, form_data):
                                     settings.covers[c_idx].type
                                 ) * (-1)
                         elif indices[1] == 1:
-                            settings.cover_times[c_idx] = float(form_data[form_key][0])
+                            settings.cover_times[c_idx] = int(form_data[form_key][0])
                         elif indices[1] == 2:
                             settings.blade_times[c_idx] = float(form_data[form_key][0])
                             if float(form_data[form_key][0]) > 0:

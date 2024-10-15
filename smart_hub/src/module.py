@@ -11,7 +11,11 @@ from const import (
     FW_FILES_DIR,
     MODULE_FIRMWARE,
 )
-from configuration import ModuleSettings, ModuleSettingsLight
+from configuration import (
+    ModuleSettings,
+    ModuleSettingsLight,
+    covertime_2_interptime,
+)
 from config_commons import is_outdated
 from messages import calc_crc
 
@@ -528,19 +532,11 @@ class HbtnModule:
             )
             t_b = 0  # continue with t_a
         t_cover = t_a + t_b  # takes the one value
-        if t_cover in range(127, 256):
-            interp = 10
-        elif t_cover in range(51, 127):
-            interp = 5
-        elif t_cover in range(25, 51):
-            interp = 2
-        else:
-            interp = 1
-        t_cover = round(t_cover * 10 / interp)
+        t_interp, interp = covertime_2_interptime(t_cover)
         if t_b == 0:
-            return t_cover, 0, interp
+            return t_interp, 0, interp
         else:
-            return 0, t_cover, interp
+            return 0, t_interp, interp
 
     def calc_SMC_crc(self, smc_buf: bytes) -> None:
         """Calculate and store crc of SMC data."""

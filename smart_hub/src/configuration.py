@@ -13,6 +13,26 @@ from const import (
 from automation import AutomationsSet
 
 
+def covertime_2_interptime(cov_time: int) -> tuple[int, int]:
+    """Transform cover times to storage format and interp values."""
+    if cov_time in range(127, 256):
+        interp_val = 10
+    elif cov_time in range(51, 127):
+        interp_val = 5
+    elif cov_time in range(25, 51):
+        interp_val = 2
+    else:
+        interp_val = 1
+    interp_time = round(cov_time * 10 / interp_val)
+    return interp_time, interp_val
+
+
+def interptime_2_covertime(interp_time: int, interp_val: int) -> int:
+    """Transform cover times from storage format with interp value to float value."""
+    cov_time = round(interp_time * interp_val / 10)
+    return cov_time
+
+
 class ModuleSettings:
     """Object with all module settings, including automations."""
 
@@ -171,7 +191,10 @@ class ModuleSettings:
             if (
                 conf[MirrIdx.COVER_SETTINGS] & (0x01 << c_idx) > 0
             ):  # binary flag for shutters
-                self.cover_times[c_idx] = round(int(conf[MirrIdx.COVER_T + c_idx]))
+                self.cover_times[c_idx] = interptime_2_covertime(
+                    int(conf[MirrIdx.COVER_T + c_idx]),
+                    int(conf[MirrIdx.COVER_INTERP + c_idx]),
+                )
                 self.blade_times[c_idx] = round(int(conf[MirrIdx.BLAD_T + c_idx]) / 10)
                 # polarity defined per output, 2 per cover
                 polarity = (covr_pol & (0x01 << (2 * c_idx)) == 0) * 2 - 1
@@ -348,10 +371,16 @@ class ModuleSettings:
             o_idx = self.cvr_2_out(c_idx)
             if self.outputs[o_idx].type == -10:
                 outp_state = outp_state | (0x01 << int(c_idx))
+            t_interp, interp_val = covertime_2_interptime(self.cover_times[c_idx])
             status = replace_bytes(
                 status,
-                int.to_bytes(int(self.cover_times[c_idx])),
+                int.to_bytes(t_interp),
                 MirrIdx.COVER_T + c_idx,
+            )
+            status = replace_bytes(
+                status,
+                int.to_bytes(interp_val),
+                MirrIdx.COVER_INTERP + c_idx,
             )
             status = replace_bytes(
                 status,
@@ -537,10 +566,6 @@ class ModuleSettings:
                         )
 
             list = list[line_len : len(list)]  # Strip processed line
-
-        # Bug fix for input modules
-        if len(list) > 16 and list[3] == 136:
-            self.area_member = list[1]
 
         if self.type == "Smart Controller Mini":
             self.leds[0].name = "Ambient"
@@ -968,16 +993,9 @@ class ModuleSettings:
         # append area member @ 136
         desc = self.module.get_rtr().get_area_name(self.area_member)
         desc += " " * (32 - len(desc))
-        if self.module._typ[0] != 11:
-            new_list.append(
-                f"\xff{chr(self.area_member)}\xeb{chr(136)}\x01\x23\0\xeb" + desc
-            )
-        else:
-            desc = self.name
-            desc += " " * (32 - len(desc))
-            new_list.append(
-                f"\xff{chr(self.area_member)}\xeb{chr(136)}\x01\x23\0\xeb" + desc
-            )
+        new_list.append(
+            f"\xff{chr(self.area_member)}\xeb{chr(136)}\x01\x23\0\xeb" + desc
+        )
         return self.adapt_list_header(new_list)
 
     def adapt_list_header(self, new_list: list[str]) -> bytes:
