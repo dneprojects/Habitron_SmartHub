@@ -2,8 +2,9 @@ const switching_act = new Set([1, 2, 3, 9, 111, 112, 113, 114]);
 const counter_act = new Set([6, 118, 119]);
 const logic_act = new Set([9]);
 const buzzer_act = new Set([10]);
-const cover_act = new Set([17, 18])
+const cover_act = new Set([17, 18]);
 const dimm_act = new Set([20, 22, 23, 24]);
+const perct_act = new Set([30, 31]);
 const rgb_act = new Set([35]);
 const ccmd_act = new Set([50]);
 const mode_act = new Set([64]);
@@ -77,8 +78,14 @@ function initActElements(act_code, act_args) {
     }
     else if (dimm_act.has(act_code)) {
         setElement("action-select", 20)
-        setElement("dimmout-act", act_args[0]);
-        setElement("dimmopt-act", act_code);
+        var dimOpt = act_code;
+        var dimOut = act_args[0];
+        if (act_args[0] > 10) {
+            dimOut = act_args[0] - 10;
+            dimOpt = 10;
+        }
+        setElement("dimmout-act", dimOut);
+        setElement("dimmopt-act", dimOpt);
         if (act_code == 20) {
             setElement("perc-val", act_args[1]);
         }
@@ -133,7 +140,7 @@ function initActElements(act_code, act_args) {
         setElement("action-select", 17)
         setElement("cover-act", act_args[1]);
         if (act_args[2] == 255) {
-            setElement("covopt-act", act_args[0] + 10);
+            setElement("covopt-act", act_args[0] + 20);
         }
         else {
             setElement("covopt-act", act_args[0]);
@@ -141,8 +148,23 @@ function initActElements(act_code, act_args) {
         }
 
     }
+    else if (perct_act.has(act_code)) {
+        setElement("action-select", 30);
+        setElement("refreg-act", act_args[0]);
+        if (act_code == 30) {
+            if (act_args[1] == 10) {
+                setElement("perc-act", 40);
+            }
+            else {
+                setElement("perc-act", 30);
+            }
+        }
+        else {
+            setElement("perc-act", 31);
+        }
+    }
     else if (ccmd_act.has(act_code)) {
-        setElement("action-select", 50)
+        setElement("action-select", 50);
         setElement("collcmd-act", act_args[0]);
     }
     else if (climate_act.has(act_code)) {
@@ -252,6 +274,8 @@ function setActionSels() {
     setElementVisibility("msgset-time", "hidden");
     setElementVisibility("gsm-act", "hidden");
     setElementVisibility("gsmmsg-act", "hidden");
+    setElementVisibility("refreg-act", "hidden");
+    setElementVisibility("perc-act", "hidden");
     if (selectn == "1") {
         setElementVisibility("output-act", "visible");
         setElementVisibility("outopt-act", "visible");
@@ -286,6 +310,14 @@ function setActionSels() {
         setElementVisibility("covopt-act", "visible");
         setElementVisibility("perc-val", "visible");
         disablePercval()
+    }
+    if (selectn == "30") {
+        setElementVisibility("refreg-act", "visible");
+        setElementVisibility("perc-act", "visible");
+    }
+    if (selectn == "31") {
+        setElementVisibility("refreg-act", "visible");
+        setElementVisibility("perc-act", "visible");
     }
     if (selectn == "35") {
         setElementVisibility("rgb-select", "visible");
@@ -436,7 +468,7 @@ function setSensorNums() {
     if ((selectn == "218") || (selectn == "219")) {
         setElementVisibility("sens-lims-ad", "visible");
     }
-    if (selectn == "204") {
+    if ((selectn == "204") || (selectn == "206")) {
         setElementVisibility("sens-lims-wind", "visible");
     }
     if ((selectn == "203") || (selectn == "216")) {

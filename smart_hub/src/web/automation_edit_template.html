@@ -129,6 +129,10 @@
                                             id="output-select">
                                             <option value="">-- Ausgang oder LED wählen --</option>
                                         </select>
+                                        <select name="trigger_dimmer" style="visibility: hidden; position: absolute"
+                                            id="dimmer-select">
+                                            <option value="">-- Dimm-Ausgang wählen --</option>
+                                        </select>
                                         <select name="trigger_cover" style="visibility: hidden; position: absolute"
                                             id="cover-select">
                                             <option value="">-- Rolladen/Jalousie wählen --</option>
@@ -136,6 +140,20 @@
                                         <select name="trigger_logic" style="visibility: hidden; position: absolute"
                                             id="logic-select">
                                             <option value="">-- Logikfunktion wählen --</option>
+                                        </select>
+                                        <select name="trigger_number" style="visibility: hidden; position: absolute"
+                                            id="number-select">
+                                            <option value="">-- Nummer wählen --</option>
+                                            <option value="1">Nummer 1</option>
+                                            <option value="2">Nummer 2</option>
+                                            <option value="3">Nummer 3</option>
+                                            <option value="4">Nummer 4</option>
+                                            <option value="5">Nummer 5</option>
+                                            <option value="6">Nummer 6</option>
+                                            <option value="7">Nummer 7</option>
+                                            <option value="8">Nummer 8</option>
+                                            <option value="9">Nummer 9</option>
+                                            <option value="10">Nummer 10</option>
                                         </select>
                                         <select name="trigger_mov" style="visibility: hidden; position: absolute" 
                                             id="mov-select">
@@ -285,6 +303,21 @@
                                             <option value="15">15</option>
                                             <option value="16">16</option>
                                         </select>
+                                        <select name="prio_chng_vals" style="visibility: hidden; position: absolute" id="prio-chng-vals">
+                                            <option value="">-- Wert wählen --</option>
+                                            <option value="0">aus</option>
+                                            <option value="1">Prio 1</option>
+                                            <option value="2">Prio 2</option>
+                                            <option value="3">Prio 3</option>
+                                            <option value="4">Prio 4</option>
+                                            <option value="5">Prio 5</option>
+                                            <option value="6">Prio 6</option>
+                                            <option value="7">Prio 7</option>
+                                            <option value="8">Prio 8</option>
+                                            <option value="9">Prio 9</option>
+                                            <option value="10">Prio 10</option>
+                                            <option value="11">ein</option>
+                                        </select>
                                         <select name="month_vals" style="visibility: hidden; position: absolute" id="month-vals">
                                             <option value="">-- Monat wählen --</option>
                                             <option value="0">Immer</option>
@@ -417,7 +450,7 @@
                                             <option value="">-- AcAusgang wählen --</option>
                                         </select>
                                         <select name="act_dimmout" style="visibility: hidden; position: absolute" id="dimmout-act">
-                                            <option value="">-- Dimm-Ausgang wählen --</option>
+                                            <option value="">-- ActDimm-Ausgang wählen --</option>
                                         </select>
                                         <select name="act_cover" style="visibility: hidden; position: absolute" id="cover-act">
                                             <option value="">-- Rollladen/Jalousie wählen --</option>
@@ -435,6 +468,25 @@
                                         </select>
                                         <select name="act_counter" style="visibility: hidden; position: absolute" id="counter-act">
                                             <option value="">-- AcZähler wählen --</option>
+                                        </select>
+                                        <select name="act_task" style="visibility: hidden; position: absolute" id="task-act">
+                                            <option value="">-- Aufgabe wählen --</option>
+                                            <option value="1">Aufgabe 1</option>
+                                            <option value="2">Aufgabe 2</option>
+                                            <option value="3">Aufgabe 3</option>
+                                            <option value="4">Aufgabe 4</option>
+                                            <option value="5">Aufgabe 5</option>
+                                            <option value="6">Aufgabe 6</option>
+                                            <option value="7">Aufgabe 7</option>
+                                            <option value="8">Aufgabe 8</option>
+                                            <option value="9">Aufgabe 9</option>
+                                            <option value="10">Aufgabe 10</option>
+                                        </select>
+                                        <select name="act_perc" style="visibility: hidden; position: absolute" id="perc-act">
+                                            <option value="">-- Aufgabe wählen --</option>
+                                            <option value="30">Wert einstellen (1er Schritt)</option>
+                                            <option value="40">Wert einstellen  (10er Schritt)</option>
+                                            <option value="31">Wert in Register ablegen</option>
                                         </select>
                                         <select name="act_collcmd" style="visibility: hidden; position: absolute" id="collcmd-act">
                                             <option value="">-- AcCKommando wählen --</option>
@@ -490,6 +542,19 @@
                                             <div id="buzz-rep-lbl" class="sens_lbl"><label for="buzz-rep">Wiederholungen:</label></div>
                                             <input type="number" id="buzz-rep" class="sens_no" name="buzz_rep" min="1" max="50" step="1" value="1" />
                                         </div>
+                                        <select name="act_refreg" style="visibility: hidden; position: absolute" id="refreg-act">
+                                            <option value="">-- Referenzregister wählen --</option>
+                                            <option value="1">Register 1</option>
+                                            <option value="2">Register 2</option>
+                                            <option value="3">Register 3</option>
+                                            <option value="4">Register 4</option>
+                                            <option value="5">Register 5</option>
+                                            <option value="6">Register 6</option>
+                                            <option value="7">Register 7</option>
+                                            <option value="8">Register 8</option>
+                                            <option value="9">Register 9</option>
+                                            <option value="10">Register 10</option>
+                                        </select>
                                         <select name="act_outopt" style="visibility: hidden; position: absolute" id="outopt-act">
                                             <option value="">-- Ausgangsaktion wählen --</option>
                                             <option value="1">einschalten</option>
@@ -516,9 +581,11 @@
                                         <input type="color" id="rgb-colorpicker" name="rgb_cols" onchange="clickColor(0, -1, -1, 5)" value="#ff0000" ">
                                         <select name="act_covopt" style="visibility: hidden; position: absolute" id="covopt-act">
                                             <option value="1" selected>Rollladenposition [%]:</option>
-                                            <option value="11">Rollladenposition inaktiv</option>
+                                            <option value="11">Rollladenposition aus Übergabe</option>
+                                            <option value="21">Rollladenposition inaktiv</option>
                                             <option value="2">Lamellenposition [%]:</option>
-                                            <option value="12">Lamellenposition inaktiv</option>
+                                            <option value="12">Lamellenposition aus Übergabe</option>
+                                            <option value="22">Lamellenposition inaktiv</option>
                                         </select>
                                         <select name="act_logicopt" style="visibility: hidden; position: absolute" id="logicopt-act">
                                             <option value="">-- Logikeingangsaktion wählen --</option>
@@ -535,6 +602,7 @@
                                         <select name="act_dimmopt" style="visibility: hidden; position: absolute" id="dimmopt-act">
                                             <option value="">-- Dimmer Aktion wählen --</option>
                                             <option value="20">Wert setzen [%]:</option>
+                                            <option value="10">Wert aus Übergabe setzen</option>
                                             <option value="22">Dimmen starten</option>
                                             <option value="23">Dimmen stoppen</option>
                                             <option value="24">Dimmen komplett</option>

@@ -4,6 +4,8 @@ ActionNames = {
     1: "Ausgang ein",
     2: "Ausgang aus",
     3: "Ausgang wechseln",
+    4: "Prio-Aktion",
+    5: "Prio schalten",
     6: "Counter",
     7: "Rollladenbefehl",
     9: "Zeitfunktion",
@@ -14,7 +16,7 @@ ActionNames = {
     22: "Dimmcount start",
     23: "Dimmcount stop",
     24: "Dimmen komplett",
-    30: "Prozentwert anzeigen",
+    30: "Prozentwert einstellen",
     31: "Prozentwert in Register",
     35: "Farblicht",
     50: "Sammelbefehl",
@@ -60,6 +62,7 @@ SelActCodes = {
     "buzzer": 10,
     "cover": 17,
     "dimm": 20,
+    "perc": 30,
     "rgb": 35,
     "collcmd": 50,
     "msg": 56,
@@ -95,6 +98,7 @@ ActionsSets = {
     10: [10],
     17: [17, 18],
     20: [20, 22, 23, 24],
+    30: [30, 31],
     35: [35],
     50: [50],
     56: [56, 57, 58],
@@ -190,6 +194,7 @@ class AutomationAction:
                 SelActCodes["flag"]: "Merker",
                 SelActCodes["mode"]: "Modus",
                 SelActCodes["counter"]: "Zähler",
+                SelActCodes["perc"]: "Prozentwert",
                 SelActCodes["ambient"]: "Modulbeleuchtung",
                 SelActCodes["msg"]: "Meldung",
                 SelActCodes["buzzer"]: "Summton",
@@ -248,7 +253,11 @@ class AutomationAction:
         try:
             for actn_arg in self.action_args:
                 actn_desc += chr(actn_arg)
-            if self.action_code in [1, 2, 3]:  # set/reset/toggle of outputs/leds/flags
+            if self.action_code in [
+                1,
+                2,
+                3,
+            ]:  # set/reset/toggle of outputs/leds/flags
                 self.unit = self.action_args[0]
                 actn_desc = actn_target.replace("Ausgang", "").strip()
                 actn_target = self.automation.get_output_desc(
@@ -263,6 +272,25 @@ class AutomationAction:
                         actn_desc = "rücksetzen"
                     if self.action_code == 3:
                         actn_desc = "wechseln"
+            elif self.action_code == 4:  # prio action
+                prio_level = self.action_args[0]
+                self.action_args_org = self.action_args
+                self.action_code = self.action_args[1]
+                self.action_args = self.action_args[2:]
+                self.parse()
+                self.action_code = 4
+                self.action_args = self.action_args_org
+                self.description = f"Prio {prio_level}:" + self.description
+            elif self.action_code in [5]:  # switch prio on/off
+                self.unit = self.action_args[0]  # prio task
+                if self.action_args[1]:
+                    actn_target = f"Prio-Aufgabe {self.unit} einschalten"
+                    if self.action_args[2] == 2:
+                        actn_desc = "(Triggerung ständig)"
+                    else:
+                        actn_desc = "(Triggerung einmalig)"
+                else:
+                    actn_target = f"Prio-Aufgabe {self.unit} ausschalten"
             elif self.action_code in [9]:  # time dependant set functions
                 self.unit = self.action_args[3]
                 actn_target = self.automation.get_output_desc(self.unit, True)
@@ -296,14 +324,16 @@ class AutomationAction:
                     outp_no = self.action_args[0] + 10
                 else:
                     outp_no = self.action_args[0]
-                if outp_no > 20:
+                if outp_no > len(self.autmn_dict["outputs"]):
                     outp_no -= 10
-                    actn_desc = f"{self.action_args[1]}% mit Übergabe"
+                    actn_desc = "aus Übergabe"
                 elif actn_target == "Dimmwert":
                     actn_desc = f"{self.action_args[1]}%"
                 else:
                     actn_desc = actn_target.split()[1]
                 out_desc = self.get_dict_entry("outputs", outp_no)
+                if outp_no > 10:
+                    out_desc = out_desc.replace(f"{outp_no}:", f"{outp_no - 10}:")
                 actn_target = f"{actn_target.split()[0]} {out_desc}"
             elif actn_target == "Counter":
                 self.unit = self.action_args[0]
@@ -311,8 +341,20 @@ class AutomationAction:
                     f"Zähler {self.get_dict_entry('counters', self.action_args[0])}"
                 )
                 actn_desc = f"auf {self.action_args[2]} setzen"
+            elif self.action_code in [30]:  # show %-value
+                actn_target = actn_target.replace(
+                    "Prozentwert", f"Prozentwert {self.action_args[0]}"
+                )
+                actn_desc = (
+                    f"({self.action_args[1]}er Schritt): Register {self.action_args[2]}"
+                )
+            elif self.action_code in [31]:  # %-value into register
+                actn_desc = f"{self.action_args[0]} ablegen"
             elif actn_target[:6] == "Sammel":
                 actn_target = f"{actn_target.split()[0]} {self.get_dict_entry('coll_cmds',self.action_args[0])}"
+                actn_desc = ""
+            elif actn_target[:5] == "Alarm":
+                actn_target = f"{actn_target.split()[0]} {self.action_args[0]} {actn_target.split()[1]}"
                 actn_desc = ""
             elif actn_target[:7] == "Meldung":
                 actn_target = (
@@ -359,17 +401,15 @@ class AutomationAction:
                 cover_desc = f"{self.get_dict_entry('covers', self.action_args[1])}"
                 if self.action_args[2] == 255:
                     pos_str = "inaktiv"
+                elif self.action_args[0] > 10:
+                    pos_str = "aus Übergabe"
                 else:
                     pos_str = f"auf {self.action_args[2]}%"
                 if self.action_code == 18:
                     temp_desc = f"für {self.action_args[1]} Min. "
                 else:
                     temp_desc = ""
-                if self.action_args[0] > 10:
-                    self.action_args[0] -= 10
-                    actn_desc = f"{cover_desc} {temp_desc} {pos_str} setzen"
-                else:
-                    actn_desc = f"{cover_desc} {temp_desc} {pos_str} setzen"
+                actn_desc = f"{cover_desc} {temp_desc} {pos_str} setzen"
                 if self.action_args[0] == 1:
                     actn_target = "Rollladen"
                 else:
@@ -481,11 +521,8 @@ class AutomationAction:
         opt_str = '<option value="">-- Dimm-Ausgang wählen --</option>'
         for dimm in sel_atm.settings.dimmers:
             opt_str += f'<option value="{dimm.nmbr}">{dimm.name}</option>'
-            opt_str += (
-                f'<option value="{dimm.nmbr + 10}">{dimm.name} mit Übergabe</option>'
-            )
         page = page.replace(
-            '<option value="">-- Dimm-Ausgang wählen --</option>', opt_str
+            '<option value="">-- ActDimm-Ausgang wählen --</option>', opt_str
         )
 
         opt_str = '<option value="">-- Rollladen/Jalousie wählen --</option>'
@@ -705,6 +742,19 @@ class AutomationAction:
             inp_no = self.automation.get_sel(form_data, "act_logic")
             self.action_args.append(inp_no)
 
+        elif self.action_code in ActionsSets[SelActCodes["perc"]]:
+            # percentage values
+            self.action_code = self.automation.get_sel(form_data, "act_perc")
+            reg_no = self.automation.get_sel(form_data, "act_refreg")
+            inc_step = 1
+            if self.action_code == 40:
+                inc_step = 10
+                self.action_code = 30
+            self.action_args.append(reg_no)
+            if self.action_code == 30:
+                self.action_args.append(inc_step)
+                self.action_args.append(reg_no)
+
         elif self.action_code in ActionsSets[SelActCodes["counter"]]:
             # counter
             counter_opt = self.automation.get_sel(form_data, "act_countopt")
@@ -743,8 +793,15 @@ class AutomationAction:
         elif self.action_code in ActionsSets[SelActCodes["dimm"]]:
             self.unit = self.automation.get_sel(form_data, "act_dimmout")
             self.action_code = self.automation.get_sel(form_data, "act_dimmopt")
-            self.action_args.append(self.unit)
-            self.action_args.append(int(form_data["perc_val"][0]))
+            if self.action_code == 10:
+                self.action_code = 20
+                self.action_args.append(self.unit + 10)
+                self.action_args.append(0)
+            elif self.action_code == 20:
+                self.action_args.append(self.unit)
+                self.action_args.append(int(form_data["perc_val"][0]))
+            else:
+                self.action_args.append(self.unit)
 
         elif self.action_code in ActionsSets[SelActCodes["collcmd"]]:
             self.unit = self.automation.get_sel(form_data, "act_collcmd")
@@ -752,9 +809,19 @@ class AutomationAction:
 
         elif self.action_code in ActionsSets[SelActCodes["cover"]]:
             self.unit = self.automation.get_sel(form_data, "act_cover")
-            self.action_args.append(self.automation.get_sel(form_data, "act_covopt"))
+            cov_opt = self.automation.get_sel(form_data, "act_covopt")
+            if cov_opt > 20:
+                # set inactive
+                perc_val = 255
+                cov_opt -= 20
+            elif cov_opt > 10:
+                # take from register
+                perc_val = 0
+            else:
+                perc_val = int(form_data["perc_val"][0])
+            self.action_args.append(cov_opt)
             self.action_args.append(self.unit)
-            self.action_args.append(int(form_data["perc_val"][0]))
+            self.action_args.append(perc_val)
 
         elif self.action_code in ActionsSets[SelActCodes["climate"]]:
             cl_opt = self.automation.get_sel(form_data, "act_climopt")

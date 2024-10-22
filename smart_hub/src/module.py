@@ -32,7 +32,6 @@ class HbtnModule:
         self._typ: bytes = b""
         self._type = ""
         self._serial: str = ""
-        self.area: int = 0
         self.api_srv = api_srv
         self.hdlr = hdlr
 
@@ -73,9 +72,6 @@ class HbtnModule:
         self.io_properties, self.io_prop_keys = self.get_io_properties()
         self._serial = await self.get_serial()
         await self.cleanup_descriptions()
-        if "settings" in self.__dir__():
-            if self.settings is not None:
-                self.area = self.settings.area_member
         self.check_firmware()
 
         self.logger.debug(f"Module {self._name} at {self._id} initialized")
@@ -129,7 +125,7 @@ class HbtnModule:
     def get_area_name(self) -> str:
         """Return own area from router."""
         rtr = self.get_rtr()
-        return rtr.get_area_name(self.area)
+        return rtr.get_area_name(self.settings.area_member)
 
     def get_area_member(self, area_name: str) -> int:
         """Return index of area given by name."""
@@ -146,6 +142,10 @@ class HbtnModule:
     def set_smc_crc(self, crc: int):
         """Store new smc crc into status."""
         crc_str = (chr((crc - (crc & 0xFF)) >> 8) + chr(crc & 0xFF)).encode("iso8859-1")
+        if self.status[MirrIdx.SMC_CRC : MirrIdx.SMC_CRC + 2] != crc_str:
+            self.logger.warning(
+                f"CRC Fehler von Modul {self._id} - {self._name}: Status CRC: {self.status[MirrIdx.SMC_CRC:MirrIdx.SMC_CRC+2]} - Berechnet aus SMC: {crc_str}"
+            )
         self.status = (
             self.status[: MirrIdx.SMC_CRC]
             + crc_str

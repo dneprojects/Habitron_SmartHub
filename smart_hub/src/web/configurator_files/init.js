@@ -27,17 +27,17 @@ act_counter_sel.addEventListener("change", function () {
     setMaxCountAct();
 });
 const mov_sel = document.getElementById("mov-select");
-    mov_sel.addEventListener("change", function () {
-        setMovLight();
-    });
+mov_sel.addEventListener("change", function () {
+    setMovLight();
+});
 const sens_sel = document.getElementById("sensor-select");
 sens_sel.addEventListener("change", function () {
     setSensorNums();
 });
 const out_actopt = document.getElementById("outopt-act")
 out_actopt.addEventListener("change", function () {
-        setActTimeinterval();
-    });
+    setActTimeinterval();
+});
 const cnt_actopt = document.getElementById("countopt-act")
 cnt_actopt.addEventListener("change", function () {
     setActCntval();
@@ -51,9 +51,9 @@ cvr_actopt.addEventListener("change", function () {
     disablePercval();
 });
 const clim_actopt = document.getElementById("climopt-act")
-    clim_actopt.addEventListener("change", function () {
-        setActClimate();
-    });
+clim_actopt.addEventListener("change", function () {
+    setActClimate();
+});
 const sys_sel = document.getElementById("sys-select")
 sys_sel.addEventListener("change", function () {
     setSysTrigger();
@@ -76,7 +76,7 @@ msg_opt.addEventListener("change", function () {
 });
 
 close_err_popup.addEventListener("click", function () {
-automtn_err_popup.classList.remove("show");
+    automtn_err_popup.classList.remove("show");
 });
 function initUiElements(trg_code, trg_arg1, trg_arg2, cnd_code, act_code, act_args, trg_time) {
     initTrigElements(trg_code, trg_arg1, trg_arg2, trg_time)
@@ -84,7 +84,7 @@ function initUiElements(trg_code, trg_arg1, trg_arg2, cnd_code, act_code, act_ar
     initActElements(act_code, act_args)
 }
 
-function setElement(id, valueToSet) {    
+function setElement(id, valueToSet) {
     let selector = document.getElementById(id);
     selector.value = valueToSet;
 }

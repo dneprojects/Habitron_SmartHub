@@ -7,7 +7,7 @@ openpyxl:3.1.5                      MIT License                                 
 pip-licenses:5.0.0                  MIT License                                             Permissive                                                   
 prettytable:3.11.0                  BSD License                                             Permissive                                                   
 propcache:0.2.0                     Apache Software License                                 Permissive                                                   
-psutil:6.0.0                        BSD License                                             Permissive                                                   
+psutil:6.1.0                        BSD License                                             Permissive                                                   
 py-cpuinfo:9.0.0                    MIT License                                             Permissive                                                   
 pyserial:3.5                        BSD License                                             Permissive                                                   
 pyserial-asyncio:0.6                BSD License                                             Permissive                                                   
@@ -15,4 +15,4 @@ PyYAML:6.0.2                        MIT License                                 
 tomli:2.0.2                         MIT License                                             Permissive                                                   
 wcwidth:0.2.13                      MIT License                                             Permissive                                                   
 websockets:13.1                     BSD License                                             Permissive                                                   
-yarl:1.14.0                         Apache Software License                                 Permissive
+yarl:1.16.0                         Apache Software License                                 Permissive

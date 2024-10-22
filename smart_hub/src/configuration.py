@@ -61,7 +61,7 @@ class ModuleSettings:
         )
         self.save_desc_file_needed: bool = False
         self.upload_desc_info_needed: bool = False
-        self.area_member = module.area
+        self.area_member = 0
         self.group = dpcopy(module.get_group())
         self.get_io_interfaces()
         self.get_logic()
@@ -268,19 +268,6 @@ class ModuleSettings:
 
     def set_module_settings(self, status: bytes) -> bytes:
         """Restore settings to module status."""
-        if self.typ[0] == 80:
-            # detect modules use index for led status, so use next entry
-            status = replace_bytes(
-                status,
-                int.to_bytes(int(self.area_member)),
-                MirrIdx.MOD_AREA + 1,
-            )
-        else:
-            status = replace_bytes(
-                status,
-                int.to_bytes(int(self.area_member)),
-                MirrIdx.MOD_AREA,
-            )
         status = replace_bytes(
             status,
             (self.name + " " * (32 - len(self.name))).encode("iso8859-1"),
@@ -921,20 +908,13 @@ class ModuleSettings:
         for inpt in self.inputs:
             desc = inpt.name
             if len(desc.strip()) > 0 or self.module._typ[0] == 11:
+                # for input modules prepare all 8 lines
                 desc += " " * (32 - len(desc))
                 desc = desc[:32]
-                if self.typ in [
-                    b"\x0b\x01",
-                    b"\x0b\x1e",
-                ]:  # Smart In 24, Smart In 230
-                    new_list.append(
-                        f"\xff\x00\xeb{chr(inpt_offs + inpt.nmbr)}\x01\x23\0\xeb" + desc
-                    )
-                else:
-                    new_list.append(
-                        f"\xff{chr(inpt.area)}\xeb{chr(inpt_offs + inpt.nmbr)}\x01\x23\0\xeb"
-                        + desc
-                    )
+                new_list.append(
+                    f"\xff{chr(inpt.area)}\xeb{chr(inpt_offs + inpt.nmbr)}\x01\x23\0\xeb"
+                    + desc
+                )
         for outpt in self.outputs:
             desc = outpt.name
             if len(desc.strip()) > 0:
@@ -991,7 +971,7 @@ class ModuleSettings:
             desc += " " * (32 - len(desc))
             new_list.append(f"\xff\0\xeb{chr(msg.nmbr)}\x01\x23\0\xeb" + desc)
         # append area member @ 136
-        desc = self.module.get_rtr().get_area_name(self.area_member)
+        desc = self.module.get_area_name()
         desc += " " * (32 - len(desc))
         new_list.append(
             f"\xff{chr(self.area_member)}\xeb{chr(136)}\x01\x23\0\xeb" + desc
@@ -1000,7 +980,7 @@ class ModuleSettings:
 
     def adapt_list_header(self, new_list: list[str]) -> bytes:
         """Adapt line and char numbers in header, sort, and return as byte."""
-        if self.typ != b"\x0b\x1f":  # not Smart In 24-1
+        if self.typ[0] != 11:  # don't sort Smart In 230, 24, 24-1
             sort_list = new_list[1:]
             sort_list.sort()
             new_list[1:] = sort_list
@@ -1285,7 +1265,7 @@ class ModuleSettingsLight(ModuleSettings):
         self.desc = dpcopy(module.get_rtr().descriptions)
         self.properties: dict = module.io_properties
         self.prop_keys = module.io_prop_keys
-        self.area_member = module.area
+        self.area_member = 0
         self.cover_times = [0, 0, 0, 0, 0]
         self.blade_times = [0, 0, 0, 0, 0]
         self.user1_name = module.get_rtr().user_modes[1:11].decode("iso8859-1").strip()

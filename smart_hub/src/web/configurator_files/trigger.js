@@ -1,9 +1,12 @@
+const prio_trg = new Set([4])
 const flag_trg = new Set([6])
 const logic_trg = new Set([8])
 const count_trg = new Set([9])
 const output_trg = new Set([10])
+const dimmval_trg = new Set([15])
 const cover_trg = new Set([17])
 const remote_trg = new Set([23])
+const perc_trg = new Set([30])
 const viscmd_trg = new Set([31])
 const move_trg = new Set([40, 41])
 const collcmd_trg = new Set([50])
@@ -13,13 +16,14 @@ const button_trg = new Set([150, 151, 154])
 const switch_trg = new Set([152, 153])
 const ekey_trg = new Set([169])
 const time_trg = new Set([170])
-const sensor_trg = new Set([201, 202, 203, 204, 205, 213, 214, 215, 216, 217])
+const sensor_trg = new Set([201, 202, 203, 204, 205, 206, 213, 214, 215, 216, 217])
 const ad_trg = new Set([218, 219, 224, 225, 226, 227])
 const temp_sens = new Set([201, 213])
 const perc_sens = new Set([202, 215, 217])
 const light_sens = new Set([203, 216])
 const wind_sens = new Set([204])
 const rain_sens = new Set([205])
+const windpk_sens = new Set([206])
 const ad_sens = new Set([218, 219])
 const climate_trg = new Set([220, 221, 222])
 const sys_trg = new Set([12, 101, 249])
@@ -31,10 +35,23 @@ function initTrigElements(trg_code, trg_arg1, trg_arg2, trg_time) {
         setElement("button-select", trg_arg1);
         setElement("shortlong-select", trg_code - 149);
     }
+    else if (prio_trg.has(trg_code)) {
+        setElement("trigger-select", 4);
+        setElement("number-select", trg_arg1);
+        setElement("prio-chng-vals", trg_arg2);
+    }
     else if (switch_trg.has(trg_code)) {
         setElement("trigger-select", 152);
         setElement("switch-select", trg_arg1);
         setElement("onoff-select", trg_code - 151);
+    }
+    else if (dimmval_trg.has(trg_code)) {
+        setElement("trigger-select", 15);
+        dim_md = Math.round(trg_arg1 / 10) * 10;
+        dim_no = trg_arg1 - dim_md;
+        setElement("dimmer-select", dim_no);
+        setElement("covpos-select", dim_md);
+        setElement("cov_pos_val", trg_arg2);
     }
     else if (cover_trg.has(trg_code)) {
         setElement("trigger-select", 17);
@@ -61,14 +78,6 @@ function initTrigElements(trg_code, trg_arg1, trg_arg2, trg_time) {
         else
             setElement("onoff-select", 2);
     }
-    else if (dimm_trg.has(trg_code)) {
-        setElement("trigger-select", 17);
-        cov_md = Math.round(trg_arg1 / 10) * 10;
-        cov_no = trg_arg1 - cov_md;
-        setElement("trigger_cover", cov_no);
-        setElement("trigger_covpos", cov_md);
-        setElement("cov_pos_val", trg_arg2);
-    }
     else if (climate_trg.has(trg_code)) {
         setElement("trigger-select", 220);
         setElement("clim-sens-select", trg_code - 220);
@@ -81,6 +90,10 @@ function initTrigElements(trg_code, trg_arg1, trg_arg2, trg_time) {
     else if (collcmd_trg.has(trg_code)) {
         setElement("trigger-select", 50);
         setElement("collcmd-select", trg_arg1);
+    }
+    else if (perc_trg.has(trg_code)) {
+        setElement("trigger-select", 30);
+        setElement("number-select", trg_arg1);
     }
     else if (viscmd_trg.has(trg_code)) {
         setElement("trigger-select", 31);
@@ -141,6 +154,10 @@ function initTrigElements(trg_code, trg_arg1, trg_arg2, trg_time) {
             setElement("sens-high-lux", trg_arg2 * 10);
         }
         if (wind_sens.has(trg_code)) {
+            setElement("sens-low-wind", trg_arg1);
+            setElement("sens-high-wind", trg_arg2);
+        }
+        if (windpk_sens.has(trg_code)) {
             setElement("sens-low-wind", trg_arg1);
             setElement("sens-high-wind", trg_arg2);
         }
@@ -222,9 +239,12 @@ function setTriggerSels() {
     setElementVisibility("sys-select", "hidden");
     setElementVisibility("supply-select", "hidden");
     setElementVisibility("syserr-div", "hidden");
+    setElementVisibility("dimmer-select", "hidden");
     setElementVisibility("cover-select", "hidden");
     setElementVisibility("covpos-select", "hidden");
     setElementVisibility("cov-pos-val", "hidden");
+    setElementVisibility("number-select", "hidden");
+    setElementVisibility("prio-chng-vals", "hidden");
 
     if (selectn == "150") {
         setElementVisibility("button-select", "visible");
@@ -244,6 +264,12 @@ function setTriggerSels() {
         setElementVisibility("output-select", "visible");
         setElementVisibility("onoff-select", "visible");
     }
+    if (selectn == "15") {
+        setElementVisibility("dimmer-select", "visible");
+        setElementVisibility("covpos-select", "visible");
+        setDimmvalModes();
+        setCoverValues();
+    }
     if (selectn == "17") {
         setElementVisibility("cover-select", "visible");
         setElementVisibility("covpos-select", "visible");
@@ -252,6 +278,13 @@ function setTriggerSels() {
     }
     if (selectn == "50") {
         setElementVisibility("collcmd-select", "visible");
+    }
+    if (selectn == "4") {
+        setElementVisibility("number-select", "visible");
+        setElementVisibility("prio-chng-vals", "visible");
+    }
+    if (selectn == "30") {
+        setElementVisibility("number-select", "visible");
     }
     if (selectn == "31") {
         setElementVisibility("viscmd-select", "visible");
@@ -379,6 +412,13 @@ function setCoverValues() {
         setElementVisibility("cov-pos-val", "visible");
     else
         setElementVisibility("cov-pos-val", "hidden");
+}
+function setDimmvalModes() {
+    const cov_md = document.getElementById("covpos-select")
+    cov_md.options[2].hidden = true;
+    cov_md.options[6].hidden = true;
+    cov_md.options[7].hidden = true;
+    cov_md.options[8].hidden = true;
 }
 
 function setBladeModes() {

@@ -52,7 +52,7 @@ RT_ERROR_CODE = {
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.6.6"
+    SW_VERSION = "1.6.7"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
@@ -834,8 +834,8 @@ MODULE_FIRMWARE: Final[dict[bytes, str]] = {
     b"\x0b\x1e": "scem24",
     b"\x0b\x1f": "scem25",
     b"\x14\x01": "scasm",
-    b"\x1e\x01": "SCfan232",
-    b"\x1e\x03": "SCfangsm",
+    b"\x1e\x01": "scfan232",
+    b"\x1e\x03": "scfangsm",
     b"\x32\x28": "scumgsens",
     b"\x50\x64": "scbws180",
     b"\x50\x65": "scbs360",

@@ -22,10 +22,10 @@ function control_flashbutton() {
 }
 
 async function watchUpdateStatus() {
-    
-    await setInterval(function() { 
+
+    await setInterval(function () {
         // alle 3 Sekunden ausführen 
-        getStatus(); 
+        getStatus();
     }, 3000);
 }
 
@@ -33,10 +33,10 @@ function getStatus() {
     const statusUrl = "update_status"
     fetch(statusUrl)
         .then((resp) => resp.text())
-        .then(function(text) {
+        .then(function (text) {
             setStatus(text);
         })
-        .catch(function(error) {
+        .catch(function (error) {
             console.log(error);
         });
 }
@@ -54,17 +54,21 @@ function setStatus(jsonString) {
         lbl.innerText = "Upload: " + upldStat + "%";
     }
     else {
-        modKey = "mod_" + cur_mod;
-        modStat = updateStat[modKey];
-        prog = modStat.progress;
-        success = modStat.success;
-        lbl = document.getElementById("stat_" + cur_mod);
-        if (prog < 100) {
-            lbl.className = 'fw_subtext_bold';
-            lbl.innerText = "Flashen: " + prog + "%";
-        }
-        else if ((upldStat == 100) & (prog == 100)) {
-            lbl.innerText = "Flashen: " + success;
+        for (modKey of Object.getOwnPropertyNames(updateStat)) {
+            if (modKey.slice(0, 4) == "mod_") {
+                cur_mod = modKey.replace("mod_", "")
+                modStat = updateStat[modKey];
+                prog = modStat.progress;
+                success = modStat.success;
+                lbl = document.getElementById("stat_" + cur_mod);
+                if (prog < 100) {
+                    lbl.className = 'fw_subtext_bold';
+                    lbl.innerText = "Flashen: " + prog + "%";
+                }
+                else if ((upldStat == 100) & (prog == 100)) {
+                    lbl.innerText = "Flashen: " + success;
+                }
+            }
         }
     }
 }

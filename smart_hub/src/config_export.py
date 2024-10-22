@@ -4,7 +4,7 @@ from openpyxl.styles.alignment import Alignment
 
 from configuration import ModuleSettingsLight
 from const import DATA_FILES_ADDON_DIR, DATA_FILES_DIR
-
+import re
 
 header_font = Font(b=True, sz=14.0, color="c0372d")
 subheader_font = Font(b=True, sz=12.0)
@@ -112,7 +112,7 @@ def document_module(doc, mod, idx):
         for inpt in settings.inputs:
             ws.cell(row, 1).value = inpt.nmbr
             ws.cell(row, 1).alignment = left_aligned
-            ws.cell(row, 2).value = inpt.name
+            ws.cell(row, 2).value = re.sub(r"[^\x20-\x7E]", r"", inpt.name)
             if mod._typ in [b"\x0a\x1e", b"\x0b\x1e", b"\x32\x01"]:
                 ws.cell(row, 3).value = "24V"
             elif (
@@ -140,7 +140,7 @@ def document_module(doc, mod, idx):
             if outpt.type > 0:
                 ws.cell(row, 1).value = outpt.nmbr
                 ws.cell(row, 1).alignment = left_aligned
-                ws.cell(row, 2).value = outpt.name
+                ws.cell(row, 2).value = re.sub(r"[^\x20-\x7E]", r"", outpt.name)
                 if mod._typ in [b"\x0a\x01", b"\x0a\x1e", b"\x0a\x32", b"\x0a\x33"]:
                     ws.cell(row, 3).value = "Relais"
                 elif mod._typ in [b"\x32\x01"]:
@@ -165,7 +165,7 @@ def document_module(doc, mod, idx):
             if cov.type != 0:
                 ws.cell(row, 1).value = cov.nmbr
                 ws.cell(row, 1).alignment = left_aligned
-                ws.cell(row, 2).value = cov.name
+                ws.cell(row, 2).value = re.sub(r"[^\x20-\x7E]", r"", cov.name)
                 ws.cell(row, 3).value = cover_type[cov.type]
                 if cov.type > 0:
                     ws.cell(row, 4).value = "Ausgang A: auf, B: zu"

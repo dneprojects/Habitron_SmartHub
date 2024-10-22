@@ -3,6 +3,7 @@ from const import FingerNames
 
 EventCodes = {
     0: "---",
+    4: "Prioritätsänderung",
     6: "Merker",
     8: "Logikfunktion",
     10: "Ausgangsänderung",
@@ -12,7 +13,7 @@ EventCodes = {
     23: "IR-Befehl kurz",
     24: "IR-Befehl lang",
     25: "IR-Befehl lang Ende",
-    30: "Prozentübergabe Nummer",
+    30: "Prozentwertübergabe Nummer",
     31: "Visualisierungsbefehl",
     40: "Bewegung Innenlicht",
     41: "Bewegung Außenlicht",
@@ -55,7 +56,9 @@ EventCodesSel = {
     152: "Schalter",
     153: "Schalter",
     149: "Dimmen",
+    15: "Dimmwert",
     10: "Ausgangsänderung",
+    30: "Prozentwertübergabe",
     253: "Direktbefehl",
     50: "Sammelbefehl",
     31: "Visualisierungsbefehl",
@@ -63,6 +66,7 @@ EventCodesSel = {
     8: "Logikfunktion",
     17: "Rollladenposition",
     137: "Modusänderung",
+    4: "Prioritätsänderung",
     40: "Bewegung",
     41: "Bewegung",
     201: "Sensor",
@@ -70,6 +74,7 @@ EventCodesSel = {
     203: "Sensor",
     204: "Sensor",
     205: "Sensor",
+    206: "Sensor",
     213: "Sensor",
     215: "Sensor",
     216: "Sensor",
@@ -95,6 +100,7 @@ EventArgsLogic = {
 }
 
 SelTrgCodes = {
+    "prio": 4,
     "flag": 6,
     "logic": 8,
     "count": 9,
@@ -102,6 +108,7 @@ SelTrgCodes = {
     "dimmval": 15,
     "covpos": 17,
     "remote": 23,
+    "perc": 30,
     "viscmd": 31,
     "move": 40,
     "collcmd": 50,
@@ -119,6 +126,7 @@ SelTrgCodes = {
 }
 
 EventsSets = {
+    4: [4],
     6: [6],
     8: [8],
     9: [9],
@@ -126,6 +134,7 @@ EventsSets = {
     15: [15],
     17: [17],
     23: [23],
+    30: [30],
     31: [31],
     40: [40, 41],
     50: [50],
@@ -286,6 +295,7 @@ class AutomationTrigger:
                 SelTrgCodes["button"]: "Taster",
                 SelTrgCodes["switch"]: "Schalter",
                 SelTrgCodes["dimm"]: "Dimmen",
+                SelTrgCodes["dimmval"]: "Dimmwert",
                 SelTrgCodes["remote"]: "IR-Fernbedienung",
                 SelTrgCodes["output"]: "Ausgangsänderung",
                 SelTrgCodes["covpos"]: "Rollladenposition",
@@ -293,6 +303,7 @@ class AutomationTrigger:
                 SelTrgCodes["dircmd"]: "Direktbefehl",
                 SelTrgCodes["collcmd"]: "Sammelbefehl",
                 SelTrgCodes["viscmd"]: "Visualisierungsbefehl",
+                SelTrgCodes["perc"]: "Prozentwertübergabe",
                 SelTrgCodes["logic"]: "Logikfunktion",
                 SelTrgCodes["flag"]: "Merker",
                 SelTrgCodes["mode"]: "Modusänderung",
@@ -312,13 +323,15 @@ class AutomationTrigger:
                 SelSensCodes["light_int"]: "Helligkeit innen",
                 SelSensCodes["airqual"]: "Luftqualität",
                 SelSensCodes["rain"]: "Regen",
-                SelSensCodes["wind_peak"]: "Wind",
+                SelSensCodes["wind"]: "Wind",
+                SelSensCodes["wind_peak"]: "Wind peak",
             }
         if mod_typ == b"\x32\x01":
             self.triggers_dict = {
                 SelTrgCodes["button"]: "Taster",
                 SelTrgCodes["switch"]: "Schalter",
                 SelTrgCodes["dimm"]: "Dimmen",
+                SelTrgCodes["dimmval"]: "Dimmwert",
                 SelTrgCodes["output"]: "Ausgangsänderung",
                 SelTrgCodes["climate"]: "Klimaregelung",
                 SelTrgCodes["dircmd"]: "Direktbefehl",
@@ -341,7 +354,8 @@ class AutomationTrigger:
                 SelSensCodes["light_int"]: "Helligkeit innen",
                 SelSensCodes["airqual"]: "Luftqualität",
                 SelSensCodes["rain"]: "Regen",
-                SelSensCodes["wind_peak"]: "Wind",
+                SelSensCodes["wind"]: "Wind",
+                SelSensCodes["wind_peak"]: "Wind peak",
             }
         if mod_typ == b"\x32\x28":
             if self.settings.status[MirrIdx.OUTDOOR_MODE] == 65:
@@ -378,13 +392,15 @@ class AutomationTrigger:
                 SelSensCodes["humid_ext"]: "Feuchte außen",
                 SelSensCodes["light_ext"]: "Helligkeit außen",
                 SelSensCodes["rain"]: "Regen",
-                SelSensCodes["wind_peak"]: "Wind",
+                SelSensCodes["wind"]: "Wind",
+                SelSensCodes["wind_peak"]: "Wind peak",
             }
         if mod_typ[0] == 0x0B:
             self.triggers_dict = {
                 SelTrgCodes["button"]: "Taster",
                 SelTrgCodes["switch"]: "Schalter",
                 SelTrgCodes["dimm"]: "Dimmen",
+                SelTrgCodes["dimmval"]: "Dimmwert",
                 SelTrgCodes["ad"]: "Analogwert",
                 SelTrgCodes["collcmd"]: "Sammelbefehl",
                 SelTrgCodes["mode"]: "Modusänderung",
@@ -394,7 +410,8 @@ class AutomationTrigger:
                 SelSensCodes["humid_ext"]: "Feuchte außen",
                 SelSensCodes["light_ext"]: "Helligkeit außen",
                 SelSensCodes["rain"]: "Regen",
-                SelSensCodes["wind_peak"]: "Wind",
+                SelSensCodes["wind"]: "Wind",
+                SelSensCodes["wind_peak"]: "Wind peak",
             }
         if mod_typ == b"\x1e\x01":
             self.triggers_dict = {
@@ -410,7 +427,8 @@ class AutomationTrigger:
                 SelSensCodes["humid_ext"]: "Feuchte außen",
                 SelSensCodes["light_ext"]: "Helligkeit außen",
                 SelSensCodes["rain"]: "Regen",
-                SelSensCodes["wind_peak"]: "Wind",
+                SelSensCodes["wind"]: "Wind",
+                SelSensCodes["wind_peak"]: "Wind peak",
             }
         if mod_typ == b"\x1e\x03":  # Smart GSM
             self.triggers_dict = {
@@ -424,7 +442,8 @@ class AutomationTrigger:
                 SelSensCodes["humid_ext"]: "Feuchte außen",
                 SelSensCodes["light_ext"]: "Helligkeit außen",
                 SelSensCodes["rain"]: "Regen",
-                SelSensCodes["wind_peak"]: "Wind",
+                SelSensCodes["wind"]: "Wind",
+                SelSensCodes["wind_peak"]: "Wind peak",
             }
         if mod_typ[0] == 0x50:
             self.triggers_dict = {
@@ -505,36 +524,58 @@ class AutomationTrigger:
                             event_desc = f"Wert {self.value} erreicht"
                             break
             elif self.event_code in EventsSets[SelTrgCodes["dimmval"]]:
+                arg_offs = 0
                 if self.settings.typ[0] == 1:
                     # for SC: dimmer 1 = output 11
-                    self.event_arg1 += 10
+                    arg_offs = 10
                 if self.event_arg1 in range(1, 9):
-                    trig_command = f"Wertübergabe Dimmer '{self.get_dict_entry('outputs', self.event_arg1)}'"
+                    out_no = self.event_arg1 + arg_offs
+                    trig_command = (
+                        f"Wertübergabe Dimmer {self.get_dict_entry('outputs', out_no)}"
+                    )
                 elif self.event_arg1 in range(21, 29):
-                    trig_command = f"Dimmwert '{self.get_dict_entry('outputs', self.event_arg1 - 20)}' kleiner {self.event_arg2}%"
-                elif self.event_arg1 in range(31, 29):
-                    trig_command = f"Dimmwert '{self.get_dict_entry('outputs', self.event_arg1 - 30)}' gleich {self.event_arg2}%"
-                elif self.event_arg1 in range(41, 29):
-                    trig_command = f"Dimmwert '{self.get_dict_entry('outputs', self.event_arg1 - 40)}' größer {self.event_arg2}%"
+                    out_no = self.event_arg1 - 20 + arg_offs
+                    trig_command = f"Dimmwert {self.get_dict_entry('outputs', out_no)} kleiner {self.event_arg2}%"
+                elif self.event_arg1 in range(31, 39):
+                    out_no = self.event_arg1 - 30 + arg_offs
+                    trig_command = f"Dimmwert {self.get_dict_entry('outputs', out_no)} gleich {self.event_arg2}%"
+                elif self.event_arg1 in range(41, 49):
+                    out_no = self.event_arg1 - 40 + arg_offs
+                    trig_command = f"Dimmwert {self.get_dict_entry('outputs', out_no)} größer {self.event_arg2}%"
+                trig_command = trig_command.replace(
+                    f"Dimmwert {out_no}", f"Dimmwert {out_no - arg_offs}"
+                )
+                event_desc = ""
             elif self.event_code in EventsSets[SelTrgCodes["covpos"]]:
                 if self.event_arg1 in range(1, 9):
-                    trig_command = f"Wertübergabe Rollladen '{self.get_dict_entry('covers', self.event_arg1)}'"
+                    trig_command = f"Wertübergabe Rollladen {self.get_dict_entry('covers', self.event_arg1)}"
                 if self.event_arg1 in range(11, 19):
-                    trig_command = f"Wertübergabe Jalousie '{self.get_dict_entry('covers', self.event_arg1 - 10)}'"
+                    trig_command = f"Wertübergabe Jalousie {self.get_dict_entry('covers', self.event_arg1 - 10)}"
                 elif self.event_arg1 in range(21, 29):
-                    trig_command = f"Position Rollladen '{self.get_dict_entry('covers', self.event_arg1 - 20)}' kleiner {self.event_arg2}%"
+                    trig_command = f"Position Rollladen {self.get_dict_entry('covers', self.event_arg1 - 20)} kleiner {self.event_arg2}%"
                 elif self.event_arg1 in range(31, 39):
-                    trig_command = f"Position Rollladen '{self.get_dict_entry('covers', self.event_arg1 - 30)}' gleich {self.event_arg2}%"
+                    trig_command = f"Position Rollladen {self.get_dict_entry('covers', self.event_arg1 - 30)} gleich {self.event_arg2}%"
                 elif self.event_arg1 in range(41, 49):
-                    trig_command = f"Position Rollladen '{self.get_dict_entry('covers', self.event_arg1 - 40)}' größer {self.event_arg2}%"
+                    trig_command = f"Position Rollladen {self.get_dict_entry('covers', self.event_arg1 - 40)} größer {self.event_arg2}%"
                 elif self.event_arg1 in range(61, 69):
-                    trig_command = f"Öffnung Jalousie '{self.get_dict_entry('covers', self.event_arg1 - 60)}' kleiner {self.event_arg2}%"
+                    trig_command = f"Öffnung Jalousie {self.get_dict_entry('covers', self.event_arg1 - 60)} kleiner {self.event_arg2}%"
                 elif self.event_arg1 in range(71, 79):
-                    trig_command = f"Öffnung Jalousie '{self.get_dict_entry('covers', self.event_arg1 - 70)}' gleich {self.event_arg2}%"
+                    trig_command = f"Öffnung Jalousie {self.get_dict_entry('covers', self.event_arg1 - 70)} gleich {self.event_arg2}%"
                 elif self.event_arg1 in range(81, 89):
-                    trig_command = f"Öffnung Jalousie '{self.get_dict_entry('covers', self.event_arg1 - 80)}' größer {self.event_arg2}%"
+                    trig_command = f"Öffnung Jalousie {self.get_dict_entry('covers', self.event_arg1 - 80)} größer {self.event_arg2}%"
                 elif self.event_arg1 == 200:
                     trig_command = f"Automatik Rollladenpaar {self.event_arg2}"
+                event_desc = ""
+            elif self.event_code in EventsSets[SelTrgCodes["prio"]]:
+                trig_command = f"Prio Aufgabe {self.event_arg1} geändert: "
+                if self.event_arg2 == 0:
+                    event_desc = "aus"
+                elif self.event_arg2 == 11:
+                    event_desc = "ein"
+                else:
+                    event_desc = f"Stufe {self.event_arg2}"
+            elif self.event_code in EventsSets[SelTrgCodes["perc"]]:
+                trig_command = f"Prozentwertübergabe Nr. {self.event_arg1}"
                 event_desc = ""
             elif self.event_code in EventsSets[SelTrgCodes["mode"]]:
                 trig_command = (
@@ -746,6 +787,13 @@ class AutomationTrigger:
             '<option value="">-- Ausgang oder LED wählen --</option>', opt_str
         )
 
+        opt_str = '<option value="">-- Dimm-Ausgang wählen --</option>'
+        for dim in self.settings.dimmers:
+            if len(dim.name.strip()) > 0:
+                opt_str += f'<option value="{dim.nmbr}">{dim.name}</option>'
+        page = page.replace(
+            '<option value="">-- Dimm-Ausgang wählen --</option>', opt_str
+        )
         opt_str = '<option value="">-- Rolladen/Jalousie wählen --</option>'
         for cov in self.settings.covers:
             if len(cov.name.strip()) > 0:
@@ -907,6 +955,12 @@ class AutomationTrigger:
             self.src_rt = 0
             self.src_mod = 0
         self.event_code = self.automation.get_sel(form_data, "trigger_sel")
+        if self.event_code == SelTrgCodes["prio"]:
+            self.event_arg1 = self.automation.get_sel(form_data, "trigger_number")
+            self.event_arg2 = self.automation.get_sel(form_data, "prio_chng_vals")
+        if self.event_code == SelTrgCodes["perc"]:
+            self.event_arg1 = self.automation.get_sel(form_data, "trigger_number")
+            self.event_arg2 = 0
         if self.event_code == SelTrgCodes["logic"]:
             self.event_id = 8
             self.event_code = 6
@@ -939,6 +993,12 @@ class AutomationTrigger:
                 self.event_code = 152
             else:
                 self.event_code = 153
+        elif self.event_code in EventsSets[SelTrgCodes["dimmval"]]:
+            dim_no = int(self.automation.get_sel(form_data, "trigger_dimmer"))
+            self.event_arg1 = (
+                int(self.automation.get_sel(form_data, "trigger_covpos")) + dim_no
+            )
+            self.event_arg2 = int(self.automation.get_sel(form_data, "cov_pos_val"))
         elif self.event_code in EventsSets[SelTrgCodes["dimm"]]:
             self.event_code = 149
             self.event_arg1 = self.automation.get_sel(form_data, "trigger_button")
