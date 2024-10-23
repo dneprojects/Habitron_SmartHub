@@ -340,6 +340,7 @@ function setTriggerSels() {
         setElementVisibility("sys-select", "visible");
         setSysTrigger()
     }
+    enablePercentActions()
 }
 
 function setMaxCount() {
@@ -438,6 +439,73 @@ function setBladeModes() {
         if ((cov_md.value > 40) || (cov_md.value == 10)) {
             cov_md.options[0].selected = true;
             setElementVisibility("cov-pos-val", "hidden");
+        }
+    }
+}
+function enablePercentActions() {
+    const act_select = document.getElementById("action-select")
+    const dimm_opt = document.getElementById("dimmopt-act")
+    const cov_opt = document.getElementById("covopt-act")
+    const perc_opt = document.getElementById("perc-act")
+    const perc_val = document.getElementById("perc-val")
+    if (document.getElementById("trigger-select").value == 30) {
+        act_select.options[1].hidden = true;
+        act_select.options[4].hidden = true;
+        act_select.options[5].hidden = true;
+        act_select.options[6].hidden = true;
+        act_select.options[7].hidden = true;
+        act_select.options[8].hidden = true;
+        act_select.options[9].hidden = true;
+        act_select.options[10].hidden = true;
+        act_select.options[12].hidden = true;
+        act_select.options[13].hidden = true;
+        act_select.options[14].hidden = true;
+        dimm_opt.options[1].hidden = true;
+        dimm_opt.options[3].hidden = true;
+        dimm_opt.options[4].hidden = true;
+        dimm_opt.options[5].hidden = true;
+        cov_opt.options[0].hidden = true;
+        cov_opt.options[2].hidden = true;
+        cov_opt.options[3].hidden = true;
+        cov_opt.options[5].hidden = true;
+        perc_opt.options[1].hidden = true;
+        perc_opt.options[2].hidden = true;
+        perc_val.style.visibility = "hidden";
+        dimm_opt.value = 10;
+        cov_opt.value = 11;
+        perc_opt.value = 31
+        if ((act_select.value != 17) && (act_select.value != 20) && (act_select.value != 30)) {
+            act_select.selectedIndex = 0;
+            setActionSels();
+        }
+    }
+    else {
+        act_select.options[1].hidden = false;
+        act_select.options[4].hidden = false;
+        act_select.options[5].hidden = false;
+        act_select.options[6].hidden = false;
+        act_select.options[7].hidden = false;
+        act_select.options[8].hidden = false;
+        act_select.options[9].hidden = false;
+        act_select.options[10].hidden = false;
+        act_select.options[12].hidden = false;
+        act_select.options[13].hidden = false;
+        act_select.options[14].hidden = false;
+        dimm_opt.options[1].hidden = false;
+        dimm_opt.options[3].hidden = false;
+        dimm_opt.options[4].hidden = false;
+        dimm_opt.options[5].hidden = false;
+        cov_opt.options[0].hidden = false;
+        cov_opt.options[2].hidden = false;
+        cov_opt.options[3].hidden = false;
+        cov_opt.options[5].hidden = false;
+        perc_opt.options[1].hidden = false;
+        perc_opt.options[2].hidden = false;
+        dimm_opt.value = 20;
+        cov_opt.value = 1;
+        perc_opt.value = 30
+        if ((act_select.value == 17) || (act_select.value == 20)) {
+            perc_val.style.visibility = "visible";
         }
     }
 }
