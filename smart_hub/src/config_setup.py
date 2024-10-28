@@ -366,4 +366,6 @@ async def re_init_hub(main_app) -> web.Response:
     await api_srv.set_initial_server_mode(rtr._id)
     rtr.__init__(api_srv, rtr._id)
     await rtr.get_full_system_status()
+    api_srv._init_mode = False
+    await api_srv.set_operate_mode(rtr._id)
     return show_homepage(main_app)
