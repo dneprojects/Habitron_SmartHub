@@ -363,9 +363,11 @@ async def re_init_hub(main_app) -> web.Response:
 
     api_srv = main_app["api_srv"]
     rtr = api_srv.routers[0]
+    await api_srv.block_network_if(rtr._id, True)
     await api_srv.set_initial_server_mode(rtr._id)
     rtr.__init__(api_srv, rtr._id)
     await rtr.get_full_system_status()
     api_srv._init_mode = False
+    await api_srv.block_network_if(rtr._id, False)
     await api_srv.set_operate_mode(rtr._id)
     return show_homepage(main_app)
