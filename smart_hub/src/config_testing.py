@@ -165,11 +165,15 @@ class ConfigTestingServer:
         main_app = request.app["parent"]
         api_srv = main_app["api_srv"]
         rtr = api_srv.routers[0]
+        api_srv = main_app["api_srv"]
         await api_srv.block_network_if(rtr._id, True)
+        await api_srv.set_initial_server_mode(rtr._id)
         await rtr.hdlr.rt_reboot()
         rtr.__init__(api_srv, rtr._id)
         await rtr.get_full_system_status()
+        api_srv._init_mode = False
         await api_srv.block_network_if(rtr._id, False)
+        await api_srv.set_operate_mode(rtr._id)
         return await show_router_syspage(main_app, "")
 
     @routes.post("/chan_reset")
