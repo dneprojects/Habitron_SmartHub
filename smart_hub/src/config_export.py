@@ -2,6 +2,7 @@ from openpyxl import Workbook
 from openpyxl.styles.fonts import Font
 from openpyxl.styles.alignment import Alignment
 
+from automation import AutomationsSet
 from configuration import ModuleSettingsLight
 from const import DATA_FILES_ADDON_DIR, DATA_FILES_DIR
 import re
@@ -9,7 +10,7 @@ import re
 header_font = Font(b=True, sz=14.0, color="c0372d")
 subheader_font = Font(b=True, sz=12.0)
 subheader_font_red = Font(b=True, sz=12.0, color="c0372d")
-left_aligned = Alignment(horizontal="left")
+left_aligned = Alignment(horizontal="left", vertical="top", wrapText=True)
 
 
 def create_documentation(router, filename):
@@ -77,6 +78,7 @@ def document_module(doc, mod, idx):
     output_type = {1: "", 2: "Dimmbar"}
     cover_type = {-1: "Rollladen", 1: "Rollladen", -2: "Jalousie", 2: "Jalousie"}
     settings = mod.settings
+    automation_set = AutomationsSet(settings)
 
     row = 1
     ws.cell(row, 1).value = f"Modul '{mod._name}'"
@@ -173,6 +175,51 @@ def document_module(doc, mod, idx):
                     ws.cell(row, 4).value = "Ausgang A: zu, B: auf"
                 ws.cell(row, 5).value = get_area_name(cov, mod)
                 row += 1
+        row += 1
+
+    if len(automation_set.local):
+        ws.cell(row, 1).value = "Lokale Automatisierungen"
+        ws.cell(row, 1).font = subheader_font_red
+        row += 1
+        ws = write_atm_headers(ws, row)
+        row += 1
+        atm_no = 1
+        for atm in automation_set.local:
+            ws.cell(row, 1).value = atm_no
+            ws.cell(row, 1).alignment = left_aligned
+            ws.cell(row, 2).value = atm.trigger.description
+            ws.cell(row, 2).alignment = left_aligned
+            ws.cell(row, 3).value = atm.condition.name
+            ws.cell(row, 3).alignment = left_aligned
+            ws.cell(row, 4).value = atm.action.description
+            ws.cell(row, 4).alignment = left_aligned
+            atm_no += 1
+            row += 1
+        row += 1
+    if len(automation_set.external):
+        ext_mod_name = ""
+        ws.cell(row, 1).value = "Externe Automatisierungen"
+        ws.cell(row, 1).font = subheader_font_red
+        row += 1
+        ws = write_atm_ext_headers(ws, row)
+        row += 1
+        for atm in automation_set.external:
+            if ext_mod_name != mod.get_rtr().get_module(atm.src_mod)._name:
+                ext_mod_name = mod.get_rtr().get_module(atm.src_mod)._name
+                atm_no = 1
+                ws.cell(row, 2).value = f"Modul {atm.src_mod} '{ext_mod_name}'"
+                ws.cell(row, 2).font = subheader_font
+                row += 1
+            ws.cell(row, 1).value = atm_no
+            ws.cell(row, 1).alignment = left_aligned
+            ws.cell(row, 2).value = atm.trigger.description
+            ws.cell(row, 2).alignment = left_aligned
+            ws.cell(row, 3).value = atm.condition.name
+            ws.cell(row, 3).alignment = left_aligned
+            ws.cell(row, 4).value = atm.action.description
+            ws.cell(row, 4).alignment = left_aligned
+            atm_no += 1
+            row += 1
 
     ws.column_dimensions["B"].width = 34
     ws.column_dimensions["C"].width = 12
@@ -192,6 +239,34 @@ def write_col_headers(ws, row: int):
     ws.cell(row, 3).font = subheader_font
     ws.cell(row, 4).font = subheader_font
     ws.cell(row, 5).font = subheader_font
+    return ws
+
+
+def write_atm_headers(ws, row: int):
+    """Set column headers."""
+
+    ws.cell(row, 1).value = "Nr."
+    ws.cell(row, 2).value = "Auslöser"
+    ws.cell(row, 3).value = "Bedingung"
+    ws.cell(row, 4).value = "Aktion"
+    ws.cell(row, 1).font = subheader_font
+    ws.cell(row, 2).font = subheader_font
+    ws.cell(row, 3).font = subheader_font
+    ws.cell(row, 4).font = subheader_font
+    return ws
+
+
+def write_atm_ext_headers(ws, row: int):
+    """Set column headers."""
+
+    ws.cell(row, 1).value = "Nr."
+    ws.cell(row, 2).value = "Auslöser"
+    ws.cell(row, 3).value = "Bedingung"
+    ws.cell(row, 4).value = "Aktion"
+    ws.cell(row, 1).font = subheader_font
+    ws.cell(row, 2).font = subheader_font
+    ws.cell(row, 3).font = subheader_font
+    ws.cell(row, 4).font = subheader_font
     return ws
 
 
