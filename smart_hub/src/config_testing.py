@@ -174,7 +174,10 @@ class ConfigTestingServer:
         main_app.logger.info(f"Router {rtr._id} will be initialized, please wait...")
         rtr.__init__(api_srv, rtr._id)
         main_app.logger.info("Reloading system status, please wait...")
-        await rtr.get_full_system_status()
+        try:
+            await rtr.get_full_system_status()
+        except Exception as err_msg:
+            main_app.logger.error(f"Error initializing system: {err_msg}")
         api_srv._init_mode = False
         await api_srv.block_network_if(rtr._id, False)
         await api_srv.set_operate_mode(rtr._id)
