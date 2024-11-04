@@ -265,10 +265,7 @@ class HbtnModule:
             "Fanekey",
             "Smart Sensor",
         ]:
-            self.logger.info(
-                f"Modul {self._type}: CRC: {new_status[MirrIdx.SMC_CRC:MirrIdx.SMC_CRC + 2]}"
-            )
-            pass  # Don't track update changes for these modules
+            pass  # Don't trigger status change events for these modules
         else:
             if self._type in ["Smart In 8/24V-1"]:
                 i0 = MirrIdx.AD_1

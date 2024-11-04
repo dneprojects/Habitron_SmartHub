@@ -61,12 +61,14 @@ function setStatus(jsonString) {
                 prog = modStat.progress;
                 success = modStat.success;
                 lbl = document.getElementById("stat_" + cur_mod);
-                if (prog < 100) {
-                    lbl.className = 'fw_subtext_bold';
-                    lbl.innerText = "Flashen: " + prog + "%";
-                }
-                else if ((upldStat == 100) & (prog == 100)) {
-                    lbl.innerText = "Flashen: " + success;
+                if (prog > 0) {
+                    if (prog < 100) {
+                        lbl.className = 'fw_subtext_bold';
+                        lbl.innerText = "Flashen: " + prog + "%";
+                    }
+                    else if ((upldStat == 100) & (prog == 100)) {
+                        lbl.innerText = "Update: " + success;
+                    }
                 }
             }
         }
