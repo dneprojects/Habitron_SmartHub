@@ -1,4 +1,5 @@
 const flash_btn = document.getElementById("flash_button");
+const cancel_btn = document.getElementById("upd_cancel_button");
 const check_boxes = document.getElementsByClassName("mod_chk");
 flash_btn.addEventListener("click", function () {
     watchUpdateStatus();
@@ -23,7 +24,9 @@ function control_flashbutton() {
 
 async function watchUpdateStatus() {
 
-    await setInterval(function () {
+    cancel_btn.disabled = true;
+    document.getElementById("header_lg").hidden = true;
+    setInterval(function () {
         // alle 3 Sekunden ausführen 
         getStatus();
     }, 3000);
@@ -49,6 +52,9 @@ function setStatus(jsonString) {
 
     if (cur_mod < 0) {
         // upload
+        for (let i = 0; i < check_boxes.length; i++) {
+            check_boxes[i].disabled = true;
+        }
         lbl = document.getElementById("stat_" + modsList[0]);
         lbl.className = 'fw_subtext_bold';
         lbl.innerText = "Upload: " + upldStat + "%";

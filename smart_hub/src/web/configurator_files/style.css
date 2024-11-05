@@ -605,7 +605,7 @@ div#setup-buttons {
    font: 11px arial, helvetica, clean, sans-serif;
    position: absolute;
 }
-#upd_button {
+#upd_cancel_button {
    height: 22px;
    width: 125px;
    margin-left: 0px;

@@ -207,7 +207,7 @@ def show_update_router(rtr, new_fw: str) -> web.Response:
     images += "</div>\n"
     images += "</div>\n"
     images += "<br><br>"
-    images += '<button name="UpdButton" id="upd_button" type="submit" value="cancel">Abbruch</button>'
+    images += '<button name="UpdButton" id="upd_cancel_button" type="submit" value="cancel">Abbruch</button>'
     images += '<button name="UpdButton" id="flash_button" type="submit" value="flash">Flashen</button>'
     images += "</form>"
     page = page.replace("<!-- ImageGrid -->", images)
@@ -266,7 +266,7 @@ def show_update_modules(mod_list, new_fw: str, mod_type: str) -> web.Response:
         images += "</div>\n"
     images += "</div>\n"
     images += "<br><br>\n"
-    images += '<button name="UpdButton" id="upd_button" type="submit" value="cancel">Abbruch</button>\n'
+    images += '<button name="UpdButton" id="upd_cancel_button" type="submit" value="cancel">Abbruch</button>\n'
     images += '<button name="UpdButton" id="flash_button" type="submit" value="flash">Flashen</button>\n'
     images += "</form>\n"
     page = page.replace("<!-- ImageGrid -->", images)
