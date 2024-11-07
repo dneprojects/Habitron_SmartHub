@@ -147,7 +147,7 @@ class ModHdlr(HdlrBase):
                     smc_buffer += resp[1:]
                 else:
                     self.logger.warning(f"SMC package {resp[0]} read again, discarded")
-                    resp[0] = pckg - 1
+                    resp = chr(pckg - 1).encode("iso8859-1")
                     cnt -= 1
         return smc_buffer
 
