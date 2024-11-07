@@ -42,14 +42,14 @@ class ModHdlr(HdlrBase):
         await self.handle_router_cmd_resp(
             self.rt_id, RT_CMDS.GET_MOD_MIRROR.replace("<mod>", chr(mod_addr))
         )
-        self.mod.status = chr(mod_addr).encode() + self.rt_msg._resp_msg
+        self.mod.status = chr(mod_addr).encode("iso8859-1") + self.rt_msg._resp_msg
 
     async def test_module_status(self, mod_addr: int) -> None:
         """Get all module settings, version for fix in testing mode."""
         await self.handle_router_cmd_resp(
             self.rt_id, RT_CMDS.GET_MOD_MIRROR.replace("<mod>", chr(mod_addr))
         )
-        self.mod.status = chr(mod_addr).encode() + self.rt_msg._resp_msg
+        self.mod.status = chr(mod_addr).encode("iso8859-1") + self.rt_msg._resp_msg
 
     async def send_module_smg(self, mod_addr: int):
         """Send SMG data from Smart Hub to router/module."""

@@ -225,7 +225,7 @@ class RtHdlr(HdlrBase):
         # )
         await asyncio.sleep(0.3)
         stat_idx = [0]
-        rt_stat = chr(self.rt_id).encode()
+        rt_stat = chr(self.rt_id).encode("iso8859-1")
         stat_idx.append(len(rt_stat))
 
         rt_stat += await self.get_rt_channels()
