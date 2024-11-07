@@ -449,17 +449,11 @@ function enablePercentActions() {
     const perc_opt = document.getElementById("perc-act")
     const perc_val = document.getElementById("perc-val")
     if (document.getElementById("trigger-select").value == 30) {
-        act_select.options[1].hidden = true;
-        act_select.options[4].hidden = true;
-        act_select.options[5].hidden = true;
-        act_select.options[6].hidden = true;
-        act_select.options[7].hidden = true;
-        act_select.options[8].hidden = true;
-        act_select.options[9].hidden = true;
-        act_select.options[10].hidden = true;
-        act_select.options[12].hidden = true;
-        act_select.options[13].hidden = true;
-        act_select.options[14].hidden = true;
+        for (var i = 1; i < act_select.options.length; i++) {
+            if ((act_select.options[i].innerText != "Dimmen") & (act_select.options[i].innerText != "Prozentwert") & (act_select.options[i].innerText != "Rollladen/Jalousie")) {
+                act_select.options[i].hidden = true;
+            }
+        }
         dimm_opt.options[1].hidden = true;
         dimm_opt.options[3].hidden = true;
         dimm_opt.options[4].hidden = true;
