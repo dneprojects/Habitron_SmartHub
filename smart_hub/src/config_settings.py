@@ -1598,6 +1598,7 @@ async def prepare_log_list(main_app):
     module = main_app["module"]
     settings = module.get_module_settings()
     await main_app["api_srv"].set_server_mode()
+    await main_app["api_srv"].block_network_if(module.rt_id, True)
     try:
         log_list = await module.hdlr.ekey_log_read()
         ll_len = int.from_bytes(log_list[1:3], "little") >> 3  # 8 bytes per entry
@@ -1633,6 +1634,7 @@ async def prepare_log_list(main_app):
         main_app["ekey_log"] = ekey_protocol
     except Exception as err_msg:
         main_app.logger.error(f"Error loading ekey log: {err_msg}")
+    await main_app["api_srv"].block_network_if(module.rt_id, False)
     return prepare_log_table(ekey_protocol)
 
 
