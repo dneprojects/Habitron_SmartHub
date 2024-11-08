@@ -204,8 +204,12 @@ def document_module(doc, mod, idx):
         ws = write_atm_ext_headers(ws, row)
         row += 1
         for atm in automation_set.external:
-            if ext_mod_name != mod.get_rtr().get_module(atm.src_mod)._name:
-                ext_mod_name = mod.get_rtr().get_module(atm.src_mod)._name
+            if mod.get_rtr().get_module(atm.src_mod) is None:
+                curr_mod_name = f"Mod_{atm.src_mod}?"
+            else:
+                curr_mod_name = mod.get_rtr().get_module(atm.src_mod)._name
+            if ext_mod_name != curr_mod_name:
+                ext_mod_name = curr_mod_name
                 atm_no = 1
                 ws.cell(row, 2).value = f"Modul {atm.src_mod} '{ext_mod_name}'"
                 ws.cell(row, 2).font = subheader_font

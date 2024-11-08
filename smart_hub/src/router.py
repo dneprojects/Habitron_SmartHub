@@ -178,6 +178,8 @@ class HbtnRouter:
 
     def get_module(self, mod_id: int) -> HbtnModule | None:
         """Return module object."""
+        if mod_id not in self.mod_addrs:
+            return None
         md_idx = self.mod_addrs.index(mod_id)
         if md_idx >= len(self.modules):
             return None
