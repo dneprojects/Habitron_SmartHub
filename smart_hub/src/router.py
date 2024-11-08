@@ -124,7 +124,7 @@ class HbtnRouter:
         self.comm_errors = await self.hdlr.get_mod_errors()
         self.build_smr()
         self.check_firmware()
-        self.logger.info("Router initialized")
+        self.logger.debug("Router status initialized")
         modules = await self.hdlr.get_rt_modules()
         return modules
 
@@ -136,6 +136,7 @@ class HbtnRouter:
         modules = await self.get_full_status()
         self.load_descriptions()
         self.get_router_settings()
+        self.logger.info("Router initialized")
 
         self.logger.info("Setting up modules...")
         for m_idx in range(modules[0]):
@@ -154,8 +155,11 @@ class HbtnRouter:
                     )
                 )
                 self.logger.debug(f"   Module {mod_addr} instantiated")
-                await self.modules[-1].initialize()
-                self.logger.info(f"   Module {mod_addr} initialized")
+                init_msg = await self.modules[-1].initialize()
+                if init_msg == "":
+                    self.logger.info(f"   Module {mod_addr} initialized")
+                else:
+                    self.logger.info(f"   Module {mod_addr} initialized: {init_msg}")
             except Exception as err_msg:
                 self.logger.error(f"   Failed to setup module {mod_addr}: {err_msg}")
                 self.err_modules.append(self.modules[-1])

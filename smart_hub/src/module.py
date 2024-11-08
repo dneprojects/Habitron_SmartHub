@@ -46,8 +46,9 @@ class HbtnModule:
         self.update_available = False
         self.update_version = ""
 
-    async def initialize(self):
+    async def initialize(self) -> str:
         """Get full module status"""
+        self.init_msg = ""
         self.hdlr.initialize(self)
         await self.hdlr.get_module_status(self._id)
         self.comp_status = self.get_status(False)
@@ -75,6 +76,7 @@ class HbtnModule:
         self.check_firmware()
 
         self.logger.debug(f"Module {self._name} at {self._id} initialized")
+        return self.init_msg[:-2]
 
     async def get_serial(self):
         """Get serial no from status, if not available, generate and set."""
@@ -144,7 +146,7 @@ class HbtnModule:
         crc_str = (chr((crc - (crc & 0xFF)) >> 8) + chr(crc & 0xFF)).encode("iso8859-1")
         if self.status[MirrIdx.SMC_CRC : MirrIdx.SMC_CRC + 2] != crc_str:
             self.logger.warning(
-                f"CRC Fehler von Modul {self._id} - {self._name}: Status CRC: {self.status[MirrIdx.SMC_CRC:MirrIdx.SMC_CRC+2]} - Berechnet aus SMC: {crc_str}"
+                f"      Module {self._id} CRC mismatch: status CRC: {self.status[MirrIdx.SMC_CRC:MirrIdx.SMC_CRC+2]} - calculated SMC CRC: {crc_str}"
             )
         self.status = (
             self.status[: MirrIdx.SMC_CRC]
@@ -199,9 +201,10 @@ class HbtnModule:
             self.update_available = True
             self.update_fw_file = fw_file
             self.update_version = new_fw
-            self.logger.info(
+            self.logger.debug(
                 f"     Found new firmware file for {self._type}: version {new_fw}"
             )
+            self.init_msg += f"New firmware '{new_fw}', "
         else:
             self.update_available = False
             self.update_fw_file = ""
