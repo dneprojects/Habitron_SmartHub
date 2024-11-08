@@ -1605,7 +1605,7 @@ async def prepare_log_list(main_app):
         for line_idx in range(ll_len):
             entry: dict[str, str] = {}
             log_line = log_list[line_idx * 8 + 3 : line_idx * 8 + 3 + 8]
-            main_app.logger.info(f"Log line {line_idx + 1}: {log_line}")
+            main_app.logger.debug(f"Log line {line_idx + 1}: {log_line}")
             if len(log_line) == 8:
                 user = settings.get_interf_name(
                     settings.users, log_line[2], "Unbekannt"

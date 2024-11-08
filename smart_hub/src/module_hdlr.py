@@ -703,6 +703,7 @@ class ModHdlr(HdlrBase):
         resp += self.rt_msg._resp_msg[4:]  # length + content
         cont_reading = True
         while cont_reading:
+            asyncio.sleep(0.05)
             cmd = RT_CMDS.GET_EKEY_LOG_REST.replace("<rtr>", chr(self.rt_id)).replace(
                 "<mod>", chr(self.mod_id)
             )
