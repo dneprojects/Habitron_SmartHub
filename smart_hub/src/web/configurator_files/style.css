@@ -639,6 +639,14 @@ div#setup-buttons {
    color:#000
 }
 
+.protoc_button {
+   height: 22px;
+   width: 100px;
+   margin-left: 0px;
+   font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;
+   font: 11px arial, helvetica, clean, sans-serif;
+}
+
 #config_button.config_button {
    height: 22px;
    width: 80px;

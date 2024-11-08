@@ -1576,6 +1576,7 @@ async def show_ekey_logs(main_app, mod_addr) -> web.Response:
         .replace(">Neu<", ">Protokoll sichern<")
         .replace("ModAddress", f"{mod_addr}")
         .replace('value="new"', f'value="save-{mod_addr}"')
+        .replace('class="config_button"', 'class="protoc_button"')
         .replace(">Löschen<", ">Protokoll löschen<")
         .replace(
             "Löschen der ausgewählten Automatisierung",
@@ -1597,30 +1598,38 @@ async def prepare_log_list(main_app):
     module = main_app["module"]
     settings = module.get_module_settings()
     await main_app["api_srv"].set_server_mode()
-    log_list = await module.hdlr.ekey_log_read()
-    ll_len = int.from_bytes(log_list[1:3], "little") >> 3  # 8 bytes per entry
-    for line_idx in range(ll_len):
-        entry: dict[str, str] = {}
-        log_line = log_list[line_idx * 8 + 3 : line_idx * 8 + 3 + 8]
-        user = settings.get_interf_name(settings.users, log_line[2], "Unbekannt")
-        finger = log_line[3]
-        if finger in range(128, 139):
-            finger -= 128
-            user = "Nicht freigeben: " + user
+    try:
+        log_list = await module.hdlr.ekey_log_read()
+        main_app.logger.info("Ekey log list read successfully")
+        ll_len = int.from_bytes(log_list[1:3], "little") >> 3  # 8 bytes per entry
+        for line_idx in range(ll_len):
+            entry: dict[str, str] = {}
+            log_line = log_list[line_idx * 8 + 3 : line_idx * 8 + 3 + 8]
+            main_app.logger.info(f"Log line {line_idx}: {log_line}")
+            user = settings.get_interf_name(settings.users, log_line[2], "Unbekannt")
+            finger = log_line[3]
+            if finger in range(128, 139):
+                finger -= 128
+                user = "Nicht freigeben: " + user
 
-        time_stamp = int.from_bytes(log_line[4:], "little")
-        entry["no"] = f"{line_idx + 1}"
-        if time_stamp:
-            dt = convert_to_daytime(log_line)
-            entry["date"] = dt.strftime("%d. %m. %Y")
-            entry["time"] = dt.strftime("%H:%M:%S")
-        else:
-            entry["date"] = "-"
-            entry["time"] = "-"
-        entry["user"] = user
-        entry["finger"] = FingerNames[finger]
-        ekey_protocol.append(entry)
-    main_app["ekey_log"] = ekey_protocol
+            time_stamp = int.from_bytes(log_line[4:], "little")
+            entry["no"] = f"{line_idx + 1}"
+            if time_stamp:
+                dt = convert_to_daytime(log_line)
+                entry["date"] = dt.strftime("%d. %m. %Y")
+                entry["time"] = dt.strftime("%H:%M:%S")
+            else:
+                entry["date"] = "-"
+                entry["time"] = "-"
+            entry["user"] = user
+            if finger in FingerNames:
+                entry["finger"] = FingerNames[finger]
+            else:
+                entry["finger"] = f"unknown {finger}"
+            ekey_protocol.append(entry)
+        main_app["ekey_log"] = ekey_protocol
+    except Exception as err_msg:
+        main_app.logger.error(f"Error loading ekey log: {err_msg}")
     return prepare_log_table(ekey_protocol)
 
 
