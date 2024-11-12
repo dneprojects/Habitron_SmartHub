@@ -590,7 +590,7 @@ class EventServer:
             if self.api_srv.is_addon:
                 self.websck = await websockets.connect(
                     self._uri,
-                    extra_headers={"Authorization": f"Bearer {self.auth_token}"},
+                    ## extra_headers={"Authorization": f"Bearer {self.auth_token}"},
                     open_timeout=4,
                 )
             else:
