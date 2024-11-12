@@ -598,33 +598,18 @@ class EventServer:
             await asyncio.sleep(1)
             resp = await self.websck.recv()
             self.failure_count = 0
-        except Exception as e:
-            err_msg = f"{e}"
-            if err_msg[-8:] == "HTTP 502" and self.api_srv.is_addon:
-                wait_for_HA = True
-                while wait_for_HA:
-                    await self.close_websocket()
-                    self.websck_is_closed = True
-                    self.logger.info("Waiting for Home Assistant to finish loading...")
-                    await asyncio.sleep(2)
-                    wait_for_HA = False
-                    try:
-                        self.websck = await websockets.connect(
-                            self._uri,
-                            open_timeout=4,
-                        )
-                        await asyncio.sleep(1)
-                        resp = await self.websck.recv()
-                        self.failure_count = 0
-                    except Exception as e:
-                        wait_for_HA = True
+        except Exception as err_msg:
+            await self.close_websocket()
+            err_message = f"{err_msg}"
+            if err_message[-8:] == "HTTP 502" and self.api_srv.is_addon:
+                self.logger.info("Waiting for Home Assistant to finish loading...")
+                await asyncio.sleep(2)
             else:
-                await self.close_websocket()
-                self.logger.error(f"Websocket connect failed: {e}")
-                self.websck_is_closed = True
-                self.token_ok = False
-                self.failure_count += 1
-                return False
+                self.logger.error(f"Websocket connect failed: {err_msg}")
+            self.websck_is_closed = True
+            self.token_ok = False
+            self.failure_count += 1
+            return False
         if json.loads(resp)["type"] == "auth_required":
             try:
                 msg = WEBSOCK_MSG.auth_msg
@@ -643,8 +628,8 @@ class EventServer:
                     if retry:
                         await self.open_websocket(retry=False)
                     return False
-            except Exception as e:
-                self.logger.error(f"Websocket authentification failed: {e}")
+            except Exception as err_msg:
+                self.logger.error(f"Websocket authentification failed: {err_msg}")
                 await self.close_websocket()
                 self.token_ok = False
                 return False
