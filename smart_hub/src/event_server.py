@@ -598,8 +598,8 @@ class EventServer:
             await asyncio.sleep(1)
             resp = await self.websck.recv()
             self.failure_count = 0
-        except Exception as err_msg:
-            if err_msg[-8:] == "HTTP 502" and self.api_srv.is_addon:
+        except Exception as e:
+            if e.message[-8:] == "HTTP 502" and self.api_srv.is_addon:
                 wait_for_HA = True
                 while wait_for_HA:
                     await self.close_websocket()
@@ -617,11 +617,11 @@ class EventServer:
                         await asyncio.sleep(1)
                         resp = await self.websck.recv()
                         self.failure_count = 0
-                    except Exception as err_msg:
+                    except Exception as e:
                         wait_for_HA = True
             else:
                 await self.close_websocket()
-                self.logger.error(f"Websocket connect failed: {err_msg}")
+                self.logger.error(f"Websocket connect failed: {e}")
                 self.websck_is_closed = True
                 self.token_ok = False
                 self.failure_count += 1
@@ -644,8 +644,8 @@ class EventServer:
                     if retry:
                         await self.open_websocket(retry=False)
                     return False
-            except Exception as err_msg:
-                self.logger.error(f"Websocket authentification failed: {err_msg}")
+            except Exception as e:
+                self.logger.error(f"Websocket authentification failed: {e}")
                 await self.close_websocket()
                 self.token_ok = False
                 return False
