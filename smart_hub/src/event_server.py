@@ -604,6 +604,7 @@ class EventServer:
                 wait_for_HA = True
                 while wait_for_HA:
                     await self.close_websocket()
+                    self.websck_is_closed = True
                     self.logger.info("Waiting for Home Assistant to finish loading...")
                     await asyncio.sleep(2)
                     wait_for_HA = False
