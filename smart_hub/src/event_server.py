@@ -611,9 +611,6 @@ class EventServer:
                     try:
                         self.websck = await websockets.connect(
                             self._uri,
-                            extra_headers={
-                                "Authorization": f"Bearer {self.auth_token}"
-                            },
                             open_timeout=4,
                         )
                         await asyncio.sleep(1)
