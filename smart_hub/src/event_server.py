@@ -590,7 +590,6 @@ class EventServer:
             if self.api_srv.is_addon:
                 self.websck = await websockets.connect(
                     self._uri,
-                    ## extra_headers={"Authorization": f"Bearer {self.auth_token}"},
                     open_timeout=4,
                 )
             else:
@@ -599,17 +598,32 @@ class EventServer:
             resp = await self.websck.recv()
             self.failure_count = 0
         except Exception as err_msg:
-            await self.close_websocket()
             err_message = f"{err_msg}"
             if err_message[-8:] == "HTTP 502" and self.api_srv.is_addon:
-                self.logger.info("Waiting for Home Assistant to finish loading...")
-                await asyncio.sleep(2)
+                wait_for_HA = True
+                while wait_for_HA:
+                    await self.close_websocket()
+                    self.websck_is_closed = True
+                    self.logger.info("Waiting for Home Assistant to finish loading...")
+                    await asyncio.sleep(4)
+                    wait_for_HA = False
+                    try:
+                        self.websck = await websockets.connect(
+                            self._uri,
+                            open_timeout=4,
+                        )
+                        await asyncio.sleep(1)
+                        resp = await self.websck.recv()
+                        self.failure_count = 0
+                    except Exception:
+                        wait_for_HA = True
             else:
+                await self.close_websocket()
                 self.logger.error(f"Websocket connect failed: {err_msg}")
-            self.websck_is_closed = True
-            self.token_ok = False
-            self.failure_count += 1
-            return False
+                self.websck_is_closed = True
+                self.token_ok = False
+                self.failure_count += 1
+                return False
         if json.loads(resp)["type"] == "auth_required":
             try:
                 msg = WEBSOCK_MSG.auth_msg
