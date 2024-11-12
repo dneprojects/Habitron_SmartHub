@@ -599,7 +599,8 @@ class EventServer:
             resp = await self.websck.recv()
             self.failure_count = 0
         except Exception as e:
-            if e.message[-8:] == "HTTP 502" and self.api_srv.is_addon:
+            err_msg = f"{e}"
+            if err_msg[-8:] == "HTTP 502" and self.api_srv.is_addon:
                 wait_for_HA = True
                 while wait_for_HA:
                     await self.close_websocket()
