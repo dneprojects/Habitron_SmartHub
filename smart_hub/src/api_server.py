@@ -290,19 +290,19 @@ class ApiServer:
         await self.evnt_srv.stop()
         self._opr_mode = False
         await asyncio.sleep(1)
-        await self.ensure_empty_response()
+        await self.ensure_empty_response_buf()
         self.logger.info("--- Switched to Client/Server mode")
         return not self._opr_mode
 
-    async def ensure_empty_response(self, rt_no=1) -> None:
-        """Send test command and wait for correspondig response."""
+    async def ensure_empty_response_buf(self, rt_no=1) -> None:
+        """Send test command, empty response buffer until corresponding response."""
         await self.hdlr.handle_router_cmd_resp(rt_no, RT_CMDS.GET_GLOB_MODE)
         if len(self.hdlr.rt_msg._resp_buffer) < 4:
             await self.hdlr.handle_router_cmd_resp(rt_no, RT_CMDS.GET_GLOB_MODE)
         recent_resp = self.hdlr.rt_msg._resp_buffer[3] != ord(RT_CMDS.GET_GLOB_MODE[7])
         while recent_resp:
-            self.logger.warning(
-                f"Received unexpected test response: {self.hdlr.rt_msg._resp_msg}"
+            self.logger.debug(
+                f"Received unmatching test response: {self.hdlr.rt_msg._resp_msg}"
             )
             await self.hdlr.handle_router_resp(rt_no)
             recent_resp = self.hdlr.rt_msg._resp_buffer[3] != ord(
