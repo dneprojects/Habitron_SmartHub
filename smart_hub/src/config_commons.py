@@ -10,6 +10,7 @@ from const import (
     MESSAGE_PAGE,
     INSTALLER_GROUP,
     SMHUB_INFO,
+    LOGGING_LEVELS,
 )
 
 
@@ -105,6 +106,7 @@ def show_exitpage(app) -> web.Response:
 
 def show_hub_overview(app) -> web.Response:
     """Show hub overview page."""
+
     api_srv = app["api_srv"]
     smhub = api_srv.sm_hub
     smhub_info = smhub.get_info()
@@ -129,16 +131,33 @@ def show_hub_overview(app) -> web.Response:
     else:
         pic_file, subtitle = get_module_image(b"\xc9\x00")
         html_str = get_html(HUB_HOMEPAGE).replace("HubTitle", f"Smart Hub '{hub_name}'")
+
+    info_obj = api_srv.sm_hub.get_info_obj()
+    props = "<h3>Eigenschaften</h3>\n"
+    props += "<table>\n"
+    props += f'<tr><td style="width:90px;">Typ:</td><td>{info_obj["software"]["type"]}</td></tr>\n'
+    props += f'<tr><td style="width:90px;">Version:</td><td>{info_obj["software"]["version"]}</td></tr>\n'
+    props += f'<tr><td style="width:90px;">Logging:</td><td>Ausgabe: {LOGGING_LEVELS[info_obj["software"]["loglevel"]["console"]]}, Datei: {LOGGING_LEVELS[info_obj["software"]["loglevel"]["file"]]}</td></tr>\n'
+    props += '<tr><td style="width:90px;">&nbsp;</td><td>&nbsp;</td></tr>\n'
+    props += f'<tr><td style="width:90px;">Hardware:</td><td>{info_obj["hardware"]["platform"]["type"]} #{info_obj["hardware"]["platform"]["serial"]}</td></tr>\n'
+    props += f'<tr><td style="width:90px;">CPU:</td><td>{info_obj["hardware"]["cpu"]["type"]}, Takt {info_obj["hardware"]["cpu"]["frequency max"]}</td></tr>\n'
+    props += f'<tr><td style="width:90px;">Auslastung:</td><td>{info_obj["hardware"]["cpu"]["load"]}, akt. Takt {info_obj["hardware"]["cpu"]["frequency current"]}, Temperatur {info_obj["hardware"]["cpu"]["temperature"]}</td></tr>\n'
+    props += f'<tr><td style="width:90px;">Arbeitsspeicher:</td><td>{info_obj["hardware"]["memory"]["total"]}, genutzt {info_obj["hardware"]["memory"]["percent"]}</td></tr>\n'
+    props += f'<tr><td style="width:90px;">Dateispeicher:&nbsp;</td><td>{info_obj["hardware"]["disk"]["total"]}, genutzt {info_obj["hardware"]["disk"]["percent"]}</td></tr>\n'
+    props += '<tr><td style="width:90px;">&nbsp;</td><td>&nbsp;</td></tr>\n'
+    props += f'<tr><td style="width:90px;">Netzwerk:</td><td>{info_obj["hardware"]["network"]["ip"]}, Host {info_obj["hardware"]["network"]["host"]}</td></tr>\n'
+    if (
+        info_obj["hardware"]["network"]["mac"]
+        == info_obj["hardware"]["network"]["lan mac"]
+    ):
+        props += f'<tr><td style="width:90px;">Verbindung:</td><td>LAN, MAC Adresse {info_obj["hardware"]["network"]["mac"]}</td></tr>\n'
+    else:
+        props += f'<tr><td style="width:90px;">Verbindung:</td><td>WLAN, MAC Adresse {info_obj["hardware"]["network"]["mac"]}</td></tr>\n'
+    props += "</table>\n"
+    props = props.replace(".0MHz", " MHz")
     html_str = html_str.replace("Overview", subtitle)
     html_str = html_str.replace("smart-Ip.jpg", pic_file)
-    html_str = html_str.replace(
-        "ContentText",
-        "<h3>Eigenschaften</h3>\n<p>"
-        + smhub_info.replace("  ", "&nbsp;&nbsp;&nbsp;&nbsp;")
-        .replace(": ", ":&nbsp;&nbsp;")
-        .replace("\n", "</p>\n<p>")
-        + "</p>",
-    )
+    html_str = html_str.replace("ContentText", props)
     rtr = api_srv.routers[0]
     rtr.check_firmware()
     if rtr.update_fw_file == "":

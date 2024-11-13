@@ -52,7 +52,7 @@ RT_ERROR_CODE = {
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.6.36"
+    SW_VERSION = "1.6.37"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
@@ -943,4 +943,13 @@ DAY_NIGHT_MODES_HELP: dict[int, str] = {
     1: "Umschaltung nach der Uhrzeit und beim Erreichen der Helligkeitsschwelle",
     2: "Umschaltung entweder zur Uhrzeit oder beim Erreichen der Helligkeitsschwelle",
     3: "Umschaltung beim Erreichen der Helligkeitsschwelle",
+}
+
+LOGGING_LEVELS: dict[int, str] = {
+    0: "notset",
+    10: "debug",
+    20: "info",
+    30: "warning",
+    40: "error",
+    50: "critical",
 }

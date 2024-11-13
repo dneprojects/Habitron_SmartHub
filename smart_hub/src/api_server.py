@@ -51,16 +51,7 @@ class ApiServer:
         self._pc_mode: bool = False
         self._in_shutdown = False
         self.token = os.getenv("SUPERVISOR_TOKEN")
-        if self.token is None:
-            self.is_addon: bool = False
-            self.logger.info("Smart Hub running")
-        else:
-            self.is_addon: bool = True
-            self.logger.info("Smart Center running")
-        self.slug_name: str | None = os.getenv("HOSTNAME")
-        if self.slug_name:
-            self.slug_name = self.slug_name.replace("-", "_")
-            self.logger.info("Addon Slug name: " + self.slug_name)
+        self.is_addon: bool = self.sm_hub.is_addon
 
     async def get_initial_status(self):
         """Starts router object and reads complete system status"""

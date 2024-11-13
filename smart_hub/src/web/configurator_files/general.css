@@ -241,7 +241,11 @@ img {
         width:250px;
     }
     table {
-        font-size: 90%
+        font-size: 90%;
+    }
+
+    table#mod-inputs-table, table#mod-outputs-table, table#mod-events-table {
+    width: 360px;
     }
     .ce_text.block, 
     .mod_article.block {

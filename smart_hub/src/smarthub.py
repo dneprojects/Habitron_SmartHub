@@ -49,9 +49,19 @@ class SmartHub:
         self.curr_mac: str = ""
         self.info = self.get_info()
         self.get_macs()
-        self.logger.info("Smart Hub starting...")
         self.skip_init: bool = False
         self.restart: bool = False
+        self.token = os.getenv("SUPERVISOR_TOKEN")
+        if self.token is None:
+            self.is_addon: bool = False
+            self.logger.info(f"Starting Smart Hub: version {self.get_version()}")
+        else:
+            self.is_addon: bool = True
+            self.logger.info(f"Starting Smart Center: version {self.get_version()}")
+        self.slug_name: str | None = os.getenv("HOSTNAME")
+        if self.slug_name:
+            self.slug_name = self.slug_name.replace("-", "_")
+            self.logger.info("Addon Slug name: " + self.slug_name)
 
     def reboot_hub(self):
         """Reboot hardware."""
@@ -214,6 +224,10 @@ class SmartHub:
         info_str = info_str + f"    console: {log_level_cons}\n"
         info_str = info_str + f"    file: {log_level_file}\n"
         return info_str
+
+    def get_info_obj(self):
+        """Return info as object."""
+        return yaml.load(self.get_info(), Loader=yaml.Loader)
 
     def get_update(self) -> str:
         """Return updated information on Smart Hub sensors and status."""  # Get cpu statistics

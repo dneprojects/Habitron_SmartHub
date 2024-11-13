@@ -364,6 +364,7 @@ async def show_module_testpage(main_app, mod_addr, update: bool) -> web.Response
         ">Konfigurationsdatei<",
         'form="test_form" value="ModAddress">Modultest beenden<',
     )
+    page = page.replace("left: 68%;", "")
     page = page.replace('action="test/start"', 'action="test/stop"')
     page = page.replace("ModAddress", f"{mod_addr}")
     page = page.replace(
@@ -480,7 +481,7 @@ async def build_status_table(app, mod_addr: int, update: bool) -> str:
         + "    <thead>\n"
         + '        <tr id="inst-th">\n'
         + '            <th style="width: 10%;">Nr.</th>\n'
-        + "            <th>Name</th>\n"
+        + '            <th style="width: 65%;">Name</th>\n'
         + '            <th style="width: 15%;">Typ</th>\n'
         + '            <th style="width: 10%;">Aktiv</th>\n'
         + "        </tr>\n"

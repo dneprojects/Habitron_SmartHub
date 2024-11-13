@@ -264,7 +264,9 @@ form table td.col_first {
    padding-right: 10px;
 }
 
-
+table#mod-inputs-table, table#mod-outputs-table, table#mod-events-table {
+   width: 450px;
+}
 
 .pagination {
    text-align: center;
