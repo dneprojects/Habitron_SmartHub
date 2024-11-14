@@ -52,7 +52,7 @@ RT_ERROR_CODE = {
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.6.37"
+    SW_VERSION = "1.6.38"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
@@ -814,7 +814,7 @@ MODULE_TYPES: Final[dict[str, str]] = {
     "\x50\x65": "Smart Detect 360",
 }
 
-NO_SMC_MODULES = [b"\x50\x64", b"\x50\x65", b"\x50\x66"]
+NO_SMC_MODULES = [b"\x50\x64", b"\x50\x65"]
 
 MODULE_FIRMWARE: Final[dict[bytes, str]] = {
     b"\x00\x01": "scvmv30",
