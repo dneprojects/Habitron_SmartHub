@@ -60,6 +60,7 @@ class EventServer:
         self._client_ip = api_srv._client_ip
         self._uri = ""
         self.logger = logging.getLogger(__name__)
+        self.fwd_hdlr = None
         self.ev_srv_task: Task
         self.ev_srv_task_running = False
         self.websck: WebSocketClientProtocol
@@ -119,7 +120,7 @@ class EventServer:
         return b""
 
     async def watch_rt_events(self, rt_rd):
-        """Task for handling router responses and events in api mode"""
+        """Task for handling router responses and events in operate mode"""
 
         self.logger.debug("Event server started")
         self.busy_starting = True
@@ -203,7 +204,7 @@ class EventServer:
                     rt_event = prefix + tail
                     if len(tail) == 1:
                         self.logger.info(
-                            f"API mode router message too short, tail: {tail}"
+                            f"Event server received router response: too short, tail = {tail}"
                         )
                         msg_len = 0
                     else:
@@ -247,7 +248,7 @@ class EventServer:
         elif (rt_event[4] == 133) and (rt_event[5] == 0):
             # Last response in Opr mode, shut down event watcher
             self.logger.debug(
-                "API mode router message: Mirror/events stopped, stopping router event watcher"
+                "Event server received router response: Mirror/events stopped, stopping router event watcher"
             )
             # if len(rt_rd._buffer) > 0:
             #     prefix = await rt_rd.readexactly(4)
@@ -259,37 +260,37 @@ class EventServer:
             if rt_event[6] != 0:
                 self.api_srv.routers[rtr_id - 1].chan_status = rt_event[5:47]
                 self.logger.debug(
-                    f"API mode router message: Router channel status, mode 0: {rt_event[6]}"
+                    f"Event server received router response: Router channel status, mode 0 = {rt_event[6]}"
                 )
             else:
                 self.logger.warning(
-                    "API mode router message: Router channel status with mode=0, discarded"
+                    "Event server received router response: Router channel status with mode=0, discarded"
                 )
             m_len = 48
 
         elif rt_event[4] == 50:
             self.logger.debug(
-                f"API mode router message, collective command: {rt_event[5]}"
+                f"Event server received router response: collective command = {rt_event[5]}"
             )
             m_len = 7
 
         elif rt_event[4] == 68:
             self.logger.debug(
-                f"API mode router message, direct command: Module {rt_event[5]} - Command {rt_event[6:-1]}"
+                f"Event server received router response: direct command = Module {rt_event[5]} - Command {rt_event[6:-1]}"
             )
             m_len = rt_event[8] + 8
 
         elif rt_event[4] == 87:
             # Forward command response
             self.logger.info(
-                f"API mode router message, forward response: {rt_event[4:-1]}"
+                f"Event server received router response: discarded forward response = {rt_event[4:-1]}"
             )
-            if self.fwd_hdlr is None:
-                # Instantiate once if needed
-                self.fwd_hdlr = ForwardHdlr(self.api_srv)
-                self.logger.info("Forward handler instantiated")
-            await self.fwd_hdlr.send_forward_response(rt_event[4:-1])
-            self.msg_appended = False
+            # if self.fwd_hdlr is None:
+            #     # Instantiate once if needed
+            #     self.fwd_hdlr = ForwardHdlr(self.api_srv)
+            #     self.logger.info("Forward handler instantiated")
+            # await self.fwd_hdlr.send_forward_response(rt_event[4:-1])
+            # self.msg_appended = False
 
         elif rt_event[4] == 134:  # 0x86: System event
             m_len = await self.notify_system_events(rt_event, rtr_id)
@@ -308,21 +309,23 @@ class EventServer:
             if (rt_event[3] == 6) and (rt_event[5] != 75):
                 self.api_srv.routers[rtr_id - 1].mode0 = rt_event[5]
                 self.logger.debug(
-                    f"API mode router message, system mode: {rt_event[5]}"
+                    f"Event server received router response: system mode = {rt_event[5]}"
                 )
             elif rt_event[3] != 6:
                 self.logger.warning(
-                    f"API mode router message, invalid system mode length: {rt_event}"
+                    f"Event server received router response: invalid system mode length = {rt_event}"
                 )
             else:
-                self.logger.debug("API mode router message, system mode: 'Config'")
+                self.logger.debug(
+                    "Event server received router response: system mode = 'Config'"
+                )
         elif rt_event[4] in [10, 11]:  # set/reset global flag
             pass  # discard response, info is always 74 123
 
         else:
             # Discard resonse of API command
             self.logger.warning(
-                f"API mode router message, response discarded: {rt_event}"
+                f"Event server received router response, response discarded: {rt_event}"
             )
         return m_len
 

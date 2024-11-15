@@ -81,7 +81,7 @@ class ApiServer:
                 block_time += 1
             if block_time > 0:
                 self.logger.debug(
-                    f"Waited for {block_time} seconds in blocked API mode"
+                    f"Waited for {block_time} seconds in blocked operate mode"
                 )
 
             # Read api command from network
@@ -181,7 +181,7 @@ class ApiServer:
         await self.ip_writer.drain()
 
     async def block_network_if(self, rt_no, set_block):
-        """Set or reset API mode pause."""
+        """Set or reset operate mode pause."""
         if self.is_offline:
             return
         if self._opr_mode and set_block:
@@ -196,14 +196,14 @@ class ApiServer:
                     f"Waited for {api_time} seconds for finishing API command"
                 )
             await self.set_server_mode(rt_no)
-            self.logger.debug("Block API mode")
+            self.logger.debug("Block operate mode")
         elif set_block:
             self._netw_blocked = True
-            self.logger.debug("Block API mode")
+            self.logger.debug("Block operate mode")
         if not set_block:
             self._netw_blocked = False
             await self.set_operate_mode(rt_no)
-            self.logger.debug("Release API mode block")
+            self.logger.debug("Release operate mode block")
 
     async def set_operate_mode(self, rt_no=1) -> bool:
         """Turn on operate mode: enable router events."""
@@ -306,7 +306,7 @@ class ApiServer:
         self._opr_mode = False
         await self.hdlr.handle_router_cmd_resp(rt_no, RT_CMDS.SET_SRV_MODE)
         await self.evnt_srv.stop()
-        self.logger.debug("API mode turned off initially")
+        self.logger.debug("Operate mode turned off initially")
 
     async def set_testing_mode(self, activate: bool) -> None:
         """Switch module testing mode according to bool arg."""

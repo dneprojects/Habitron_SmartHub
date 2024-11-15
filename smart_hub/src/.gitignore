@@ -17,3 +17,4 @@ nul
 launch.json
 .vscode/settings.json
 settings.set
+./*.bin
