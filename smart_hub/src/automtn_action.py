@@ -263,9 +263,9 @@ class AutomationAction:
                 actn_target = self.automation.get_output_desc(
                     self.action_args[0], False
                 )
-                if actn_target[:6] == "Zähler":
+                if actn_target.startswith("Zähler"):
                     actn_desc = ""
-                elif actn_target[:5] == "Logik":
+                elif actn_target.startswith("Logik"):
                     if self.action_code == 1:
                         actn_desc = "setzen"
                     if self.action_code == 2:
@@ -318,7 +318,7 @@ class AutomationAction:
                     actn_desc = actn_desc.replace("<unit>", "Sek.")
                 else:
                     actn_desc = actn_desc.replace("<unit>", "Min.")
-            elif actn_target[:4] == "Dimm":
+            elif actn_target.startswith("Dimm"):
                 self.unit = self.action_args[0]
                 if self.automation.settings.typ[0] == 1:
                     outp_no = self.action_args[0] + 10
@@ -350,13 +350,13 @@ class AutomationAction:
                 )
             elif self.action_code in [31]:  # %-value into register
                 actn_desc = f"{self.action_args[0]} ablegen"
-            elif actn_target[:6] == "Sammel":
+            elif actn_target.startswith("Sammel"):
                 actn_target = f"{actn_target.split()[0]} {self.get_dict_entry('coll_cmds',self.action_args[0])}"
                 actn_desc = ""
-            elif actn_target[:5] == "Alarm":
+            elif actn_target.startswith("Alarm"):
                 actn_target = f"{actn_target.split()[0]} {self.action_args[0]} {actn_target.split()[1]}"
                 actn_desc = ""
-            elif actn_target[:7] == "Meldung":
+            elif actn_target.startswith("Meldung"):
                 actn_target = (
                     f"Meldung {self.get_dict_entry('messages',self.action_args[0])}"
                 )
@@ -366,7 +366,7 @@ class AutomationAction:
                     actn_desc = "setzen"
                 elif self.action_code == 57:
                     actn_desc = "rücksetzen"
-            elif actn_target[:5] == "Modus":
+            elif actn_target.startswith("Modus"):
                 actn_desc = "setzen"
                 txt_high = self.automation.get_mode_desc(self.action_args[1])
                 if self.action_args[0] == 1:
@@ -381,7 +381,7 @@ class AutomationAction:
                     txt_low = ""
                 actn_target = f"Modus für Gruppe {self.automation.settings.group} auf '{txt_high}'{txt_low}"
                 actn_target = actn_target.replace("'Immer', ", "")
-            elif actn_target[:6] == "Temper":
+            elif actn_target.startswith("Temper"):
                 strings = TempTargetCodes[self.action_args[0]].split()
                 if self.action_args[0] in [11, 12, 13, 14]:
                     actn_target = TempTargetCodes[self.action_args[0]]
@@ -396,7 +396,7 @@ class AutomationAction:
                     actn_desc = f"{strings[2]}"
                 if self.action_args[0] in [1, 21, 2, 22]:
                     actn_desc = actn_desc.replace("setzen", f"auf {value} °C setzen")
-            elif actn_target[:5] == "Rolll":
+            elif actn_target.startswith("Rolll"):
                 self.unit = self.action_args[1]
                 cover_desc = f"{self.get_dict_entry('covers', self.action_args[1])}"
                 if self.action_args[2] == 255:
@@ -414,20 +414,20 @@ class AutomationAction:
                     actn_target = "Rollladen"
                 else:
                     actn_target = "Lamellen"
-            elif actn_target[:5] == "Klima":
+            elif actn_target.startswith("Klima"):
                 actn_target += f", Offset {self.action_args[0]}"
                 actn_desc = (
                     f"Ausgang {self.get_dict_entry('outputs', self.action_args[1])}"
                 )
-            elif actn_target[:4] == "Summ":
+            elif actn_target.startswith("Summ"):
                 actn_target += f" {self.action_args[2]}x:"
                 actn_desc = f"Höhe {self.action_args[0]}, Dauer {self.action_args[1]}"
-            elif actn_target[:3] == "SMS":
+            elif actn_target.startswith("SMS"):
                 actn_target = f"SMS an {self.automation.settings.gsm_numbers[self.action_args[0] - 1].name}:"
                 actn_desc = self.automation.settings.gsm_messages[
                     self.action_args[1] - 1
                 ].name
-            elif actn_target[:7] == "Telefon":
+            elif actn_target.startswith("Telefon"):
                 actn_target = f"Telefonanruf: {self.automation.settings.gsm_numbers[self.action_args[0] - 1].name}"
                 actn_desc = ""
             elif self.action_code == 35:  # RGB-LED

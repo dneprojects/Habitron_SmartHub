@@ -602,7 +602,7 @@ class EventServer:
             self.failure_count = 0
         except Exception as err_msg:
             err_message = f"{err_msg}"
-            if err_message[-8:] == "HTTP 502" and self.api_srv.is_addon:
+            if err_message.endswith("HTTP 502") and self.api_srv.is_addon:
                 wait_for_HA = True
                 while wait_for_HA:
                     await self.close_websocket()

@@ -769,6 +769,8 @@ class ModuleSettings:
 
     def format_smc(self, buf: bytes) -> str:
         """Parse line structure and add ';' and linefeeds."""
+        if len(buf) < 5:
+            return ""
         no_lines = int.from_bytes(buf[:2], "little")
         str_data = ""
         for byt in buf[:4]:

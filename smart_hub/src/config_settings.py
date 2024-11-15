@@ -1193,11 +1193,11 @@ def parse_response_form(main_app, form_data):
     """Parse configuration input form and store results in settings."""
     key = main_app["key"]
     settings = main_app["settings"]
-    if form_data["ModSettings"][0][:4] == "del-":  # remove element
+    if form_data["ModSettings"][0].startswith("del-"):  # remove element
         idxs = [
             int(form_data[ky][0], base=10)
             for ky in form_data.keys()
-            if ky[:4] == "sel_"
+            if ky.startswith("sel_")
         ]
         idxs.sort(reverse=True)
         for idx in idxs:
@@ -1215,10 +1215,9 @@ def parse_response_form(main_app, form_data):
             pass  # checked, but no delete command; area_sel handled later
         elif form_key == "new_entry":
             # add element
-            if (
-                form_data["ModSettings"][0][:4] == "next"
-                or form_data["ModSettings"][0][:4] == "back"
-            ):
+            if form_data["ModSettings"][0].startswith("next") or form_data[
+                "ModSettings"
+            ][0].startswith("back"):
                 continue  # skip "new_entry" if step buttons pressed
             entry_found = False
             for elem in settings.__getattribute__(key):

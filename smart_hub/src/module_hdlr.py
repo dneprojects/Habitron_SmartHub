@@ -754,7 +754,7 @@ class ModHdlr(HdlrBase):
         await self.handle_router_cmd_resp(self.rt_id, cmd)
         resp = self.rt_msg._resp_buffer[-10:-1]
         await self.api_srv.set_operate_mode()
-        if resp[-5:] == f"\x44{chr(self.mod_id)}\x05\xfa\x02".encode("iso8859-1"):
+        if resp.endswith(f"\x44{chr(self.mod_id)}\x05\xfa\x02".encode("iso8859-1")):
             resp = "ERROR_250_2"
         return resp
 
@@ -773,7 +773,7 @@ class ModHdlr(HdlrBase):
         await self.handle_router_cmd_resp(self.rt_id, cmd)
         resp = self.rt_msg._resp_buffer[-10:-1]
         await self.api_srv.set_operate_mode()
-        if resp[-5:] == f"\x44{chr(self.mod_id)}\x05\xfa\x02".encode("iso8859-1"):
+        if resp.endswith(f"\x44{chr(self.mod_id)}\x05\xfa\x02".encode("iso8859-1")):
             resp = "ERROR_250_2"
         return resp
 
