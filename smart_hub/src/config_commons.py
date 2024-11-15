@@ -163,15 +163,12 @@ def show_hub_overview(app) -> web.Response:
     if rtr.update_fw_file == "":
         html_str = html_str.replace('"rtr">Lokal<', '"rtr" disabled="true">aktuell<')
     opt_str = ""
-    mod_types: list[bytes] = []
     mod_updates: list[bytes] = []
     for mod in rtr.modules:
-        if mod._typ not in mod_types:
-            mod_types.append(mod._typ)
-            mod.check_firmware()
-            if mod.update_available:
-                opt_str += f'\n<option value="{mod._id}">{mod._type}</option>'
-                mod_updates.append(mod._typ)
+        mod.check_firmware()
+        if mod.update_available and mod._typ not in mod_updates:
+            opt_str += f'\n<option value="{mod._id}">{mod._type}</option>'
+            mod_updates.append(mod._typ)
     if len(mod_updates) > 0:
         html_str = html_str.replace(
             ">-- Modultyp --</option>", ">-- Modultyp --</option>" + opt_str
