@@ -796,24 +796,30 @@ class ModuleSettings:
             usr_nmbrs.append(self.users[u_i].nmbr)
         for usr_id in org_fingers.keys():
             if usr_id not in new_fingers.keys():
+                # user missing, must be deleted
                 self.response = await self.module.hdlr.del_ekey_entry(usr_id, 255)
                 self.logger.info(f"User {usr_id} deleted from ekey data base")
-        for usr_id in org_fingers.keys():
-            new_usr_fngr_ids = []
-            for fngr_id in range(len(new_fingers[usr_id])):
-                new_usr_fngr_ids.append(new_fingers[usr_id][fngr_id].nmbr)
-            for fngr_id in range(len(org_fingers[usr_id])):
-                org_finger = org_fingers[usr_id][fngr_id].nmbr
-                if org_finger not in new_usr_fngr_ids:
-                    self.response = await self.module.hdlr.del_ekey_entry(
-                        usr_id, org_finger
-                    )
-                    self.logger.info(
-                        f"Finger {org_finger} of user {usr_id} deleted from ekey data base"
-                    )
+            else:
+                # user found
+                new_usr_fngr_ids = []
+                for fngr_idx in range(len(new_fingers[usr_id])):
+                    # get all defined finger ids of user after editing
+                    new_usr_fngr_ids.append(new_fingers[usr_id][fngr_idx].nmbr)
+                for fngr_idx in range(len(org_fingers[usr_id])):
+                    org_finger = org_fingers[usr_id][fngr_idx].nmbr
+                    if org_finger not in new_usr_fngr_ids:
+                        # finger id of user before editing not found: delete
+                        self.response = await self.module.hdlr.del_ekey_entry(
+                            usr_id, org_finger
+                        )
+                        self.logger.info(
+                            f"Finger {org_finger} of user {usr_id} deleted from ekey data base"
+                        )
+        # all user and/or finger deletions done
         for usr_id in new_fingers.keys():
             f_msk = 0
             for fngr in new_fingers[usr_id]:
+                # create finger mask
                 f_msk = f_msk | 1 << (fngr.nmbr - 1)
             self.users[usr_nmbrs.index(usr_id)].type = f_msk * int(
                 math.copysign(1, self.users[usr_nmbrs.index(usr_id)].type)

@@ -126,10 +126,8 @@ class ModHdlr(HdlrBase):
             smc_buffer += resp[1:]
             len_SMC_file = int.from_bytes(resp[3:5], "little")
             pckg_cnt = int(ceil(len_SMC_file / 31))
+            pckg += 1
             while cnt < pckg_cnt:
-                cnt += 1
-                pckg = resp[0]
-                pckg += 1
                 if pckg == 0:
                     area += 1
                 if area == 100:
@@ -145,12 +143,12 @@ class ModHdlr(HdlrBase):
                 resp = self.rt_msg._resp_msg
                 if resp[0] == pckg:
                     smc_buffer += resp[1:]
+                    cnt += 1
+                    pckg += 1
                 else:
                     self.logger.warning(
                         f"SMC package {pckg}: received {resp[0]}, read again, discarded"
                     )
-                    resp = chr(pckg - 1).encode("iso8859-1")
-                    cnt -= 1
         return smc_buffer
 
     async def send_module_list(self, mod_addr: int):

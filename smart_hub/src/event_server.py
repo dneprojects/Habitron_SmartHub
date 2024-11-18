@@ -6,7 +6,7 @@ import os
 import websockets
 from websockets import ConnectionClosedOK, WebSocketClientProtocol
 from const import DATA_FILES_ADDON_DIR, DATA_FILES_DIR, HA_EVENTS
-from forward_hdlr import ForwardHdlr
+# from forward_hdlr import ForwardHdlr
 
 
 class EVENT_IDS:
@@ -291,6 +291,7 @@ class EventServer:
             #     self.logger.info("Forward handler instantiated")
             # await self.fwd_hdlr.send_forward_response(rt_event[4:-1])
             # self.msg_appended = False
+            m_len = rt_event[7]
 
         elif rt_event[4] == 134:  # 0x86: System event
             m_len = await self.notify_system_events(rt_event, rtr_id)
@@ -536,13 +537,6 @@ class EventServer:
     async def open_websocket(self, retry=True) -> bool:
         """Opens web socket connection to home assistant."""
 
-        if self.api_srv._pc_mode:
-            # If connected with PC no HA available
-            return False
-        if self.api_srv._test_mode and self.failure_count > 2:
-            # Test mode does not use websocket
-            return False
-        self.token_ok = retry
         if not self.websck_is_closed:
             return True
         if self.api_srv._netw_blocked:
@@ -551,7 +545,14 @@ class EventServer:
         if self.api_srv._init_mode:
             # Initialization, don't start websocket, HA is not ready
             return False
+        if self.api_srv._pc_mode:
+            # If connected with PC no HA available
+            return False
+        if self.api_srv._test_mode and self.failure_count > 2:
+            # Test mode does not use websocket
+            return False
 
+        self.token_ok = retry
         if self.api_srv.is_addon:
             # SmartHub running with Home Assistant, use internal websocket
             self.logger.info("Open internal add-on websocket to home assistant.")

@@ -1180,8 +1180,8 @@ def prepare_table(main_app, mod_addr, step, key) -> str:
             )
         if key in ["fingers"]:
             tbl = tbl.replace(
-                '<button name="ModSettings" class="new_button" id="config_button" type="submit" ',
-                '<button name="TeachNewFinger" class="new_button" id="config_button" type="button" ',
+                '<button name="ModSettings" class="new_button" id="config_button" type="submit" form="settings_table" value="new',
+                '<button name="TeachNewFinger" class="new_button" id="config_button" type="button" form="settings_table" value="new',
             )
         tbl += indent(7) + "</tr>\n"
     tbl += indent(5) + "</table>\n"
@@ -1203,7 +1203,7 @@ def parse_response_form(main_app, form_data):
         for idx in idxs:
             del settings.__getattribute__(key)[idx]
             if key == "users":
-                del settings.all_fingers[idx]
+                del settings.all_fingers[idx + 1]
         main_app["settings"] = settings
         return form_data["ModSettings"][0]
     for elem in settings.__getattribute__(key):

@@ -1,11 +1,17 @@
 const save_btn = document.getElementById("config_button_sv");
-const teach_btn = document.getElementsByName("TeachNewFinger")[0];
 const check_boxes = document.getElementsByClassName("sel_element");
 const settngs_buttons = document.getElementsByName("ModSettings");
+const teach_buttons = document.getElementsByName("TeachNewFinger");
 var del_btn = null;
 for (let i = 0; i < settngs_buttons.length; i++) {
     if (settngs_buttons[i].innerHTML == "entfernen") {
         del_btn = settngs_buttons[i];
+        break;
+    }
+}
+for (let i = 0; i < teach_buttons.length; i++) {
+    if (teach_buttons[i].innerHTML == "anlegen") {
+        teach_btn = teach_buttons[i];
         break;
     }
 }
