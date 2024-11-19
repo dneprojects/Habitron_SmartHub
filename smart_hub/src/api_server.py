@@ -33,6 +33,8 @@ class ApiServer:
         self.logger = logging.getLogger(__name__)
         self._rt_serial: tuple[StreamReader, StreamWriter] = rt_serial
         self._opr_mode: bool = True  # Allows explicitly setting operate mode off
+        if sm_hub.flash_only:
+            self._opr_mode = False
         self.routers = []
         self.routers.append(HbtnRouter(self, 1))
         self.api_msg = ApiMessage(self, const.def_cmd, const.def_len)
