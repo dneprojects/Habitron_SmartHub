@@ -412,11 +412,16 @@ class ConfigServer:
             "errors": 0,
             "success": "OK",
         }
-        await api_srv.block_network_if(rtr._id, True)
-        await rtr.hdlr.upload_router_firmware(
-            None, rtr.hdlr.stat_rtr_fw_update_protocol
-        )
-        await api_srv.block_network_if(rtr._id, False)
+        if api_srv.sm_hub.flash_only:
+            await rtr.hdlr.upload_router_firmware(
+                None, rtr.hdlr.stat_rtr_fw_update_protocol
+            )
+        else:
+            await api_srv.block_network_if(rtr._id, True)
+            await rtr.hdlr.upload_router_firmware(
+                None, rtr.hdlr.stat_rtr_fw_update_protocol
+            )
+            await api_srv.block_network_if(rtr._id, False)
         return show_hub_overview(app)
 
     @routes.post("/update_modules")

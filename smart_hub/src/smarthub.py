@@ -27,6 +27,8 @@ from api_server import ApiServer, ApiServerMin
 from config_server import ConfigServer
 from query_server import QueryServer
 
+flash_only = True
+
 
 class SmartHub:
     """Holds methods of Smart Hub."""
@@ -334,6 +336,11 @@ async def init_serial(bd_rate: int, logger):
     except Exception as err_msg:
         logger.info(f"   Error opening {def_device}: {err_msg}")
 
+    if flash_only:
+        # return with serial @ RT_BAUDRATE[0] = 19200
+        logger.info("   Flash only mode!")
+        return rt_serial
+
     try:
         new_query = True
         while router_booting:
@@ -398,6 +405,7 @@ async def main(ev_loop):
     try:
         # Instantiate SmartHub object
         sm_hub = SmartHub(ev_loop, logger)
+        sm_hub.flash_only = flash_only
         rt_serial = None
         while (rt_serial is None) and (retry_serial >= 0):
             if retry_serial < retry_max:
@@ -435,7 +443,7 @@ async def main(ev_loop):
         sm_hub.conf_srv = ConfigServer(sm_hub.api_srv)
         await sm_hub.conf_srv.initialize()  # ignore_ type
         logger.debug("   Initializing API server")
-        if init_flag:
+        if init_flag and not flash_only:
             await sm_hub.api_srv.get_initial_status()
         else:
             logger.warning("Initialization of router and modules skipped")
