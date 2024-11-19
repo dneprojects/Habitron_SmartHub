@@ -27,7 +27,7 @@ from api_server import ApiServer, ApiServerMin
 from config_server import ConfigServer
 from query_server import QueryServer
 
-flash_only = True
+flash_only = False
 
 
 class SmartHub:
