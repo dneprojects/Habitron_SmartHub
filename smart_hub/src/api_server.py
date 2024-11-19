@@ -33,8 +33,6 @@ class ApiServer:
         self.logger = logging.getLogger(__name__)
         self._rt_serial: tuple[StreamReader, StreamWriter] = rt_serial
         self._opr_mode: bool = True  # Allows explicitly setting operate mode off
-        if sm_hub.flash_only:
-            self._opr_mode = False
         self.routers = []
         self.routers.append(HbtnRouter(self, 1))
         self.api_msg = ApiMessage(self, const.def_cmd, const.def_len)
@@ -45,6 +43,11 @@ class ApiServer:
         self.event_mode_enabled: bool = True
         self._api_cmd_processing: bool = False  # Blocking of config server io requests
         self._netw_blocked: bool = False  # Blocking of network api server request
+        if sm_hub.flash_only:
+            self._opr_mode = False
+            self._netw_blocked = True
+            self.mirror_mode_enabled: bool = False
+            self.event_mode_enabled: bool = False
         self._auto_restart_opr: bool = False  # Automatic restart of Opr after api call
         self._init_mode: bool = True
         self._first_api_cmd: bool = True
