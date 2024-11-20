@@ -25,6 +25,7 @@ function control_flashbutton() {
 async function watchUpdateStatus() {
 
     cancel_btn.disabled = true;
+    flash_btn.disabled = true;
     document.getElementById("header_lg").hidden = true;
     setInterval(function () {
         // alle 3 Sekunden ausführen 
