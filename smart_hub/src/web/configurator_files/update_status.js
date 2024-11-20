@@ -25,7 +25,6 @@ function control_flashbutton() {
 async function watchUpdateStatus() {
 
     cancel_btn.disabled = true;
-    flash_btn.disabled = true;
     document.getElementById("header_lg").hidden = true;
     setInterval(function () {
         // alle 3 Sekunden ausführen 
@@ -53,6 +52,7 @@ function setStatus(jsonString) {
 
     if (cur_mod < 0) {
         // upload
+        flash_btn.disabled = true;
         for (let i = 0; i < check_boxes.length; i++) {
             check_boxes[i].disabled = true;
         }
