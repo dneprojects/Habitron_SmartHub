@@ -372,7 +372,7 @@ class EventServer:
             event_id = rt_event[6]
             args = rt_event[7:-1]
             self.logger.debug(
-                f"New router event type {event_id} from module {mod_id}: {args}"
+                f"Received event type {event_id} from module {mod_id}: {args}"
             )
             m_len = 9
             match event_id:

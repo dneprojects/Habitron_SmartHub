@@ -75,8 +75,7 @@ class ConfigTestingServer:
         for key in list(request.query.keys()):
             if key.startswith("modsel"):
                 mod_addrs.append(int(key.split("_")[1]))
-        await rtr.get_module_comm_status(mod_addrs)
-        return await show_comm_testpage(main_app)
+        return await show_comm_testpage(main_app, mod_addrs)
 
     @routes.get("/modules")
     async def test_modules(request: web.Request) -> web.Response:  # type: ignore
@@ -465,11 +464,13 @@ async def show_module_testpage(main_app, mod_addr, update: bool) -> web.Response
     return web.Response(text=page, content_type="text/html")
 
 
-async def show_comm_testpage(main_app) -> web.Response:
+async def show_comm_testpage(main_app, mod_addrs: list[int] = []) -> web.Response:
     """Prepare overview page of module comm status."""
     api_srv = main_app["api_srv"]
     rtr = api_srv.routers[0]
-    await rtr.get_module_comm_status()
+    await api_srv.block_network_if(rtr._id, True)
+    await rtr.get_module_comm_status(mod_addrs)
+    await api_srv.block_network_if(rtr._id, False)
 
     mod_image, type_desc = get_module_image(rtr.settings.typ)
     side_menu = activate_side_menu(
