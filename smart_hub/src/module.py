@@ -1,5 +1,5 @@
 import datetime
-import string
+import unicodedata
 from glob import glob
 import logging
 from copy import deepcopy as dpcopy
@@ -55,15 +55,11 @@ class HbtnModule:
         self.comp_status = self.get_status(False)
         self.calc_SMG_crc(self.build_smg())
 
-        self._name = "".join(
-            filter(
-                lambda x: x in string.printable,
-                (
-                    self.status[MirrIdx.MOD_NAME : MirrIdx.MOD_NAME + 32]
-                    .decode("iso8859-1")
-                    .strip()
-                ),
-            )
+        self._name = unicodedata.normalize(
+            "NFKD",
+            self.status[MirrIdx.MOD_NAME : MirrIdx.MOD_NAME + 32]
+            .decode("iso8859-1")
+            .strip(),
         )
         sw_vers = (
             self.status[MirrIdx.SW_VERSION : MirrIdx.SW_VERSION + 22]
