@@ -61,6 +61,7 @@ function setStatus(jsonString) {
         lbl.innerText = "Upload: " + upldStat + "%";
     }
     else {
+        flash_btn.disabled = true;
         for (modKey of Object.getOwnPropertyNames(updateStat)) {
             if (modKey.slice(0, 4) == "mod_") {
                 cur_mod = modKey.replace("mod_", "")

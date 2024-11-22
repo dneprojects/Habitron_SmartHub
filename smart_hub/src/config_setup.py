@@ -147,16 +147,7 @@ def show_setup_page(app, popup_msg="") -> web.Response:
             + "&nbsp;&nbsp;&nbsp;&nbsp;Habitron-Anlage übertragen und dort umgesetzt.<br>"
             + "&nbsp;&nbsp;&nbsp;&nbsp;Mit 'Neustart' werden Änderungen zurück gesetzt.<br>"
             + "5. Über 'Systemkonfiguration' kann die Konfiguration auch als Download gespeichert<br>"
-            + "&nbsp;&nbsp;&nbsp;&nbsp;werden, um später in die Anlage übertragen zu werden."
-            + "<h3>Router testen</h3>"
-            + "1. Status des Routers wird aktuell ausgelesen:<br>"
-            + "&nbsp;&nbsp;&nbsp;&nbsp;Kommunikationsfehler werden angezeigt.<br>"
-            + "2. Systemeinstellungen des Routers (Timeout) können verändert werden."
-            + "<h3>Module testen</h3>"
-            + "1. Bereits angelegte und in der Habitron-Anlage eingespeicherte Module<br>"
-            + "&nbsp;&nbsp;&nbsp;&nbsp;können ausgewählt werden.<br>"
-            + "2. Auf der folgenden Seite kann das gewählte Modul getestet werden, indem<br>"
-            + "&nbsp;&nbsp;&nbsp;&nbsp;Eingangszustände angezeigt und Ausgänge geschaltet werden.<br>",
+            + "&nbsp;&nbsp;&nbsp;&nbsp;werden, um später in die Anlage übertragen zu werden.",
         )
     else:
         page = page.replace(
@@ -310,7 +301,7 @@ def show_module_table(app) -> web.Response:
         table_str += td_line.replace("><", f">{mod._type}<")
         table_str += td_line.replace(
             "><",
-            f'><input type="number" value="{mod._channel}" class="mod_chans" name="modchan_unknown{mod._id}" id="modch-{mod._serial}" min="1" max="4"><',
+            f'><select class="mod_chans" name="modchan_{mod._serial}" id="modch-{mod._serial}"><option value="1" {sel_str1}>1 + 2</option><option value="2" {sel_str2}>3 + 4</option><option value="3" {sel_str3}>5 + 6</option><option value="4" {sel_str4}>7 + 8</option></select><',
         )
         table_str += td_line.replace(
             "><",
@@ -337,7 +328,7 @@ async def transfer_setup_table_changes(main_app) -> web.Response:
     rtr = api_srv.routers[0]
     for mod in rtr.removed_modules:
         await rtr.hdlr.del_mod_addr(mod._id)
-        rtr.mod_addrs.remove(mod._id)
+        main_app.logger.info(f"Module {mod._id} deleted from router list")
     rtr.removed_modules = []
     # save new model address/channel
     for mod in rtr.modules:
@@ -349,6 +340,9 @@ async def transfer_setup_table_changes(main_app) -> web.Response:
                 await rtr.hdlr.del_mod_addr(mod.old_id)
             # register new mod addr in router channel list
             await rtr.hdlr.set_module_address(1, mod._channel, mod._id)
+            main_app.logger.info(
+                f"Module address changed from {mod.old_id} to {mod._id}"
+            )
             # save changed group list?
             mod.changed = False
     return show_setup_page(

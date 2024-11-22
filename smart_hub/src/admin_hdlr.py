@@ -140,7 +140,7 @@ class AdminHdlr(HdlrBase):
                 self.check_router_no(rt)
                 if self.args_err:
                     return
-                await self.handle_router_cmd_resp(rt, RT_CMDS.GET_MD_COMMSTAT)
+                await self.handle_router_cmd_resp(rt, RT_CMDS.GET_MD_ERRORS)
                 self.response = self.rt_msg._resp_msg
                 return
             case spec.RT_LAST_MODERR:

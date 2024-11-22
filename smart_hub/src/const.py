@@ -52,7 +52,7 @@ RT_ERROR_CODE = {
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.7.2"
+    SW_VERSION = "1.7.3"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
@@ -356,7 +356,7 @@ class RT_CMDS:
     SEND_RT_GRPNO = "\x2a<rtr>\xff\x66\x01\x89\x02"
     SET_MOD_GROUP = "\x2a<rtr>\x0a\x66\x01\x89\x53<mod><grp>\xff"
     SEND_RT_GRPMODE_DEP = "\x2a<rtr>\xff\x66\x01\x89\x66"
-    SEND_RT_DAYNIGHT = "\x2a<rtr>\xff\x8c\x4c"
+    SEND_RT_DAYNIGHT = "\x2a<rtr>\xff\x8c\x53"
     SEND_RT_MODENAM = "\x2a<rtr>\xff\x68\x53<umd>\x01"
     START_RT_FORW_MOD = "\x2a<rtr>\x09\x44<mod>\x05\xc7\x58\xff"
     START_RT_FORW_SYS = "\x2a<rtr>\x06\x58\x58\xff"
@@ -370,7 +370,7 @@ class RT_CMDS:
     RES_RT_CHAN = "\x2a<rtr>\x08\xee\x03\x43<msk>\xff"
     GET_RT_BOOTSTAT = "\x2a<rtr>\x06\x6a\x4c\xff"
 
-    GET_MD_COMMSTAT = "\x2a<rtr>\x07\x65<mod>x\xff"
+    GET_MD_COMMSTAT = "\x2a<rtr>\x06\x65<mod>\xff"
     RST_MD_COMMSTAT = "\x2a<rtr>\x07\x65<mod>L\xff"
     RST_MD_ERRORS = "\x2a<rtr>\x06\x65\xfd\xff"
     GET_MD_LASTERR = "\x2a<rtr>\x06\x65\xfe\xff"

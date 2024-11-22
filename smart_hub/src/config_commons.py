@@ -362,17 +362,25 @@ def adjust_side_menu(modules, is_offline: bool, is_install: bool) -> str:
             side_menu.append(
                 '    <li class="setup sub"><a href="setup/adapt" title="Module verwalten" class="setup sub">Module verwalten</a></li>\n'
             )
-            if not is_offline:
-                side_menu.append(
-                    '    <li class="setup sub"><a href="test/router" title="Router testen" class="setup sub">Router testen</a></li>\n'
-                )
-            if not is_offline:
-                side_menu.append(
-                    '    <li class="setup sub"><a href="test/modules" title="Module testen" class="setup sub">Module testen</a></li>\n'
-                )
             side_menu.append(
                 '<li class="setup sub"><a href="Setup Guide" title="Anleitung zur Einrichtung" class="submenu modules last">Setup Guide</a></li>\n'
             )
+            side_menu.append("</ul></li>\n")
+            if not is_offline:
+                side_menu.append('<ul class="level_1">')
+                side_menu.append(
+                    '<li class="submenu modules last"><a href="test/" title="Diagnose und spezielle Einstellungen" class="submenu modules last">Diagnose</a>'
+                )
+                side_menu.append(
+                    '\n  <ul class="level_2">\n'
+                    '    <li class="setup sub"><a href="test/router" title="Router testen" class="setup sub">Router testen</a></li>\n'
+                )
+                side_menu.append(
+                    '    <li class="setup sub"><a href="test/comm" title="Kommunikation testen" class="setup sub">Kommunikation</a></li>\n'
+                )
+                side_menu.append(
+                    '    <li class="setup sub"><a href="test/modules" title="Module testen" class="setup sub">Module testen</a></li>\n'
+                )
             side_menu.append("</ul></li></ul>\n")
         else:
             side_menu = smf_id.read().splitlines(keepends=True)

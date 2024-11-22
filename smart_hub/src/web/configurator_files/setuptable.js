@@ -15,7 +15,9 @@ close_resp_popup.addEventListener("click", function () {
 });
 
 rem_button.addEventListener("click", function () {
-    removeModules()
+    if (rem_button.innerHTML != "Fehler rücksetzen") {
+        removeModules()
+    }
 })
 
 for (let i = 0; i < mod_ids.length; i++) {

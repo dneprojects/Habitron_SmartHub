@@ -40,6 +40,14 @@ class ConfigTestingServer:
         self.app.add_routes(routes)
         self.app["parent"] = self.parent
 
+    @routes.get("/")
+    async def setup_page(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        main_app = request.app["parent"]
+        if client_not_authorized(request):
+            return show_not_authorized(main_app)
+        return show_diag_page(main_app)
+
     @routes.get("/router")
     async def test_router(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
@@ -47,6 +55,28 @@ class ConfigTestingServer:
             return show_not_authorized(request.app)
         main_app = request.app["parent"]
         return await show_router_testpage(main_app)
+
+    @routes.get("/comm")
+    async def test_communication(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        if client_not_authorized(request):
+            return show_not_authorized(request.app)
+        main_app = request.app["parent"]
+        return await show_comm_testpage(main_app)
+
+    @routes.get("/comm_reset")
+    async def reset_comm_errors(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        if client_not_authorized(request):
+            return show_not_authorized(request.app)
+        main_app = request.app["parent"]
+        rtr = main_app["api_srv"].routers[0]
+        mod_addrs = []
+        for key in list(request.query.keys()):
+            if key.startswith("modsel"):
+                mod_addrs.append(int(key.split("_")[1]))
+        await rtr.get_module_comm_status(mod_addrs)
+        return await show_comm_testpage(main_app)
 
     @routes.get("/modules")
     async def test_modules(request: web.Request) -> web.Response:  # type: ignore
@@ -211,12 +241,63 @@ class ConfigTestingServer:
         return await show_router_syspage(main_app, "")
 
 
+def show_diag_page(app, popup_msg="") -> web.Response:
+    """Prepare modules page."""
+    side_menu = activate_side_menu(
+        app["side_menu"], ">Diagnose<", app["is_offline"] or app["api_srv"]._pc_mode
+    )
+    page = get_html("setup.html").replace("<!-- SideMenu -->", side_menu)
+    page = page.replace("<h1>HubTitle", "<h1>Habitron-Installation untersuchen")
+    page = page.replace("Overview", "Diagnosebereich")
+    page = page.replace(
+        "ContentText",
+        "<h3>Router</h3>"
+        + "1. Status des Routers wird aktuell ausgelesen:<br>"
+        + "&nbsp;&nbsp;&nbsp;&nbsp;Kommunikationsfehler werden angezeigt.<br>"
+        + "2. Systemeinstellungen des Routers (Timeout) können verändert werden.<br>"
+        + "3. Die Versorgungspannung einzelner Router-Kanäle kann für 3s ausgeschaltet werden:<br>"
+        + "&nbsp;&nbsp;&nbsp;&nbsp;Alle an diesem Kanal angeschlossenen Module<br>"
+        + "&nbsp;&nbsp;&nbsp;&nbsp;(außer Raumcontroller mit 230V-Anschluss) werden neu gestartet.<br>"
+        + "4. Der Routers kann rückgesetzt und neu gestartet werden:<br>"
+        + "&nbsp;&nbsp;&nbsp;&nbsp;Alle Modulinformationen werden neu eingelesen.<br>"
+        + "<h3>Kommunikation</h3>"
+        + "1. Status des Routerkommunikation mit allen Modulen wird aktuell ausgelesen:<br>"
+        + "&nbsp;&nbsp;&nbsp;&nbsp;Kommunikationsfehler werden für jedes Modul angezeigt.<br>"
+        + "2. Für ausgewählte Module lassen sich die Zähler der Kommunikationsfehler rücksetzen."
+        + "<h3>Module testen</h3>"
+        + "1. Bereits angelegte und in der Habitron-Anlage eingespeicherte Module<br>"
+        + "&nbsp;&nbsp;&nbsp;&nbsp;können ausgewählt werden.<br>"
+        + "2. Auf der folgenden Seite kann das gewählte Modul getestet werden, indem<br>"
+        + "&nbsp;&nbsp;&nbsp;&nbsp;Eingangszustände angezeigt und Ausgänge geschaltet werden.<br>",
+    )
+    page = page.replace(">Abbruch<", ' style="visibility: hidden;">Abbruch<')
+    page = page.replace(">Übernehmen<", ' style="visibility: hidden;">Übernehmen<')
+    if len(popup_msg):
+        page = page.replace(
+            '<h3 id="resp_popup_txt">response_message</h3>',
+            f'<h3 id="resp_popup_txt">{popup_msg}</h3>',
+        ).replace('id="resp-popup-disabled"', 'id="resp-popup"')
+    if app["api_srv"].is_offline:
+        page = page.replace(">Übertragen<", ' style="visibility: hidden;">Übertragen<')
+        page = page.replace(
+            'action="setup/table_transfer"', 'action="setup/table_close"'
+        )
+    else:
+        page = page.replace(
+            'value="cancel" style="visibility: hidden;"',
+            'value="cancel" style="width: 140px;"',
+        )
+        page = page.replace("Abbruch", "Neustart")
+
+    return web.Response(text=page, content_type="text/html", charset="utf-8")
+
+
 def show_modules_overview(app) -> web.Response:
     """Prepare modules page."""
     api_srv = app["api_srv"]
     rtr = api_srv.routers[0]
     side_menu = activate_side_menu(
-        app["side_menu"], ">Einrichten<", app["is_offline"] or app["api_srv"]._pc_mode
+        app["side_menu"], ">Diagnose<", app["is_offline"] or app["api_srv"]._pc_mode
     )
     side_menu = activate_side_menu(
         side_menu, ">Module testen<", app["is_offline"] or app["api_srv"]._pc_mode
@@ -245,7 +326,7 @@ async def show_router_testpage(main_app, popup_msg="") -> web.Response:
     error_stat = rtr.comm_errors
     side_menu = main_app["side_menu"]
     side_menu = activate_side_menu(
-        side_menu, ">Einrichten<", api_srv.is_offline or api_srv._pc_mode
+        side_menu, ">Diagnose<", api_srv.is_offline or api_srv._pc_mode
     )
     side_menu = activate_side_menu(
         side_menu, ">Router testen<", api_srv.is_offline or api_srv._pc_mode
@@ -384,6 +465,56 @@ async def show_module_testpage(main_app, mod_addr, update: bool) -> web.Response
     return web.Response(text=page, content_type="text/html")
 
 
+async def show_comm_testpage(main_app) -> web.Response:
+    """Prepare overview page of module comm status."""
+    api_srv = main_app["api_srv"]
+    rtr = api_srv.routers[0]
+    await rtr.get_module_comm_status()
+
+    mod_image, type_desc = get_module_image(rtr.settings.typ)
+    side_menu = activate_side_menu(
+        main_app["side_menu"],
+        ">Diagnose<",
+        main_app["is_offline"] or main_app["api_srv"]._pc_mode,
+    )
+    side_menu = activate_side_menu(
+        side_menu,
+        ">Kommunikation<",
+        main_app["is_offline"] or main_app["api_srv"]._pc_mode,
+    )
+    page = get_html("setup.html").replace("<!-- SideMenu -->", side_menu)
+    page = page.replace("<h1>HubTitle", "<h1>Kommunikation testen")
+    page = page.replace("Overview", "Modulübersicht")
+    page = page.replace(
+        "ContentText",
+        "Kommunikationsstatus aller Module, Fehlerzähler rücksetzen<br>Für eine Beschreibung der Abkürzungen den Mauszeiger über den Text führen.<br><br>",
+    )
+    page = page.replace("<!-- SetupContentStart >", "<!-- SetupContentStart -->")
+    # reconfigure existing buttons
+    page = page.replace(
+        ">Modul entfernen<", 'style="visibility: hidden;">Modul entfernen<'
+    )
+    page = page.replace(">Übertragen<", ' style="visibility: hidden;">Übertragen<')
+    page = page.replace(">Abbruch<", ' style="visibility: hidden;">Abbruch<')
+    page = page.replace(">Übernehmen<", ' style="visibility: hidden;">Übernehmen<')
+    page = page.replace(
+        'id="files_button" type="button" style="',
+        'id="files_button" type="button" style="visibility: hidden; ',
+    )
+    page = page.replace("left: 68%;", "")
+    page = page.replace('action="test/start"', 'action="test/stop"')
+    page = page.replace(
+        '<form action="automations/list" id="atm_form">',
+        '<form action="test/stop" id="test_form">',
+    )
+    page = page.replace("left: 560px;", "left: 200px;")
+    tbl_str = build_comm_table(rtr)
+    page = page.replace(
+        "<!-- MainContentEnd -->", tbl_str + "<br><!-- MainContentEnd -->"
+    )
+    return web.Response(text=page, content_type="text/html")
+
+
 async def show_router_syspage(main_app, popup_msg="") -> web.Response:
     """Prepare page for router system settings."""
     api_srv = main_app["api_srv"]
@@ -466,6 +597,69 @@ async def show_router_syspage(main_app, popup_msg="") -> web.Response:
     tbl += indent(5) + "</tbody></table>\n"
     page = page.replace("<p>ContentText</p>", tbl)
     return web.Response(text=page, content_type="text/html")
+
+
+def build_comm_table(rtr):
+    """Show table with module communication statistics."""
+
+    comm_stat = rtr.mod_comm_status
+    chan_pairs = ["1 + 2", "3 + 4", "5 + 6", "7 + 8"]
+
+    tr_line = '        <tr id="inst-tr">\n'
+    tre_line = "        </tr>\n"
+    td_line = "            <td></td>\n"
+    thead_lines = (
+        '<form action="test/comm_reset" id="table-form">\n'
+        '<table id="mod-table">\n'
+        + "    <thead>\n"
+        + '        <tr id="inst-th">\n'
+        + "            <th>Name</th>\n"
+        + "            <th>Adr.</th>\n"
+        + "            <th>Kanäle</th>\n"
+        + '            <th title="Wartende Bytes im Ringsspeicher">Buf.</th>\n'
+        + '            <th title="Anzahl Timeouts">Tout.</th>\n'
+        + '            <th title="Anzahl defekter Strings">Def.</th>\n'
+        + '            <th title="Anzahl interner Abspeicherfehler">Speich.</th>\n'
+        + '            <th title="Momentante Antwortzeit [ms]">Antw.</th>\n'
+        + '            <th title="Maximale Antwortzeit [ms]">Max.</th>\n'
+        + '            <th data-sort-method="none" title="Auswählen, um Fehlerzähler zurückzusetzen"></th>\n'
+        + "        </tr>\n"
+        + "    </thead>\n"
+        + "    <tbody>\n"
+    )
+    tend_lines = (
+        "  </tbody>\n</table>\n"
+        + '<button name="RemoveModules" id="tbl-button" title="Rücksetzen aller Fehlerereignisse für ausgewählte Module" type="submit" disabled>Fehler rücksetzen</button>'
+        + "</form>\n"
+    )
+
+    table_str = thead_lines
+    for mod_addr in list(comm_stat.keys()):
+        name = comm_stat[mod_addr][0]
+        chan_pair = chan_pairs[comm_stat[mod_addr][1] - 1]
+        waiting_bytes = comm_stat[mod_addr][2]
+        no_timeouts = comm_stat[mod_addr][3]
+        no_str_errs = comm_stat[mod_addr][4]
+        no_storage_errs = comm_stat[mod_addr][5]
+        curr_resp_time = comm_stat[mod_addr][6]
+        max_resp_time = comm_stat[mod_addr][7]
+        table_str += tr_line
+        table_str += td_line.replace("><", f">{name}<")
+        table_str += td_line.replace("><", f">{mod_addr}<")
+        table_str += td_line.replace("><", f">{chan_pair}<")
+        table_str += td_line.replace("><", f">{waiting_bytes}<")
+        table_str += td_line.replace("><", f">{no_timeouts}<")
+        table_str += td_line.replace("><", f">{no_str_errs}<")
+        table_str += td_line.replace("><", f">{no_storage_errs}<")
+        table_str += td_line.replace("><", f">{round(curr_resp_time / 4, 1)}<")
+        table_str += td_line.replace("><", f">{round(max_resp_time / 4, 1)}<")
+        table_str += td_line.replace(
+            "><",
+            f'><input type="checkbox" class="mod_sels" name="modsel_{mod_addr}" id="mod-{mod_addr}"><',
+        )
+        table_str += tre_line
+    table_str += tend_lines
+    return table_str
 
 
 async def build_status_table(app, mod_addr: int, update: bool) -> str:

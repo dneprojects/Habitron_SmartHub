@@ -14,7 +14,7 @@
 
 #count_popup .popup-content, #logic_popup .popup-content, #file_popup .popup-content, #updates_popup .popup-content, #newmod-popup .popup-content, #resp-popup .popup-content, #chan_popup .popup-content {
     background-color: white;
-    margin: 10% auto;
+    margin: 10% 20%;
     padding: 20px;
     border: 1px solid #888888;
     color: #6b6c6e;

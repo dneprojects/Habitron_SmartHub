@@ -1,4 +1,5 @@
 import asyncio
+import string
 from glob import glob
 from messages import calc_crc
 from os.path import isfile
@@ -166,6 +167,7 @@ class HbtnRouter:
                 self.modules.remove(self.modules[-1])
                 mods_to_remove.append(mod_addr)
                 self.logger.warning(f"   Module {mod_addr} removed")
+        await self.get_module_comm_status()
         for mod_addr in mods_to_remove:
             self.mod_addrs.remove(mod_addr)
 
@@ -445,9 +447,42 @@ class HbtnRouter:
             await self.api_srv.block_network_if(self._id, True)
             await self.hdlr.send_rt_name(settings.name)
             await self.hdlr.send_mode_names(settings.user1_name, settings.user2_name)
+            await self.hdlr.send_rt_day_night_changes(self.day_night)
             await self.hdlr.send_rt_group_deps(settings.mode_dependencies[1:])
             await self.get_full_status()
             await self.api_srv.block_network_if(self._id, False)
+
+    async def get_module_comm_status(self, mod_addrs: list[int] = []):
+        """Ask communication status for all modules."""
+        self.mod_comm_status = {}
+        for mod in self.modules + self.err_modules:
+            if mod._id in mod_addrs:
+                rt_command = RT_CMDS.RST_MD_COMMSTAT.replace("<mod>", chr(mod._id))
+            else:
+                rt_command = RT_CMDS.GET_MD_COMMSTAT.replace("<mod>", chr(mod._id))
+            await self.hdlr.handle_router_cmd_resp(self._id, rt_command)
+            resp = self.hdlr.rt_msg._resp_buffer[-6:]  # different length in both cases
+            name = mod._name
+            chan_no = mod._channel
+            waiting_bytes = resp[0]
+            no_timeouts = resp[1]
+            no_str_errs = resp[2]
+            no_storage_errs = resp[3]
+            curr_resp_time = resp[4]
+            if len(resp) < 6:
+                max_resp_time = resp[4]
+            else:
+                max_resp_time = resp[5]
+            self.mod_comm_status[mod._id] = (
+                name,
+                chan_no,
+                waiting_bytes,
+                no_timeouts,
+                no_str_errs,
+                no_storage_errs,
+                curr_resp_time,
+                max_resp_time,
+            )
 
     async def switch_chan_power(self, mode: str, chan_mask: int):
         """Switch router channel power on or off."""
@@ -468,7 +503,7 @@ class HbtnRouter:
         if chan_mask > 0:
             await self.api_srv.block_network_if(self._id, True)
             await self.switch_chan_power("off", chan_mask)
-            await asyncio.sleep(1)
+            await asyncio.sleep(3)
             await self.switch_chan_power("on", chan_mask)
             await self.api_srv.block_network_if(self._id, False)
 
@@ -561,7 +596,7 @@ class HbtnRouter:
             self.groups[:mod_addr] + int.to_bytes(0) + self.groups[mod_addr + 1 :]
         )
 
-    def rem_module(self, mod_addr):
+    def remove_module(self, mod_addr):
         """Remove module from router lists."""
 
         mod = self.get_module(mod_addr)
@@ -593,11 +628,16 @@ class HbtnRouter:
         """Adjust all entries for modules address and channel changes."""
 
         # clear structures
+        ch_ptr = 1
+        old_channels = self.channels
+        for ch_i in range(1, 5):
+            self.channel_list[ch_i] = []
+            for ch_mbr in range(self.channels[ch_ptr]):
+                self.channel_list[ch_i].append(self.channels[ch_ptr + ch_mbr + 1])
+            ch_ptr += self.channels[ch_ptr] + 2
         channels_str = ""
         old_groups = self.groups
         self.groups = b"\x50" + b"\0" * 80
-        for ch_i in range(1, 5):
-            self.channel_list[ch_i] = []
 
         # get new settings
         rm_list = []
@@ -606,6 +646,7 @@ class HbtnRouter:
             mod.changed = False
             mod_group = old_groups[mod._id - 1]
             if "modid_" + mod._serial in changes_dict.keys():
+                old_id = mod._id
                 new_id = int(changes_dict["modid_" + mod._serial])
                 new_chan = int(changes_dict["modchan_" + mod._serial])
                 if new_id != mod._id:
@@ -619,7 +660,10 @@ class HbtnRouter:
                     mod.changed = True
 
                 if mod.changed:
-                    # build new channel list
+                    # adapt channel list
+                    for chan, mod_ids in self.channel_list.items():
+                        if old_id in mod_ids:
+                            self.channel_list[chan].remove(old_id)
                     self.channel_list[new_chan].append(new_id)
                     # build new group list
                     self.groups = (
@@ -628,7 +672,7 @@ class HbtnRouter:
                         + self.groups[new_id:]
                     )
             else:
-                # remember model to be removed
+                # module not in list, remember to be removed
                 rm_list.append(mod._serial)
         for m_ser in rm_list:
             # remove in second loop to not change order in fist loop

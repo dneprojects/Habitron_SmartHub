@@ -389,7 +389,7 @@ class RtHdlr(HdlrBase):
 
     async def send_rt_day_night_changes(self, day_night) -> bytes:
         """Send day night settings."""
-        cmd_str = RT_CMDS.SEND_RT_DAYNIGHT + day_night.decode("iso8859-1") + "\xff"
+        cmd_str = RT_CMDS.SEND_RT_DAYNIGHT + day_night[1:].decode("iso8859-1") + "\xff"
         await self.rtr.set_config_mode(True)
         await self.handle_router_cmd_resp(self.rt_id, cmd_str)
         resp = self.rt_msg._resp_msg
