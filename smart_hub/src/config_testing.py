@@ -469,7 +469,9 @@ async def show_comm_testpage(main_app, mod_addrs: list[int] = []) -> web.Respons
     api_srv = main_app["api_srv"]
     rtr = api_srv.routers[0]
     await api_srv.block_network_if(rtr._id, True)
-    await rtr.get_module_comm_status(mod_addrs)
+    if len(mod_addrs) > 0:
+        await rtr.get_module_comm_status(mod_addrs)  # read and reset
+    await rtr.get_module_comm_status()  # read resetted values
     await api_srv.block_network_if(rtr._id, False)
 
     mod_image, type_desc = get_module_image(rtr.settings.typ)

@@ -262,7 +262,7 @@ def show_module_table(app) -> web.Response:
     )
 
     table_str = thead_lines
-    for mod in rtr.modules:
+    for mod in rtr.modules + rtr.err_modules:
         sel_str1 = ""
         sel_str2 = ""
         sel_str3 = ""
@@ -280,23 +280,6 @@ def show_module_table(app) -> web.Response:
         table_str += td_line.replace(
             "><",
             f'><input type="number" value="{mod._id}" class="mod_ids" name="modid_{mod._serial}" id="modno-{mod._serial}" min="1" max="64"><',
-        )
-        table_str += td_line.replace("><", f">{mod._type}<")
-        table_str += td_line.replace(
-            "><",
-            f'><select class="mod_chans" name="modchan_{mod._serial}" id="modch-{mod._serial}"><option value="1" {sel_str1}>1 + 2</option><option value="2" {sel_str2}>3 + 4</option><option value="3" {sel_str3}>5 + 6</option><option value="4" {sel_str4}>7 + 8</option></select><',
-        )
-        table_str += td_line.replace(
-            "><",
-            f'><input type="checkbox" class="mod_sels" name="modsel_{mod._id}" id="mod-{mod._id}"><',
-        )
-        table_str += tre_line
-    for mod in rtr.err_modules:
-        table_str += tr_line
-        table_str += td_line.replace("><", f">{mod._name}<")
-        table_str += td_line.replace(
-            "><",
-            f'><input type="number" value="{mod._id}" class="mod_ids" name="modid_unknown{mod._id}" id="modno-{mod._serial}" min="1" max="64"><',
         )
         table_str += td_line.replace("><", f">{mod._type}<")
         table_str += td_line.replace(
