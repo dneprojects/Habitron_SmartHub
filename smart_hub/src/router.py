@@ -1,5 +1,4 @@
 import asyncio
-import string
 from glob import glob
 from messages import calc_crc
 from os.path import isfile
@@ -629,7 +628,6 @@ class HbtnRouter:
 
         # clear structures
         ch_ptr = 1
-        old_channels = self.channels
         for ch_i in range(1, 5):
             self.channel_list[ch_i] = []
             for ch_mbr in range(self.channels[ch_ptr]):

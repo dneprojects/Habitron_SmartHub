@@ -62,19 +62,24 @@ class ApiMessage(BaseMessage):
 
     def resp_prepare_std(self, resp):
         """Take response and wrap it into buffer for standard response"""
-        self._rbuffer = self._buffer[: self._argi]
-        self._dlen = len(resp)
-        dlen_low = self._dlen & 0xFF
-        dlen_high = (self._dlen - dlen_low) >> 8
-        if isinstance(resp, str):
-            self._rbuffer += (chr(dlen_low) + chr(dlen_high) + resp).encode("iso8859-1")
-        else:
-            self._rbuffer = (
-                self._rbuffer
-                + (chr(dlen_low) + chr(dlen_high)).encode("iso8859-1")
-                + resp
-            )
-        self.resp_prepare_base()
+        try:
+            self._rbuffer = self._buffer[: self._argi]
+            self._dlen = len(resp)
+            dlen_low = self._dlen & 0xFF
+            dlen_high = (self._dlen - dlen_low) >> 8
+            if isinstance(resp, str):
+                self._rbuffer += (chr(dlen_low) + chr(dlen_high) + resp).encode(
+                    "iso8859-1"
+                )
+            else:
+                self._rbuffer = (
+                    self._rbuffer
+                    + (chr(dlen_low) + chr(dlen_high)).encode("iso8859-1")
+                    + resp
+                )
+            self.resp_prepare_base()
+        except Exception as err_msg:
+            self.logger.error(f"Error while preparing response {resp}: {err_msg}")
 
     def resp_prepare_stat(self, rbuffer):
         """Take response and wrap it into buffer for status response"""

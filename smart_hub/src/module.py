@@ -55,11 +55,10 @@ class HbtnModule:
         self.comp_status = self.get_status(False)
         self.calc_SMG_crc(self.build_smg())
 
-        self._name = unicodedata.normalize(
-            "NFKD",
+        self._name = (
             self.status[MirrIdx.MOD_NAME : MirrIdx.MOD_NAME + 32]
             .decode("iso8859-1")
-            .strip(),
+            .strip()
         )
         sw_vers = (
             self.status[MirrIdx.SW_VERSION : MirrIdx.SW_VERSION + 22]
