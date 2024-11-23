@@ -231,6 +231,9 @@ class ApiServer:
             # if self.hdlr.rt_msg._resp_code == 133:
             self.logger.info("--- Switched to Operate mode")
             self._opr_mode = True
+            await self.evnt_srv.start()
+            await asyncio.sleep(0.1)
+            return self._opr_mode
         if self._opr_mode:
             self.logger.debug("Already in Operate mode, recovering event server")
             await self.evnt_srv.start()
