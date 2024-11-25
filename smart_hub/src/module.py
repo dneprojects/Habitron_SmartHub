@@ -1,5 +1,4 @@
 import datetime
-import unicodedata
 from glob import glob
 import logging
 from copy import deepcopy as dpcopy

@@ -2,6 +2,7 @@ const mod_ids = document.getElementsByClassName("mod_ids");
 const mod_chans = document.getElementsByClassName("mod_chans");
 const sort_tbl = document.getElementById("sort_table");
 const rem_button = document.getElementById("tbl-button");
+const rel_button = document.getElementById("reload-button");
 const chk_boxes = document.getElementsByClassName("mod_sels");
 const mod_table = document.getElementById("mod-table")
 const resp_popup = document.getElementById("resp-popup");
@@ -14,11 +15,12 @@ close_resp_popup.addEventListener("click", function () {
     resp_popup.classList.remove("show");
 });
 
-rem_button.addEventListener("click", function () {
-    if (rem_button.innerHTML != "Fehler rücksetzen") {
+if (rem_button) {
+    rem_button.addEventListener("click", function () {
         removeModules()
-    }
-})
+    })
+}
+
 
 for (let i = 0; i < mod_ids.length; i++) {
     mod_ids[i].addEventListener("change", function () {
@@ -38,6 +40,15 @@ function controlRemoveButton() {
         for (let i = 0; i < chk_boxes.length; i++) {
             if (chk_boxes[i].checked) {
                 rem_button.disabled = false;
+                break;
+            }
+        }
+    }
+    if (rel_button != null) {
+        rel_button.innerText = "Neu laden";
+        for (let i = 0; i < chk_boxes.length; i++) {
+            if (chk_boxes[i].checked) {
+                rel_button.innerText = "Fehler rücksetzen";
                 break;
             }
         }

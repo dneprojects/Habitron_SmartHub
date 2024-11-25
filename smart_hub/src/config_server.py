@@ -195,12 +195,18 @@ class ConfigServer:
         create_documentation(rtr, file_name)
 
         if api_srv.is_addon:
-            data_file_path = DATA_FILES_ADDON_DIR
-            web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{file_name}"
-            return show_message_page(
-                "Dokumentation erzeugt.",
-                f"Datei unter {web_path} abgelegt.",
-            )
+            try:
+                data_file_path = DATA_FILES_ADDON_DIR
+                web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{file_name}"
+                return show_message_page(
+                    "Dokumentation erzeugt.",
+                    f"Datei unter {web_path} abgelegt.",
+                )
+            except Exception as err_msg:
+                return show_message_page(
+                    "Fehler bei der Erzeugung der Dokumentation:<br>",
+                    f"{err_msg}",
+                )
         else:
             data_file_path = DATA_FILES_DIR
             with open(data_file_path + file_name, "rb") as fid:
@@ -481,15 +487,19 @@ class ConfigServer:
         inspect_header(request)
         api_srv = request.app["api_srv"]
         if api_srv.is_addon:
-            request.app.logger.info(f"Headers: {request.headers}")
-            shutil.copy(WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + DOC_FILE)
-            web_path = (
-                f"file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{DOC_FILE}"
-            )
-            return show_message_page(
-                "Dokumentation erzeugt.",
-                f"Datei unter {web_path} abgelegt.",
-            )
+            # request.app.logger.info(f"Headers: {request.headers}")
+            try:
+                shutil.copy(WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + DOC_FILE)
+                web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.slug_name}/{DOC_FILE}"
+                return show_message_page(
+                    "Dokumentation erzeugt.",
+                    f"Datei unter {web_path} abgelegt.",
+                )
+            except Exception as err_msg:
+                return show_message_page(
+                    "Fehler bei der Erzeugung der Dokumentation:<br>",
+                    f"{err_msg}",
+                )
         else:
             with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
                 pdf_content = doc_file.read()

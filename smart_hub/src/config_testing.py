@@ -70,7 +70,6 @@ class ConfigTestingServer:
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         main_app = request.app["parent"]
-        rtr = main_app["api_srv"].routers[0]
         mod_addrs = []
         for key in list(request.query.keys()):
             if key.startswith("modsel"):
@@ -632,7 +631,7 @@ def build_comm_table(rtr):
     )
     tend_lines = (
         "  </tbody>\n</table>\n"
-        + '<button name="RemoveModules" id="tbl-button" title="Rücksetzen aller Fehlerereignisse für ausgewählte Module" type="submit" disabled>Fehler rücksetzen</button>'
+        + '<button name="ReloadTable" id="reload-button" title="Tabelle neu laden, Fehlerereignisse für ausgewählte Module rücksetzen" type="submit">Neu laden</button>'
         + "</form>\n"
     )
 

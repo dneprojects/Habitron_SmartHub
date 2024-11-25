@@ -693,7 +693,7 @@ button.ekey_pair {
    font: 11px arial, helvetica, clean, sans-serif;
 }
 
-#tbl-button {
+#tbl-button, #reload-button {
    height: 22px;
    width: 125px;
    margin-top: 30px;
