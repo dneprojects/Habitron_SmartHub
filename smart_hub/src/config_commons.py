@@ -5,6 +5,7 @@ from const import (
     CONFIG_TEMPLATE_FILE,
     ALLOWED_INGRESS_IPS,
     CONF_HOMEPAGE,
+    DOCUMENTATIONPAGE,
     HUB_HOMEPAGE,
     HOMEPAGE,
     MESSAGE_PAGE,
@@ -76,6 +77,22 @@ def show_homepage(app) -> web.Response:
         app["side_menu"], "", api_srv.is_offline or api_srv._pc_mode
     )
     page = page.replace("<!-- SideMenu -->", side_menu)
+    if api_srv.is_offline or api_srv._pc_mode:
+        page = page.replace(">Hub<", ">Home<")
+    return web.Response(text=page, content_type="text/html", charset="utf-8")
+
+
+def show_documentation_page(app) -> web.Response:
+    """Show configurator home page."""
+    api_srv = app["api_srv"]
+    page = get_html(DOCUMENTATIONPAGE)
+    api_srv = app["api_srv"]
+    side_menu = activate_side_menu(
+        app["side_menu"], ">Dokumentation<", app["is_offline"] or api_srv._pc_mode
+    )
+    page = page.replace("<!-- SideMenu -->", side_menu)
+    if app["is_install"]:
+        page = page.replace('style="visibility: hidden;"', "")
     if api_srv.is_offline or api_srv._pc_mode:
         page = page.replace(">Hub<", ">Home<")
     return web.Response(text=page, content_type="text/html", charset="utf-8")
@@ -361,9 +378,6 @@ def adjust_side_menu(modules, is_offline: bool, is_install: bool) -> str:
             )
             side_menu.append(
                 '    <li class="setup sub"><a href="setup/adapt" title="Module verwalten" class="setup sub">Module verwalten</a></li>\n'
-            )
-            side_menu.append(
-                '<li class="setup sub"><a href="Setup Guide" title="Anleitung zur Einrichtung" class="submenu modules last">Setup Guide</a></li>\n'
             )
             side_menu.append("</ul></li>\n")
             if not is_offline:

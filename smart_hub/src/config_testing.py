@@ -275,18 +275,12 @@ def show_diag_page(app, popup_msg="") -> web.Response:
             '<h3 id="resp_popup_txt">response_message</h3>',
             f'<h3 id="resp_popup_txt">{popup_msg}</h3>',
         ).replace('id="resp-popup-disabled"', 'id="resp-popup"')
-    if app["api_srv"].is_offline:
-        page = page.replace(">Übertragen<", ' style="visibility: hidden;">Übertragen<')
-        page = page.replace(
-            'action="setup/table_transfer"', 'action="setup/table_close"'
-        )
-    else:
-        page = page.replace(
-            'value="cancel" style="visibility: hidden;"',
-            'value="cancel" style="width: 140px;"',
-        )
-        page = page.replace("Abbruch", "Neustart")
-
+    page = hide_button("Übertragen", page)
+    page = hide_button("Abbruch", page)
+    page = page.replace(
+        'left: 560px;">Systemkonfiguration<',
+        'left: 560px; visibility: hidden;">Systemkonfiguration<',
+    )
     return web.Response(text=page, content_type="text/html", charset="utf-8")
 
 

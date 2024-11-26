@@ -20,6 +20,7 @@ from config_commons import (
     get_html,
     get_module_image,
     init_side_menu,
+    show_documentation_page,
     show_homepage,
     show_exitpage,
     show_modules,
@@ -43,6 +44,7 @@ from const import (
     DATA_FILES_ADDON_DIR,
     DATA_FILES_DIR,
     DOC_FILE,
+    HA_DOC_FILE,
     SETUP_DOC_FILE,
     MODULE_CODES,
     LICENSE_PAGE,
@@ -482,6 +484,12 @@ class ConfigServer:
             text=json.dumps(stat), content_type="text/plain", charset="utf-8"
         )
 
+    @routes.get(path="/Documentation")
+    async def show_doccenter(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        app = request.app
+        return show_documentation_page(app)
+
     @routes.get(path="/Smart Center Documentation")
     async def show_doc(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
@@ -502,6 +510,31 @@ class ConfigServer:
                 )
         else:
             with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
+                pdf_content = doc_file.read()
+            return web.Response(body=pdf_content, content_type="application/pdf")
+
+    @routes.get(path="/Grundbegriffe Home Assistant")
+    async def show_hadoc(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        api_srv = request.app["api_srv"]
+        if api_srv.is_addon:
+            # request.app.logger.info(f"Headers: {request.headers}")
+            try:
+                shutil.copy(
+                    WEB_FILES_DIR + HA_DOC_FILE, DATA_FILES_ADDON_DIR + HA_DOC_FILE
+                )
+                web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.sm_hub.slug_name}/{HA_DOC_FILE}"
+                return show_message_page(
+                    "Dokumentation erzeugt.",
+                    f"Datei unter {web_path} abgelegt.",
+                )
+            except Exception as err_msg:
+                return show_message_page(
+                    "Fehler bei der Erzeugung der Dokumentation:<br>",
+                    f"{err_msg}",
+                )
+        else:
+            with open(WEB_FILES_DIR + HA_DOC_FILE, "rb") as doc_file:
                 pdf_content = doc_file.read()
             return web.Response(body=pdf_content, content_type="application/pdf")
 
