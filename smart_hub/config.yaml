@@ -1,7 +1,7 @@
 ---
 name: "Smart Hub"
 description: "Habitron Smart Hub as Home Assistant Add-on"
-version: 1.8.0
+version: 1.8.1
 slug: "smart_hub"
 arch:
   - aarch64

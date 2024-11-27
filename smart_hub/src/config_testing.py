@@ -612,11 +612,11 @@ def build_comm_table(rtr):
         + "            <th>Name</th>\n"
         + "            <th>Adr.</th>\n"
         + "            <th>Kanäle</th>\n"
-        + '            <th title="Wartende Bytes im Ringsspeicher">Buf.</th>\n'
+        + '            <th title="Wartende Bytes im Ringsspeicher">Wart.</th>\n'
+        + '            <th title="Anzahl Ringspeicher Überlauf">Buf.</th>\n'
         + '            <th title="Anzahl Timeouts">Tout.</th>\n'
-        + '            <th title="Anzahl defekter Strings">Def.</th>\n'
-        + '            <th title="Anzahl interner Abspeicherfehler">Speich.</th>\n'
-        + '            <th title="Momentante Antwortzeit [ms]">Antw.</th>\n'
+        + '            <th title="Anzahl Modulstörungen">Stör.</th>\n'
+        + '            <th title="Momentane Antwortzeit [ms]">Antw.</th>\n'
         + '            <th title="Maximale Antwortzeit [ms]">Max.</th>\n'
         + '            <th data-sort-method="none" title="Auswählen, um Fehlerzähler zurückzusetzen"></th>\n'
         + "        </tr>\n"
@@ -634,9 +634,9 @@ def build_comm_table(rtr):
         name = comm_stat[mod_addr][0]
         chan_pair = chan_pairs[comm_stat[mod_addr][1] - 1]
         waiting_bytes = comm_stat[mod_addr][2]
+        buf_overflow = comm_stat[mod_addr][5]
         no_timeouts = comm_stat[mod_addr][3]
-        no_str_errs = comm_stat[mod_addr][4]
-        no_storage_errs = comm_stat[mod_addr][5]
+        no_mod_errs = comm_stat[mod_addr][4]
         curr_resp_time = comm_stat[mod_addr][6]
         max_resp_time = comm_stat[mod_addr][7]
         table_str += tr_line
@@ -644,9 +644,9 @@ def build_comm_table(rtr):
         table_str += td_line.replace("><", f">{mod_addr}<")
         table_str += td_line.replace("><", f">{chan_pair}<")
         table_str += td_line.replace("><", f">{waiting_bytes}<")
+        table_str += td_line.replace("><", f">{buf_overflow}<")
         table_str += td_line.replace("><", f">{no_timeouts}<")
-        table_str += td_line.replace("><", f">{no_str_errs}<")
-        table_str += td_line.replace("><", f">{no_storage_errs}<")
+        table_str += td_line.replace("><", f">{no_mod_errs}<")
         table_str += td_line.replace("><", f">{round(curr_resp_time / 4, 1)}<")
         table_str += td_line.replace("><", f">{round(max_resp_time / 4, 1)}<")
         table_str += td_line.replace(

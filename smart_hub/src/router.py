@@ -460,13 +460,13 @@ class HbtnRouter:
             else:
                 rt_command = RT_CMDS.GET_MD_COMMSTAT.replace("<mod>", chr(mod._id))
             await self.hdlr.handle_router_cmd_resp(self._id, rt_command)
-            resp = self.hdlr.rt_msg._resp_buffer[-6:]  # different length in both cases
+            resp = self.hdlr.rt_msg._resp_buffer[-7:]  # different length in both cases
             name = mod._name
             chan_no = mod._channel
             waiting_bytes = resp[0]
             no_timeouts = resp[1]
-            no_str_errs = resp[2]
-            no_storage_errs = resp[3]
+            no_mod_errs = resp[2]
+            no_buf_overflow = resp[3]
             curr_resp_time = resp[4]
             if len(resp) < 6:
                 max_resp_time = resp[4]
@@ -477,8 +477,8 @@ class HbtnRouter:
                 chan_no,
                 waiting_bytes,
                 no_timeouts,
-                no_str_errs,
-                no_storage_errs,
+                no_mod_errs,
+                no_buf_overflow,
                 curr_resp_time,
                 max_resp_time,
             )

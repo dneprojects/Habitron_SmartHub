@@ -54,7 +54,7 @@ RT_ERROR_CODE = {
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.8.0"
+    SW_VERSION = "1.8.1"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
