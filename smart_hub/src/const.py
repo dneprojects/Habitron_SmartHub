@@ -54,7 +54,7 @@ RT_ERROR_CODE = {
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.8.1"
+    SW_VERSION = "1.8.2"
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
@@ -372,8 +372,8 @@ class RT_CMDS:
     RES_RT_CHAN = "\x2a<rtr>\x08\xee\x03\x43<msk>\xff"
     GET_RT_BOOTSTAT = "\x2a<rtr>\x06\x6a\x4c\xff"
 
-    GET_MD_COMMSTAT = "\x2a<rtr>\x06\x65<mod>\xff"
-    RST_MD_COMMSTAT = "\x2a<rtr>\x07\x65<mod>L\xff"
+    GET_MD_COMMSTAT = "\x2a<rtr>\x07\x65<mod>\x00\xff"
+    RST_MD_COMMSTAT = "\x2a<rtr>\x07\x65<mod>\x4c\xff"
     RST_MD_ERRORS = "\x2a<rtr>\x06\x65\xfd\xff"
     GET_MD_LASTERR = "\x2a<rtr>\x06\x65\xfe\xff"
     GET_MD_ERRORS = "\x2a<rtr>\x06\x65\xff\xff"
