@@ -11,6 +11,7 @@ from const import (
     MODULE_CODES,
     RT_CMDS,
     MirrIdx,
+    IfDescriptor,
 )
 from router_hdlr import RtHdlr
 from module import HbtnModule
@@ -38,7 +39,8 @@ class HbtnRouter:
         self.err_modules = []
         self.removed_modules = []
         self.hdlr = RtHdlr(self, self.api_srv)
-        self.descriptions: str = ""
+        self.descriptions_file: str = ""
+        self.descriptions: list[IfDescriptor] = []
         self.smr: bytes = b""
         self.smr_crc: int = 0
         self.smr_upload: bytes = b""
@@ -51,6 +53,7 @@ class HbtnRouter:
         self.groups: bytes = b"\0" * 80
         self.mode_dependencies: bytes = b"\0" * 80
         self.mode0 = 0
+        self.cov_autostop_cnt = 1
         self.user_modes: bytes = b""
         self.serial: bytes = (chr(16) + "0010010824000010").encode("iso8859-1")
         self.day_night: bytes = (
@@ -134,7 +137,7 @@ class HbtnRouter:
 
         await self.hdlr.waitfor_rt_booted()
         modules = await self.get_full_status()
-        self.load_descriptions()
+        await self.get_descriptions()
         self.get_router_settings()
         self.logger.info("Router initialized")
 
@@ -308,7 +311,7 @@ class HbtnRouter:
     def pack_descriptions(self) -> str:
         """Pack descriptions to string with lines."""
         out_buf = ""
-        desc_buf = self.descriptions.encode("iso8859-1")
+        desc_buf = self.descriptions_file.encode("iso8859-1")
         desc_no = int.from_bytes(desc_buf[0:2], "little")
         for ptr in range(4):
             out_buf += f"{desc_buf[ptr]};"
@@ -323,7 +326,7 @@ class HbtnRouter:
             ptr += l_len
         return out_buf
 
-    def save_descriptions(self) -> None:
+    def save_descriptions_file(self) -> None:
         """Save descriptions to file."""
         file_name = f"Rtr_{self._id}_descriptions.smb"
         if self.api_srv.is_addon:
@@ -345,9 +348,85 @@ class HbtnRouter:
             )
             fid.close()
 
-    def load_descriptions(self) -> None:
+    def get_glob_descriptions(self, descriptions) -> None:
+        """Get descriptions of commands, etc."""
+
+        self.descriptions = []
+        resp = descriptions.encode("iso8859-1")
+
+        no_lines = int.from_bytes(resp[:2], "little")
+        resp = resp[4:]
+        for _ in range(no_lines):
+            if resp == b"":
+                break
+            line_len = int(resp[8]) + 9
+            line = resp[:line_len]
+            content_code = int.from_bytes(line[1:3], "little")
+            entry_no = int(line[3])
+            entry_name = line[9:line_len].decode("iso8859-1").strip()
+            if content_code == 767:  # FF 02: global flg (Merker)
+                self.descriptions.append(IfDescriptor(entry_name, entry_no, 3))
+            elif content_code == 1023:  # FF 03: collective commands (Sammelbefehle)
+                self.descriptions.append(IfDescriptor(entry_name, entry_no, 4))
+            elif content_code == 2047:  # FF 07: group names
+                self.descriptions.append(IfDescriptor(entry_name, entry_no, 2))
+            elif content_code == 2303:  # FF 08: alarm commands
+                pass
+            elif content_code == 2815:  # FF 0A: areas
+                self.descriptions.append(IfDescriptor(entry_name, entry_no, 1))
+            elif content_code == 3071:  # FF 0B: cover autostop count
+                self.cov_autostop_cnt = entry_no
+            resp = resp[line_len:]
+
+    def set_descriptions_to_file(self, descriptions: str = "") -> str:
+        """Add new descriptions into description string."""
+        desc_types = [10, 7, 2, 3]
+        if descriptions == "":
+            # init description header
+            descriptions = "\x00\x00\x00\x00"
+        resp = descriptions.encode("iso8859-1")
+        desc = resp[:4].decode("iso8859-1")
+        no_lines = int.from_bytes(resp[:2], "little")
+        line_no = 0
+        resp = resp[4:]
+        # Remove all global flags, coll commands, areas, cov_autostop, and group names
+        # Leave rest unchanged
+        for _ in range(no_lines):
+            if resp == b"":
+                break
+            line_len = int(resp[8]) + 9
+            line = resp[:line_len]
+            content_code = int.from_bytes(line[1:3], "little")
+            if content_code not in [767, 1023, 2047, 2815, 3071]:
+                desc += line.decode("iso8859-1")
+                line_no += 1
+            resp = resp[line_len:]
+        for descn in self.descriptions:
+            desc += f"\x01\xff{chr(desc_types[descn.type - 1])}{chr(descn.nmbr)}\x00\x00\x00\x00{chr(len(descn.name))}{descn.name}"
+            line_no += 1
+        desc += f"\x01\xff\x0b{chr(self.cov_autostop_cnt)}\x00\x00\x00\x00\x00"
+        line_no += 1
+        descriptions = chr(line_no & 0xFF) + chr(line_no >> 8) + desc[2:]
+        return descriptions
+
+    async def get_descriptions(self) -> None:
+        """Load descriptions from router or file."""
+        self.descriptions_file = ""
+        if float(self.version.decode("iso8859-1").strip().split()[1][1:]) >= 3.6:
+            # Router is capable to store descriptions
+            await self.hdlr.get_rtr_descriptions()
+            if len(self.descriptions) < 2:  # == 0:
+                # Legacy mode: look for description file
+                self.load_descriptions_file()
+                if len(self.descriptions) > 0:
+                    # Remove from file and store in router
+                    await self.cleanup_descriptions()
+        else:
+            self.load_descriptions_file()
+
+    def load_descriptions_file(self) -> None:
         """Load descriptions from file."""
-        self.descriptions = ""
+        self.descriptions_file = ""
         file_name = f"Rtr_{self._id}_descriptions.smb"
         if self.api_srv.is_addon:
             file_path = DATA_FILES_ADDON_DIR
@@ -361,33 +440,22 @@ class HbtnRouter:
                 fid = open(file_path + file_name, "r")
                 line = fid.readline().split(";")
                 for ci in range(len(line) - 1):
-                    self.descriptions += chr(int(line[ci]))
+                    self.descriptions_file += chr(int(line[ci]))
                 desc_no = int(line[0]) + 256 * int(line[1])
                 for li in range(desc_no):
                     line = fid.readline().split(";")
                     for ci in range(len(line) - 1):
-                        self.descriptions += chr(int(line[ci]))
+                        self.descriptions_file += chr(int(line[ci]))
                 fid.close()
                 self.logger.info(f"Descriptions loaded from {file_path + file_name}")
+                self.get_glob_descriptions(self.descriptions_file)
             except Exception as err_msg:
                 self.logger.error(
-                    f"Error loading description to file {file_path + file_name}: {err_msg}"
+                    f"Error loading description from file {file_path + file_name}: {err_msg}"
                 )
                 fid.close()
         else:
             self.logger.warning(f"Descriptions file {file_path + file_name} not found")
-
-    def unpack_descriptions(self, lines: str) -> None:
-        """Load descriptions from string."""
-        line = lines[0].split(";")
-        for ci in range(len(line) - 1):
-            self.descriptions += chr(int(line[ci]))
-        desc_no = int(line[0]) + 256 * int(line[1])
-        for li in range(desc_no):
-            line = lines[li + 1].split(";")
-            for ci in range(len(line) - 1):
-                self.descriptions += chr(int(line[ci]))
-        self.logger.info("Descriptions restored")
 
     def save_firmware(self, bin_data) -> None:
         "Save firmware binary to file and fw_data buffer."
@@ -506,12 +574,15 @@ class HbtnRouter:
             await self.switch_chan_power("on", chan_mask)
             await self.api_srv.block_network_if(self._id, False)
 
-    def set_descriptions(self, settings: RouterSettings) -> None:
+    async def set_descriptions(self, settings: RouterSettings) -> None:
         """Store names into router descriptions."""
         # groups, group names, mode dependencies
-        self.descriptions = settings.set_glob_descriptions()
-        self.save_descriptions()
-        settings.desc = self.descriptions
+        self.descriptions, self.cov_autostop_cnt = settings.set_rtr_descriptions()
+        if float(self.version.decode("iso8859-1").strip().split()[1][1:]) >= 3.6:
+            await self.hdlr.send_rtr_descriptions()
+        else:
+            self.descriptions_file = self.set_descriptions_to_file()
+            self.save_descriptions_file()
 
     def get_properties(self) -> tuple[dict[str, int], list[str]]:
         """Return number of flags, commands, etc."""
@@ -542,8 +613,15 @@ class HbtnRouter:
 
     async def cleanup_descriptions(self) -> None:
         """If descriptions in desc file, store them into router and remove them from file."""
-        self.logger.info("Description storage in router not yet implemented")
-        pass
+        if await self.hdlr.send_rtr_descriptions():
+            tmp_desc = self.descriptions
+            self.descriptions = []  # clear all descriptions
+            self.descriptions_file = self.set_descriptions_to_file()
+            self.save_descriptions_file()
+            self.descriptions = tmp_desc
+            self.logger.info(
+                "Router descriptions stored in router and removed from file"
+            )
 
     def new_module(
         self,

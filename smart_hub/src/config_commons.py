@@ -255,6 +255,8 @@ def is_outdated(cur_fw: str, new_fw: str) -> bool:
     """Compare two firmware strings and return update status."""
     cur_fw_fields = cur_fw.strip().split()
     new_fw_fields = new_fw.strip().split()
+    # cur_vers = float(cur_fw_fields[-2][1:])
+    # new_vers = float(new_fw_fields[-2][1:])
     cur_date = cur_fw_fields[-1]
     new_date = new_fw_fields[-1]
     cur_year = cur_date.split("/")[1][:4]
@@ -265,6 +267,12 @@ def is_outdated(cur_fw: str, new_fw: str) -> bool:
         return True
     if (int(new_year) == int(cur_year)) and (int(new_month) > int(cur_month)):
         return True
+    # if (
+    #     (int(new_year) == int(cur_year))
+    #     and (int(new_month) == int(cur_month))
+    #     and new_vers > cur_vers
+    # ):
+    #     return True
     if (
         (int(new_year) == int(cur_year))
         and (int(new_month) == int(cur_month))

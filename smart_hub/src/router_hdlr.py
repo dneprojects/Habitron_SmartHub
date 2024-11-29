@@ -6,6 +6,7 @@ from const import (
     RT_RESP,
     RT_STAT_CODES,
     SYS_MODES,
+    IfDescriptor,
 )
 from hdlr_class import HdlrBase
 from messages import RtMessage, RtResponse
@@ -486,6 +487,117 @@ class RtHdlr(HdlrBase):
         item = smr_bytes[smr_ptr + 1 : smr_ptr + item_len + 1]
         smr_ptr += item_len + 1
         return item, smr_ptr
+
+    async def get_rtr_descriptions(self) -> bytes:
+        """Get the router descriptions."""
+
+        desc = []
+        desc_cnt = 0
+        desc_len = -1  # initial value to enable repeated reading of desc 0
+        desc_to_read = True
+        while desc_to_read:
+            rt_command = (
+                RT_CMDS.GET_RTR_DESC.replace("<rtr>", chr(self.rt_id))
+                .replace("<cntl>", chr(desc_cnt & 0xFF))
+                .replace("<cnth>", chr(desc_cnt >> 8))
+            )
+            # Send command to router and get description
+            await self.handle_router_cmd_resp(self.rt_id, rt_command)
+            resp = self.rt_msg._resp_msg
+            resp_cnt = int.from_bytes(self.rt_msg._resp_buffer[5:7], "little")
+
+            if desc_cnt == 0 and resp_cnt == 0:
+                # first description with length, response OK
+                desc_len = int.from_bytes(self.rt_msg._resp_buffer[7:9], "little")
+
+            if desc_len == 0:
+                self.logger.info("Router descriptions empty")
+                desc_to_read = False
+            elif resp_cnt != desc_cnt:
+                self.logger.warning(
+                    f"Router description {desc_cnt}: received {resp_cnt}, read again, discarded"
+                )
+            else:
+                resp = self.rt_msg._resp_buffer[-35:-1]
+                desc.append(
+                    IfDescriptor(resp[2:].strip().decode("iso8859-1"), resp[1], resp[0])
+                )
+                desc_cnt += 1
+
+                if desc_cnt >= desc_len:
+                    self.logger.info(
+                        f"{desc_len} router descriptions read successfully"
+                    )
+                    self.rtr.descriptions = desc
+                    desc_to_read = False
+        self.rtr.descriptions = desc
+        return
+
+    async def send_rtr_descriptions(self) -> bool:
+        """Store descriptions into router."""
+
+        max_reps = 5
+        rep_cnt = 0
+        resp_cnt = 0xFFF0  # unknow flag for cnt 0
+        desc = self.rtr.descriptions
+
+        desc_len = len(desc)
+        no_bytes = 35 * desc_len + 4
+        desc_cnt = 0
+        while desc_cnt < desc_len and rep_cnt < max_reps:
+            desc_pckg = (
+                chr(desc_cnt & 0xFF)
+                + chr(desc_cnt >> 8)
+                + chr(0xFF)
+                + chr(desc[desc_cnt].type)
+                + chr(desc[desc_cnt].nmbr)
+                + (desc[desc_cnt].name + " " * (32 - len(desc[desc_cnt].name)))
+                + chr(0xFF)
+            )
+            if desc_cnt == 0:
+                desc_pckg = (
+                    chr(0)
+                    + chr(0)
+                    + chr(desc_len & 0xFF)
+                    + chr(desc_len >> 8)
+                    + chr(no_bytes & 0xFF)
+                    + chr(no_bytes >> 8)
+                    + desc_pckg[2:]
+                )
+            l_p = len(desc_pckg)
+            cmd = (
+                RT_CMDS.SEND_RTR_DESC.replace("<rtr>", chr(self.rt_id)).replace(
+                    "<len>", chr(l_p + 5)
+                )
+                + desc_pckg
+            )
+            await self.handle_router_cmd_resp(self.rt_id, cmd)
+            resp_cnt = int.from_bytes(self.rt_msg._resp_buffer[5:7], "little")
+            if resp_cnt == desc_cnt:
+                desc_cnt += 1
+                rep_cnt = 0
+            elif resp_cnt == 0xFFFF:
+                self.logger.warning(
+                    f"Description upload (router) returned error flag, repeat: Count {desc_cnt}"
+                )
+                rep_cnt += 1
+            elif resp_cnt == 0xFFFA:
+                self.logger.debug("Description upload (router) returned final flag")
+                desc_cnt += 1
+            else:
+                self.logger.error(
+                    f"Description upload (router) unexpected flag: {resp_cnt}, abort"
+                )
+                break
+        if resp_cnt == 0xFFFA:
+            self.logger.info(
+                f"Description upload terminated successfully, transferred {no_bytes} bytes of {desc_len} definitions to router"
+            )
+            return True
+        self.logger.info(
+            f"Description upload (router) terminated: Count {desc_cnt} Flag {resp_cnt}"
+        )
+        return False
 
     async def restart_system(self) -> None:
         """Restart router after firmware update."""

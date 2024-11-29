@@ -372,7 +372,7 @@ async def show_next_prev(main_app, args):
             await main_app["api_srv"].block_network_if(router._id, True)
             try:
                 await router.set_settings(settings)
-                router.set_descriptions(settings)
+                await router.set_descriptions(settings)
                 main_app["side_menu"] = adjust_side_menu(
                     main_app["api_srv"].routers[0].modules,
                     main_app["is_offline"],

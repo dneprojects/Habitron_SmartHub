@@ -613,9 +613,9 @@ def build_comm_table(rtr):
         + "            <th>Adr.</th>\n"
         + "            <th>Kanäle</th>\n"
         + '            <th title="Wartende Bytes im Ringsspeicher">Wart.</th>\n'
-        + '            <th title="Anzahl Ringspeicher Überlauf">Buf.</th>\n'
-        + '            <th title="Anzahl Timeouts">Tout.</th>\n'
-        + '            <th title="Anzahl Modulstörungen">Stör.</th>\n'
+        + '            <th title="Fehleranzahl Ringspeicherüberlauf">Buf.</th>\n'
+        + '            <th title="Fehleranzahl Timeout">Tout.</th>\n'
+        + '            <th title="Fehleranzahl Modulstörung">Stör.</th>\n'
         + '            <th title="Momentane Antwortzeit [ms]">Antw.</th>\n'
         + '            <th title="Maximale Antwortzeit [ms]">Max.</th>\n'
         + '            <th data-sort-method="none" title="Auswählen, um Fehlerzähler zurückzusetzen"></th>\n'

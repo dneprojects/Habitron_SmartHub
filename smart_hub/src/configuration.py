@@ -48,7 +48,7 @@ class ModuleSettings:
         self.list = dpcopy(module.list)
         self.status = dpcopy(module.status)
         self.smg = dpcopy(module.build_smg())
-        self.desc = dpcopy(module.get_rtr().descriptions)
+        # self.desc = dpcopy(module.get_rtr().descriptions)
         self.properties: dict = module.io_properties
         self.prop_keys = module.io_prop_keys
         self.cover_times: list[int] = [0, 0, 0, 0, 0]
@@ -67,7 +67,7 @@ class ModuleSettings:
         self.get_logic()
         self.get_names()
         self.get_settings()
-        self.get_descriptions()
+        # self.get_descriptions()
         self.automtns_def = AutomationsSet(self)
         self.sim_pin: str = ""
         self.sim_pin_changed = False
@@ -1053,6 +1053,39 @@ class ModuleSettings:
         return default
 
 
+class ModuleSettingsLight(ModuleSettings):
+    """Object with all module settings, without automations."""
+
+    def __init__(self, module):
+        """Fill all properties with module's values."""
+        self.id = module._id
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug("Initialzing module settings object")
+        self.module = module
+        self.name = dpcopy(module._name)
+        self.typ = module._typ
+        self.type = module._type
+        self.list = dpcopy(module.list)
+        self.status = dpcopy(module.status)
+        self.smg = dpcopy(module.build_smg())
+        # self.desc = dpcopy(module.get_rtr().descriptions)
+        self.properties: dict = module.io_properties
+        self.prop_keys = module.io_prop_keys
+        self.area_member = 0
+        self.cover_times = [0, 0, 0, 0, 0]
+        self.blade_times = [0, 0, 0, 0, 0]
+        self.user1_name = module.get_rtr().user_modes[1:11].decode("iso8859-1").strip()
+        self.user2_name = module.get_rtr().user_modes[12:].decode("iso8859-1").strip()
+        self.save_desc_file_needed: bool = False
+        self.upload_desc_info_needed: bool = False
+        self.group = dpcopy(module.get_group())
+        self.get_io_interfaces()
+        self.get_logic()
+        self.get_names()
+        self.get_settings()
+        # self.get_descriptions()
+
+
 class RouterSettings:
     """Object with all router settings."""
 
@@ -1064,7 +1097,6 @@ class RouterSettings:
         self.typ = b"\0\0"  # to distinguish from modules
         self.status = rtr.status
         self.smr = rtr.smr
-        self.desc = rtr.descriptions
         self.logger = logging.getLogger(__name__)
         self.channels = rtr.channels
         self.timeout = rtr.timeout[0] * 10
@@ -1084,7 +1116,7 @@ class RouterSettings:
         self.module_grp = []
         self.max_group = 0
         self.get_definitions()
-        self.get_glob_descriptions()
+        self.get_rtr_descriptions(rtr)
         self.get_day_night()
         self.properties: dict = rtr.properties
         self.prop_keys = rtr.prop_keys
@@ -1130,81 +1162,38 @@ class RouterSettings:
         str_len = self.smr[ptr]
         self.version = self.smr[ptr + 1 : ptr + 1 + str_len].decode("iso8859-1").strip()
 
-    def get_glob_descriptions(self) -> None:
+    def get_rtr_descriptions(self, rtr) -> None:
         """Get descriptions of commands, etc."""
-        resp = self.desc.encode("iso8859-1")
 
-        no_lines = int.from_bytes(resp[:2], "little")
-        resp = resp[4:]
-        for _ in range(no_lines):
-            if resp == b"":
-                break
-            line_len = int(resp[8]) + 9
-            line = resp[:line_len]
-            content_code = int.from_bytes(line[1:3], "little")
-            entry_no = int(line[3])
-            entry_name = line[9:line_len].decode("iso8859-1").strip()
-            if content_code == 767:  # FF 02: global flg (Merker)
-                self.glob_flags.append(IfDescriptor(entry_name, entry_no, 0))
-            elif content_code == 1023:  # FF 03: collective commands (Sammelbefehle)
-                self.coll_cmds.append(IfDescriptor(entry_name, entry_no, 0))
-            elif content_code == 2047:  # FF 07: group names
-                if entry_no in (nmbrs := [grp.nmbr for grp in self.groups]):
-                    self.groups[nmbrs.index(entry_no)] = IfDescriptor(
-                        entry_name, entry_no, 0
-                    )
-                else:
-                    self.groups.append(IfDescriptor(entry_name, entry_no, 0))
-            elif content_code == 2303:  # FF 08: alarm commands
+        for desc in rtr.descriptions:
+            if desc.type == 1:  # FF 0A: areas
+                self.areas.append(desc)
+            elif desc.type == 2:  # FF 07: group names
+                self.groups.append(desc)
+            elif desc.type == 3:  # global flg (Merker)
+                self.glob_flags.append(desc)
+            elif desc.type == 4:  # FF 03: collective commands (Sammelbefehle)
+                self.coll_cmds.append(desc)
+            elif desc.type == 5:  # FF 08: alarm commands
                 pass
-            elif content_code == 2815:  # FF 0A: areas
-                self.areas.append(IfDescriptor(entry_name, entry_no, 0))
-            elif content_code == 3071:  # FF 0B: cover autostop count
-                self.cov_autostop_cnt = entry_no
-            resp = resp[line_len:]
+            self.cov_autostop_cnt = rtr.cov_autostop_cnt
         if len(self.groups) == 0:
             self.groups.append(IfDescriptor("general", 0, 0))
         if len(self.areas) == 0:
             self.areas.append(IfDescriptor("House", 1, 0))
 
-    def set_glob_descriptions(self) -> str:
-        """Add new descriptions into description string."""
-        if self.desc == "":
-            # init description header
-            self.desc = "\x00\x00\x00\x00"
-        resp = self.desc.encode("iso8859-1")
-        desc = resp[:4].decode("iso8859-1")
-        no_lines = int.from_bytes(resp[:2], "little")
-        line_no = 0
-        resp = resp[4:]
-        # Remove all global flags, coll commands, areas, cov_autostop, and group names
-        # Leave rest unchanged
-        for _ in range(no_lines):
-            if resp == b"":
-                break
-            line_len = int(resp[8]) + 9
-            line = resp[:line_len]
-            content_code = int.from_bytes(line[1:3], "little")
-            if content_code not in [767, 1023, 2047, 2815, 3071]:
-                desc += line.decode("iso8859-1")
-                line_no += 1
-            resp = resp[line_len:]
-        for flg in self.glob_flags:
-            desc += f"\x01\xff\x02{chr(flg.nmbr)}\x00\x00\x00\x00{chr(len(flg.name))}{flg.name}"
-            line_no += 1
-        for cmd in self.coll_cmds:
-            desc += f"\x01\xff\x03{chr(cmd.nmbr)}\x00\x00\x00\x00{chr(len(cmd.name))}{cmd.name}"
-            line_no += 1
-        for grp in self.groups:
-            desc += f"\x01\xff\x07{chr(grp.nmbr)}\x00\x00\x00\x00{chr(len(grp.name))}{grp.name}"
-            line_no += 1
+    def set_rtr_descriptions(self) -> tuple[list[IfDescriptor], int]:
+        """Collect descriptions for router."""
+        desc = []
         for area in self.areas:
-            desc += f"\x01\xff\x0a{chr(area.nmbr)}\x00\x00\x00\x00{chr(len(area.name))}{area.name}"
-            line_no += 1
-        desc += f"\x01\xff\x0b{chr(self.cov_autostop_cnt)}\x00\x00\x00\x00\x00"
-        line_no += 1
-        self.desc = chr(line_no & 0xFF) + chr(line_no >> 8) + desc[2:]
-        return self.desc
+            desc.append(IfDescriptor(area.name, area.nmbr, 1))
+        for grp in self.groups:
+            desc.append(IfDescriptor(grp.name, grp.nmbr, 2))
+        for flg in self.glob_flags:
+            desc.append(IfDescriptor(flg.name, flg.nmbr, 3))
+        for cmd in self.coll_cmds:
+            desc.append(IfDescriptor(cmd.name, cmd.nmbr, 4))
+        return desc, self.cov_autostop_cnt
 
     def get_day_night(self) -> None:
         """Prepare day and night table."""
@@ -1253,39 +1242,6 @@ class RouterSettings:
                 day_night_str += chr(0)
             day_night_str += chr(sched[di]["module"])
         self.day_night = day_night_str.encode("iso8859-1")
-
-
-class ModuleSettingsLight(ModuleSettings):
-    """Object with all module settings, without automations."""
-
-    def __init__(self, module):
-        """Fill all properties with module's values."""
-        self.id = module._id
-        self.logger = logging.getLogger(__name__)
-        self.logger.debug("Initialzing module settings object")
-        self.module = module
-        self.name = dpcopy(module._name)
-        self.typ = module._typ
-        self.type = module._type
-        self.list = dpcopy(module.list)
-        self.status = dpcopy(module.status)
-        self.smg = dpcopy(module.build_smg())
-        self.desc = dpcopy(module.get_rtr().descriptions)
-        self.properties: dict = module.io_properties
-        self.prop_keys = module.io_prop_keys
-        self.area_member = 0
-        self.cover_times = [0, 0, 0, 0, 0]
-        self.blade_times = [0, 0, 0, 0, 0]
-        self.user1_name = module.get_rtr().user_modes[1:11].decode("iso8859-1").strip()
-        self.user2_name = module.get_rtr().user_modes[12:].decode("iso8859-1").strip()
-        self.save_desc_file_needed: bool = False
-        self.upload_desc_info_needed: bool = False
-        self.group = dpcopy(module.get_group())
-        self.get_io_interfaces()
-        self.get_logic()
-        self.get_names()
-        self.get_settings()
-        self.get_descriptions()
 
 
 def replace_bytes(in_bytes: bytes, repl_bytes: bytes, idx: int) -> bytes:
