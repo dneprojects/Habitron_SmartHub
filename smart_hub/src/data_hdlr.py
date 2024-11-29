@@ -164,7 +164,7 @@ class DataHdlr(HdlrBase):
                 self.logger.debug(f"Length of response: {len(self.response)}")
 
             case spec.DESC_PCREAD:
-                self.response = self.api_srv.routers[rt - 1].descriptions
+                self.response = self.api_srv.routers[rt - 1].set_descriptions_to_file()
 
             case spec.RT_FW_FILE_VS:
                 self.check_router_no(rt)
