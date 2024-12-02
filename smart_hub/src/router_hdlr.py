@@ -318,7 +318,10 @@ class RtHdlr(HdlrBase):
 
     async def send_rt_timeout(self, rt_timeout) -> bytes:
         """Send router timeout."""
-        tout = chr(rt_timeout)
+        if isinstance(rt_timeout, bytes):
+            tout = rt_timeout.decode("iso8859-1")
+        else:
+            tout = chr(rt_timeout)
         cmd_str = RT_CMDS.SEND_RT_TIMEOUT.replace("<tout>", tout)
         await self.rtr.set_config_mode(True)
         await self.handle_router_cmd_resp(self.rt_id, cmd_str)
@@ -390,6 +393,8 @@ class RtHdlr(HdlrBase):
 
     async def send_rt_day_night_changes(self, day_night) -> bytes:
         """Send day night settings."""
+        if len(day_night) == 70:
+            day_night = b"\x46" + day_night
         cmd_str = RT_CMDS.SEND_RT_DAYNIGHT + day_night[1:].decode("iso8859-1") + "\xff"
         await self.rtr.set_config_mode(True)
         await self.handle_router_cmd_resp(self.rt_id, cmd_str)
@@ -400,55 +405,25 @@ class RtHdlr(HdlrBase):
     async def send_rt_full_status(self) -> None:
         """Send full router status from uploaded smr."""
         self.logger.debug("Starting SMR data transfer into router")
-        smr_ptr = 1
-        mod_cnt = []
-        mod_cnt.append(self.rtr.smr_upload[1])
-        mod_cnt.append(self.rtr.smr_upload[1])
-        rt_channels = b""
-        for ch in range(4):
-            self.rtr.channel_list[ch + 1] = []
-            ch_count = self.rtr.smr_upload[smr_ptr]
-            rt_channels += (
-                int.to_bytes(ch + 1)
-                + int.to_bytes(ch_count)
-                + self.rtr.smr_upload[smr_ptr + 1 : smr_ptr + 1 + ch_count]
-            )
-            for md_i in range(ch_count):
-                self.rtr.mod_addrs.append(self.rtr.smr_upload[smr_ptr + 1 + md_i])
-                self.rtr.channel_list[ch + 1].append(
-                    self.rtr.smr_upload[smr_ptr + 1 + md_i]
-                )
-            smr_ptr += 1 + ch_count
-        await self.send_rt_channels(rt_channels)
-        rt_tout = self.rtr.smr_upload[smr_ptr]
-        smr_ptr += 1
-        await self.send_rt_timeout(rt_tout)
-        rt_groups, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
-        await self.send_rt_group_no(rt_groups)
-        rt_groupdep, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
-        await self.send_rt_group_deps(rt_groupdep)
-        rt_name, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
-        await self.send_rt_name(rt_name)
-        umd_name1, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
-        umd_name2, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
+
+        await self.send_rt_channels(self.rtr.channels)
+        await self.send_rt_timeout(self.rtr.timeout)
+        await self.send_rt_group_no(self.rtr.groups)
+        await self.send_rt_group_deps(self.rtr.mode_dependencies)
+        await self.send_rt_name(self.rtr.name)
+        umd_name1 = self.rtr.user_modes[1:11]
+        umd_name2 = self.rtr.user_modes[12:22]
         await self.send_mode_names(umd_name1, umd_name2)
-        rt_serial, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
-        rt_daynight, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
-        await self.send_rt_day_night_changes(rt_daynight)
-        # rt_fw_version, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
+        await self.send_rt_day_night_changes(self.rtr.day_night)
         self.logger.debug("SMR data transferred into router")
-        await self.rt_reboot()
+        # await self.rt_reboot()
 
     def set_rt_full_status(self) -> None:
         """Set full router status locally from uploaded smr."""
         self.logger.debug("Setting SMR data to local router data")
         smr_ptr = 1
-        mod_cnt = []
-        mod_cnt.append(self.rtr.smr_upload[1])
-        mod_cnt.append(self.rtr.smr_upload[1])
         self.rtr.smr = self.rtr.smr_upload
         rt_channels = b""
-        self.rtr.modules = []
         self.rtr.mod_addrs = []
         for ch in range(4):
             self.rtr.channel_list[ch + 1] = []
@@ -466,7 +441,7 @@ class RtHdlr(HdlrBase):
             smr_ptr += 1 + ch_count
         self.rtr.mod_addrs.sort()
         self.rtr.channels = rt_channels
-        self.rtr.timeout = self.rtr.smr_upload[smr_ptr]
+        self.rtr.timeout = self.rtr.smr_upload[smr_ptr : smr_ptr + 1]
         smr_ptr += 1
         self.rtr.groups, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
         self.rtr.mode_dependencies, smr_ptr = self.get_smr_item(
@@ -476,15 +451,15 @@ class RtHdlr(HdlrBase):
         self.rtr._name = self.rtr.name.decode("iso8859-1").strip()
         umd_name1, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
         umd_name2, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
-        self.rtr.user_modes = b"\n" + umd_name1 + b"\n" + umd_name2
+        self.rtr.user_modes = umd_name1 + umd_name2
         self.rtr.serial, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
-        self.rtr.daynight, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
+        self.rtr.day_night, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
         self.rtr.version, smr_ptr = self.get_smr_item(self.rtr.smr_upload, smr_ptr)
 
     def get_smr_item(self, smr_bytes: bytes, smr_ptr: int) -> tuple[bytes, int]:
         """Get one item from smr bytes."""
         item_len = smr_bytes[smr_ptr]
-        item = smr_bytes[smr_ptr + 1 : smr_ptr + item_len + 1]
+        item = smr_bytes[smr_ptr : smr_ptr + item_len + 1]
         smr_ptr += item_len + 1
         return item, smr_ptr
 

@@ -311,7 +311,7 @@ class HbtnRouter:
     def pack_descriptions(self) -> str:
         """Pack descriptions to string with lines."""
         out_buf = ""
-        desc_buf = self.descriptions_file.encode("iso8859-1")
+        desc_buf = self.set_descriptions_to_file().encode("iso8859-1")
         desc_no = int.from_bytes(desc_buf[0:2], "little")
         for ptr in range(4):
             out_buf += f"{desc_buf[ptr]};"
@@ -347,6 +347,15 @@ class HbtnRouter:
                 f"Error saving description to file {file_path + file_name}: {err_msg}"
             )
             fid.close()
+
+    def unpack_descriptions(self, lines: list[str]) -> str:
+        """Merge ;-seperated values to string."""
+        res = ""
+        for line in lines:
+            for val in line.split(";"):
+                if len(val) > 0:
+                    res += chr(int(val))
+        return res
 
     def get_glob_descriptions(self, descriptions) -> None:
         """Get descriptions of commands, etc."""
@@ -578,6 +587,10 @@ class HbtnRouter:
         """Store names into router descriptions."""
         # groups, group names, mode dependencies
         self.descriptions, self.cov_autostop_cnt = settings.set_rtr_descriptions()
+        await self.store_descriptions()
+
+    async def store_descriptions(self):
+        """Store router descriptions to router or file."""
         if float(self.version.decode("iso8859-1").strip().split()[1][1:]) >= 3.6:
             await self.hdlr.send_rtr_descriptions()
         else:

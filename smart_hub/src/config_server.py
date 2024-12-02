@@ -663,14 +663,14 @@ async def send_to_router(app, content: str):
         for byt in lines[0].split(";")[:-1]:
             buf += int.to_bytes(int(byt))
         rtr.smr_upload = buf
-        if app["api_srv"].is_offline:
-            rtr.hdlr.set_rt_full_status()
-        else:
+        rtr.hdlr.set_rt_full_status()
+        if not app["api_srv"].is_offline:
             await rtr.hdlr.send_rt_full_status()
         rtr.smr_upload = b""
         desc_lines = lines[1:]
         if len(desc_lines) > 0:
-            rtr.unpack_descriptions(desc_lines)
+            rtr.get_glob_descriptions(rtr.unpack_descriptions(desc_lines))
+            await rtr.store_descriptions()
     except Exception as err_msg:
         app.logger.error(f"Error while uploading router settings: {err_msg}")
     await rtr.api_srv.block_network_if(rtr._id, False)
