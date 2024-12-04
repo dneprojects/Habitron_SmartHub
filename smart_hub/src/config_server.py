@@ -494,10 +494,12 @@ class ConfigServer:
     async def show_doc(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
 
-        page = get_html("smartcenter_doc.html", "windows-1252").replace(
-            "smartcenter_doc-Dateien", "smartcenter_doc_files"
+        page = (
+            get_html("smartcenter_doc.html", "windows-1252")
+            .replace("smartcenter_doc-Dateien", "smartcenter_doc_files")
+            .replace('charset=windows-1252"', 'charset=utf-8"')
         )
-        return web.Response(text=page, content_type="text/html", charset="utf-8")
+        return web.Response(text=page, content_type="text/html", charset="windows-1252")
 
         # api_srv = request.app["api_srv"]
         # if api_srv.is_addon:
