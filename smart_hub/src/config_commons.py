@@ -48,9 +48,9 @@ def inspect_header(req: web.Request):
     init_side_menu(main_app)
 
 
-def get_html(html_file) -> str:
+def get_html(html_file, enc="utf-8") -> str:
     """Return loaded html page."""
-    with open(WEB_FILES_DIR + html_file, mode="r", encoding="utf-8") as pg_id:
+    with open(WEB_FILES_DIR + html_file, mode="r", encoding=enc) as pg_id:
         return pg_id.read()
 
 
@@ -382,7 +382,7 @@ def adjust_side_menu(modules, is_offline: bool, is_install: bool) -> str:
             )
             side_menu.append(
                 '\n  <ul class="level_2">\n'
-                + '    <li class="setup sub"><a href="setup/add" title="Module anlegen" class="setup sub">Module anlegen</a></li>\n'
+                + '    <li class="setup sub"><a href="setup/add" title="Module neu anlegen" class="setup sub">Module anlegen</a></li>\n'
             )
             side_menu.append(
                 '    <li class="setup sub"><a href="setup/adapt" title="Module verwalten" class="setup sub">Module verwalten</a></li>\n'
@@ -403,6 +403,9 @@ def adjust_side_menu(modules, is_offline: bool, is_install: bool) -> str:
                 side_menu.append(
                     '    <li class="setup sub"><a href="test/modules" title="Module testen" class="setup sub">Module testen</a></li>\n'
                 )
+                # side_menu.append(
+                #     '    <li class="setup sub"><a href="test/calibrate" title="Sensoren kalibrieren" class="setup sub">Kalibrieren</a></li>\n'
+                # )
             side_menu.append("</ul></li></ul>\n")
         else:
             side_menu = smf_id.read().splitlines(keepends=True)

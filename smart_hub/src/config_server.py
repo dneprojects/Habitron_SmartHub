@@ -493,85 +493,115 @@ class ConfigServer:
     @routes.get(path="/Smart Center Documentation")
     async def show_doc(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
-        api_srv = request.app["api_srv"]
-        if api_srv.is_addon:
-            # request.app.logger.info(f"Headers: {request.headers}")
-            try:
-                shutil.copy(WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + DOC_FILE)
-                web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.sm_hub.slug_name}/{DOC_FILE}"
-                return show_message_page(
-                    "Dokumentation erzeugt.",
-                    f"Datei unter {web_path} abgelegt.",
-                )
-            except Exception as err_msg:
-                return show_message_page(
-                    "Fehler bei der Erzeugung der Dokumentation:<br>",
-                    f"{err_msg}",
-                )
-        else:
-            with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
-                pdf_content = doc_file.read()
-            return web.Response(body=pdf_content, content_type="application/pdf")
+
+        page = get_html("smartcenter_doc.html", "windows-1252").replace(
+            "smartcenter_doc-Dateien", "smartcenter_doc_files"
+        )
+        return web.Response(text=page, content_type="text/html", charset="utf-8")
+
+        # api_srv = request.app["api_srv"]
+        # if api_srv.is_addon:
+        #     # request.app.logger.info(f"Headers: {request.headers}")
+        #     try:
+        #         shutil.copy(WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + DOC_FILE)
+        #         web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.sm_hub.slug_name}/{DOC_FILE}"
+        #         return show_message_page(
+        #             "Dokumentation erzeugt.",
+        #             f"Datei unter {web_path} abgelegt.",
+        #         )
+        #     except Exception as err_msg:
+        #         return show_message_page(
+        #             "Fehler bei der Erzeugung der Dokumentation:<br>",
+        #             f"{err_msg}",
+        #         )
+        # else:
+        #     with open(WEB_FILES_DIR + DOC_FILE, "rb") as doc_file:
+        #         pdf_content = doc_file.read()
+        #     return web.Response(body=pdf_content, content_type="application/pdf")
 
     @routes.get(path="/Grundbegriffe Home Assistant")
     async def show_hadoc(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
         api_srv = request.app["api_srv"]
-        if api_srv.is_addon:
-            # request.app.logger.info(f"Headers: {request.headers}")
-            try:
-                shutil.copy(
-                    WEB_FILES_DIR + HA_DOC_FILE, DATA_FILES_ADDON_DIR + HA_DOC_FILE
-                )
-                web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.sm_hub.slug_name}/{HA_DOC_FILE}"
-                return show_message_page(
-                    "Dokumentation erzeugt.",
-                    f"Datei unter {web_path} abgelegt.",
-                )
-            except Exception as err_msg:
-                return show_message_page(
-                    "Fehler bei der Erzeugung der Dokumentation:<br>",
-                    f"{err_msg}",
-                )
-        else:
-            with open(WEB_FILES_DIR + HA_DOC_FILE, "rb") as doc_file:
-                pdf_content = doc_file.read()
-            return web.Response(body=pdf_content, content_type="application/pdf")
+        page = get_html("habasics_doc.html", "windows-1252").replace(
+            "habasics_doc-Dateien", "habasics_doc_files"
+        )
+        return web.Response(text=page, content_type="text/html", charset="utf-8")
+        # if api_srv.is_addon:
+        #     # request.app.logger.info(f"Headers: {request.headers}")
+        #     try:
+        #         shutil.copy(
+        #             WEB_FILES_DIR + HA_DOC_FILE, DATA_FILES_ADDON_DIR + HA_DOC_FILE
+        #         )
+        #         web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.sm_hub.slug_name}/{HA_DOC_FILE}"
+        #         return show_message_page(
+        #             "Dokumentation erzeugt.",
+        #             f"Datei unter {web_path} abgelegt.",
+        #         )
+        #     except Exception as err_msg:
+        #         return show_message_page(
+        #             "Fehler bei der Erzeugung der Dokumentation:<br>",
+        #             f"{err_msg}",
+        #         )
+        # else:
+        #     with open(WEB_FILES_DIR + HA_DOC_FILE, "rb") as doc_file:
+        #         pdf_content = doc_file.read()
+        #     return web.Response(body=pdf_content, content_type="application/pdf")
 
     @routes.get(path="/Setup Guide")
     async def show_setup_doc(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
-        api_srv = request.app["api_srv"]
-        if api_srv.is_addon:
-            try:
-                shutil.copy(
-                    WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + SETUP_DOC_FILE
-                )
-                web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.sm_hub.slug_name}/{SETUP_DOC_FILE}"
-                return show_message_page(
-                    "Dokumentation erzeugt.",
-                    f"Datei unter {web_path} abgelegt.",
-                )
-            except Exception as err_msg:
-                return show_message_page(
-                    "Fehler bei der Erzeugung der Dokumentation:<br>",
-                    f"{err_msg}",
-                )
-        else:
-            with open(WEB_FILES_DIR + SETUP_DOC_FILE, "rb") as doc_file:
-                pdf_content = doc_file.read()
-            return web.Response(body=pdf_content, content_type="application/pdf")
-            # return web.Response(
-            #     headers=MultiDict(
-            #         {"Content-Disposition": f"Attachment; filename = {SETUP_DOC_FILE}"}
-            #     ),
-            #     body=pdf_content,
-            # )
+
+        page = get_html("setup_doc.html", "windows-1252").replace(
+            "setup_doc-Dateien", "setup_doc_files"
+        )
+        return web.Response(text=page, content_type="text/html", charset="utf-8")
+
+        # api_srv = request.app["api_srv"]
+        # if api_srv.is_addon:
+        #     try:
+        #         shutil.copy(
+        #             WEB_FILES_DIR + DOC_FILE, DATA_FILES_ADDON_DIR + SETUP_DOC_FILE
+        #         )
+        #         web_path = f"file://{api_srv.hass_ip}/addon_configs/{api_srv.sm_hub.slug_name}/{SETUP_DOC_FILE}"
+        #         return show_message_page(
+        #             "Dokumentation erzeugt.",
+        #             f"Datei unter {web_path} abgelegt.",
+        #         )
+        #     except Exception as err_msg:
+        #         return show_message_page(
+        #             "Fehler bei der Erzeugung der Dokumentation:<br>",
+        #             f"{err_msg}",
+        #         )
+        # else:
+        #     with open(WEB_FILES_DIR + SETUP_DOC_FILE, "rb") as doc_file:
+        #         pdf_content = doc_file.read()
+        #     return web.Response(body=pdf_content, content_type="application/pdf")
+        # return web.Response(
+        #     headers=MultiDict(
+        #         {"Content-Disposition": f"Attachment; filename = {SETUP_DOC_FILE}"}
+        #     ),
+        #     body=pdf_content,
+        # )
 
     @routes.get(path="/{key:.*}.txt")
     async def get_license_text(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
         return show_license_text(request)
+
+
+@routes.get(path="/smartcenter_doc_files/{key:.*}")
+async def load_doc_pic(request):
+    with open(WEB_FILES_DIR + request.path[1:], "rb") as img_file:
+        img_content = img_file.read()
+    return web.Response(body=img_content)
+
+
+@routes.get(path="/setup_doc_files/{key:.*}")
+async def load_setup_pic(request):
+    with open(WEB_FILES_DIR + request.path[1:], "rb") as img_file:
+        img_content = img_file.read()
+    return web.Response(body=img_content)
 
 
 @routes.get(path="/favicon.ico")

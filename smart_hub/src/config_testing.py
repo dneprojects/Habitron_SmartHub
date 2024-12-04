@@ -267,6 +267,9 @@ def show_diag_page(app, popup_msg="") -> web.Response:
         + "&nbsp;&nbsp;&nbsp;&nbsp;können ausgewählt werden.<br>"
         + "2. Auf der folgenden Seite kann das gewählte Modul getestet werden, indem<br>"
         + "&nbsp;&nbsp;&nbsp;&nbsp;Eingangszustände angezeigt und Ausgänge geschaltet werden.<br>",
+        # +"<h3>Kalibrieren</h3>"
+        # + "Die Messwerte von Temperatur und Luftqualität der Raumcontroller kann hier<br>",
+        # +"kalibriert werden.",
     )
     page = page.replace(">Abbruch<", ' style="visibility: hidden;">Abbruch<')
     page = page.replace(">Übernehmen<", ' style="visibility: hidden;">Übernehmen<')
