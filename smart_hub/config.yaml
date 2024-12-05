@@ -1,7 +1,7 @@
 ---
 name: "Smart Hub"
 description: "Habitron Smart Hub as Home Assistant Add-on"
-version: 1.8.7
+version: 1.8.8
 slug: "smart_hub"
 arch:
   - aarch64
@@ -19,7 +19,7 @@ uart: true
 devicetree: true
 ingress: true
 ingress_stream : true
-panel_title: Habitron Smart Hub
+panel_title: Smart Configurator
 panel_icon: hbt:habitron-logo
 panel_admin: true
 image: "ghcr.io/dneprojects/smart_hub/{arch}"

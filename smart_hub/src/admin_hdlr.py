@@ -17,7 +17,10 @@ class AdminHdlr(HdlrBase):
             # case spec.SMHUB_READY:
             #     self.response = "OK"
             case spec.SMHUB_REINIT:
-                self.response = await self.api_srv.reinit_opr_mode(rt, self._p5)
+                if self.api_srv.evnt_srv.wait_for_HA:
+                    self.response = "not ready"
+                else:
+                    self.response = await self.api_srv.reinit_opr_mode(rt, self._p5)
             case spec.SMHUB_INFO:
                 self.response = self.api_srv.sm_hub.get_info()
             case spec.SMHUB_RESTART:

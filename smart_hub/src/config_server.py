@@ -490,13 +490,24 @@ class ConfigServer:
         app = request.app
         return show_documentation_page(app)
 
-    @routes.get(path="/Smart Center Documentation")
+    @routes.get(path="/Smart Center Introduction")
     async def show_doc(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
 
         page = (
-            get_html("smartcenter_doc.html", "windows-1252")
-            .replace("smartcenter_doc-Dateien", "smartcenter_doc_files")
+            get_html("smartcenterintro_doc.html", "windows-1252")
+            .replace("smartcenterintro_doc-Dateien", "smartcenterintro_doc_files")
+            .replace('"text/html; charset=windows-1252"', '"text/html; charset=utf-8"')
+        )
+        return web.Response(text=page, content_type="text/html", charset="utf-8")
+
+    @routes.get(path="/Smart Configurator Documentation")
+    async def show_doc(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+
+        page = (
+            get_html("configurator_doc.html", "windows-1252")
+            .replace("configurator_doc-Dateien", "configurator_doc_files")
             .replace('"text/html; charset=windows-1252"', '"text/html; charset=utf-8"')
         )
         return web.Response(text=page, content_type="text/html", charset="utf-8")
@@ -528,8 +539,15 @@ class ConfigServer:
         return show_license_text(request)
 
 
-@routes.get(path="/smartcenter_doc_files/{key:.*}")
+@routes.get(path="/smartcenterintro_doc_files/{key:.*}")
 async def load_doc_pic(request):
+    with open(WEB_FILES_DIR + request.path[1:], "rb") as img_file:
+        img_content = img_file.read()
+    return web.Response(body=img_content)
+
+
+@routes.get(path="/configurator_doc_files/{key:.*}")
+async def load_sconfdoc_pic(request):
     with open(WEB_FILES_DIR + request.path[1:], "rb") as img_file:
         img_content = img_file.read()
     return web.Response(body=img_content)

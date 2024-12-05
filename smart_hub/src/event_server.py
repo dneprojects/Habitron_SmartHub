@@ -73,6 +73,7 @@ class EventServer:
         self.default_token: str
         self.token_ok = True
         self.failure_count = 0
+        self.wait_for_HA = True
         self.events_buffer: list[list[int]] = []
 
     def get_ident(self) -> str | None:
@@ -604,13 +605,13 @@ class EventServer:
         except Exception as err_msg:
             err_message = f"{err_msg}"
             if err_message.endswith("HTTP 502") and self.api_srv.is_addon:
-                wait_for_HA = True
-                while wait_for_HA:
+                self.wait_for_HA = True
+                while self.self.wait_for_HA:
                     await self.close_websocket()
                     self.websck_is_closed = True
                     self.logger.info("Waiting for Home Assistant to finish loading...")
                     await asyncio.sleep(4)
-                    wait_for_HA = False
+                    self.self.wait_for_HA = False
                     try:
                         self.websck = await websockets.connect(
                             self._uri,
@@ -620,7 +621,7 @@ class EventServer:
                         resp = await self.websck.recv()
                         self.failure_count = 0
                     except Exception:
-                        wait_for_HA = True
+                        self.self.wait_for_HA = True
             else:
                 await self.close_websocket()
                 self.logger.error(f"Websocket connect failed: {err_msg}")
