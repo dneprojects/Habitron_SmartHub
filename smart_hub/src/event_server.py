@@ -611,7 +611,10 @@ class EventServer:
                 err_message.endswith("HTTP 502")
                 or err_message.endswith("timed out during handshake")
             ) and self.api_srv.is_addon:
-                resp = await self.wait_for_ha_booting()
+                self.logger.debug(
+                    "Open web socket failed, waiting for Home Assistant to finish loading..."
+                )
+                return False
             else:
                 await self.close_websocket()
                 self.logger.error(f"Websocket connect failed: {err_msg}")
