@@ -440,7 +440,7 @@ class EventServer:
             return
 
         if (
-            self.api_srv._test_mode or self.api_srv._netw_blocked
+            self.api_srv._test_mode or self.api_srv._netw_blocked or self.wait_for_HA
         ) and self.websck_is_closed:
             # in test mode or if network blocked websocket will not be opened
             return
@@ -540,6 +540,9 @@ class EventServer:
 
         if not self.websck_is_closed:
             return True
+        if self.wait_for_HA:
+            # HA not ready
+            return False
         if self.api_srv._netw_blocked:
             # First run, don't start websocket, HA is not ready
             return False

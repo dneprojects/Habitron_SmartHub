@@ -220,6 +220,9 @@ class ApiServer:
         if not self.get_client_ip() and not self._test_mode:
             self._opr_mode = False
             return False
+        if self.evnt_srv.running() and not self.evnt_srv.wait_for_HA:
+            # Don't start operate mode while waiting for HA booting
+            return False
         if self._opr_mode and self.evnt_srv.running():
             return True
         if self.evnt_srv.running():
