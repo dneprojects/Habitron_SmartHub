@@ -30,6 +30,11 @@ from query_server import QueryServer
 flash_only = False
 
 
+def remove_ctrl_chars(in_str: str) -> str:
+    """Strip control characters from string."""
+    return "".join(i for i in in_str if (i.isprintable() and i != "\xff"))
+
+
 class SmartHub:
     """Holds methods of Smart Hub."""
 
@@ -207,7 +212,7 @@ class SmartHub:
             s.connect(("8.8.8.8", 80))
             self._host_ip = s.getsockname()[0]
             s.close()
-            self._host = socket.getfqdn()
+            self._host = remove_ctrl_chars(socket.getfqdn())
         info_str = info_str + "  network:\n"
         info_str = info_str + f"    host: {self._host}\n"
         info_str = info_str + f"    ip: {self._host_ip}\n"

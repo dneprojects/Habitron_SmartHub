@@ -627,14 +627,15 @@ class HbtnRouter:
     async def cleanup_descriptions(self) -> None:
         """If descriptions in desc file, store them into router and remove them from file."""
         if await self.hdlr.send_rtr_descriptions():
-            tmp_desc = self.descriptions
-            self.descriptions = []  # clear all descriptions
-            self.descriptions_file = self.set_descriptions_to_file()
-            self.save_descriptions_file()
-            self.descriptions = tmp_desc
-            self.logger.info(
-                "Router descriptions stored in router and removed from file"
-            )
+            # tmp_desc = self.descriptions
+            # self.descriptions = []  # clear all descriptions
+            # self.descriptions_file = self.set_descriptions_to_file()
+            # self.save_descriptions_file()
+            # self.logger.info(
+            #     "Router descriptions stored in router and removed from file"
+            # )
+            # self.descriptions = tmp_desc
+            self.logger.info("Router descriptions stored in router")
 
     def new_module(
         self,
