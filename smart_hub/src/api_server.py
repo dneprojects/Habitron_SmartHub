@@ -278,9 +278,6 @@ class ApiServer:
             # finishing re-init with mode == 1
             self._init_mode = False
             self.logger.debug("Re-initializing EventSrv task")
-            # await self.evnt_srv.stop()
-            # await self.evnt_srv.close_websocket()
-            # self.logger.debug("Websocket entry deleted for reinit")
             await self.evnt_srv.start()
             await asyncio.sleep(0.1)
             await self.set_operate_mode(rt_no)
