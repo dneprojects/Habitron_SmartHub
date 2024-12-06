@@ -471,12 +471,9 @@ class EventServer:
 
         except ConnectionClosedOK:
             self.logger.warning(
-                "Connection closed by HA server, terminating event server task"
+                "Connection closed by HA server, waiting for HA to reconnect..."
             )
-            self.websck_is_closed = True
-            self.evnt_running = False
-            await self.stop()
-            await self.api_srv.set_server_mode(1)
+            await self.wait_for_ha()
         except Exception as error_msg:
             # Use to get cancel event in api_server
             self.logger.error(f"Could not connect to event server: {error_msg}")
@@ -605,23 +602,7 @@ class EventServer:
         except Exception as err_msg:
             err_message = f"{err_msg}"
             if err_message.endswith("HTTP 502") and self.api_srv.is_addon:
-                self.wait_for_HA = True
-                while self.self.wait_for_HA:
-                    await self.close_websocket()
-                    self.websck_is_closed = True
-                    self.logger.info("Waiting for Home Assistant to finish loading...")
-                    await asyncio.sleep(4)
-                    self.self.wait_for_HA = False
-                    try:
-                        self.websck = await websockets.connect(
-                            self._uri,
-                            open_timeout=4,
-                        )
-                        await asyncio.sleep(1)
-                        resp = await self.websck.recv()
-                        self.failure_count = 0
-                    except Exception:
-                        self.self.wait_for_HA = True
+                resp = await self.wait_for_HA()
             else:
                 await self.close_websocket()
                 self.logger.error(f"Websocket connect failed: {err_msg}")
@@ -657,6 +638,27 @@ class EventServer:
             self.token_ok = True
         self.websck_is_closed = False
         return True
+
+    async def wait_for_ha(self):
+        """Wait for home assistant to finish rebooting."""
+        self.wait_for_HA = True
+        while self.wait_for_HA:
+            await self.close_websocket()
+            self.websck_is_closed = True
+            self.logger.info("Waiting for Home Assistant to finish loading...")
+            await asyncio.sleep(4)
+            self.wait_for_HA = False
+            try:
+                self.websck = await websockets.connect(
+                    self._uri,
+                    open_timeout=4,
+                )
+                await asyncio.sleep(1)
+                resp = await self.websck.recv()
+                self.failure_count = 0
+            except Exception:
+                self.wait_for_HA = True
+        return resp
 
     async def close_websocket(self):
         """Close websocket, if object still available."""
