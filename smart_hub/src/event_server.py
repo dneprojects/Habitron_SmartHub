@@ -473,7 +473,7 @@ class EventServer:
             self.logger.warning(
                 "Connection closed by HA server, waiting for HA to reconnect..."
             )
-            await self.wait_for_ha()
+            await self.wait_for_ha_booting()
         except Exception as error_msg:
             # Use to get cancel event in api_server
             self.logger.error(f"Could not connect to event server: {error_msg}")
@@ -601,8 +601,11 @@ class EventServer:
             self.failure_count = 0
         except Exception as err_msg:
             err_message = f"{err_msg}"
-            if err_message.endswith("HTTP 502") and self.api_srv.is_addon:
-                resp = await self.wait_for_HA()
+            if (
+                err_message.endswith("HTTP 502")
+                or err_message.endswith("timed out during handshake")
+            ) and self.api_srv.is_addon:
+                resp = await self.wait_for_ha_booting()
             else:
                 await self.close_websocket()
                 self.logger.error(f"Websocket connect failed: {err_msg}")
@@ -639,7 +642,7 @@ class EventServer:
         self.websck_is_closed = False
         return True
 
-    async def wait_for_ha(self):
+    async def wait_for_ha_booting(self):
         """Wait for home assistant to finish rebooting."""
         self.wait_for_HA = True
         while self.wait_for_HA:
