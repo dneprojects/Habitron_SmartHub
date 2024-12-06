@@ -46,7 +46,7 @@ class RtHdlr(HdlrBase):
                 await asyncio.sleep(2)
         if ret_msg[-2] == RT_STAT_CODES.SYS_PROBLEMS:
             self.logger.warning(
-                f"Router {self.rt_id} running, boot finished with module problems:"
+                f"Router {self.rt_id} running, boot finished with problems"
             )
             await self.get_module_boot_status()
         else:
@@ -60,6 +60,16 @@ class RtHdlr(HdlrBase):
             mod = self.rtr.mod_boot_status[2 * err + 1]
             err_mask = self.rtr.mod_boot_status[2 * err + 2]
             mod_boot_errs = ""
+            if err_mask & 0x80:
+                mod_boot_errs += " error 128 "
+            if err_mask & 0x40:
+                mod_boot_errs += " error 64 "
+            if err_mask & 0x20:
+                mod_boot_errs += " error 32 "
+            if err_mask & 0x10:
+                mod_boot_errs += " error 16 "
+            if err_mask & 0x08:
+                mod_boot_errs += " error 8 "
             if err_mask & 0x04:
                 mod_boot_errs += " Unknown module type "
             if err_mask & 0x02:
