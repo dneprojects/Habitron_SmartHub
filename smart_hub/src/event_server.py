@@ -73,7 +73,7 @@ class EventServer:
         self.default_token: str
         self.token_ok = True
         self.failure_count = 0
-        self.wait_for_HA = True
+        self.wait_for_HA = False
         self.events_buffer: list[list[int]] = []
 
     def get_ident(self) -> str | None:
