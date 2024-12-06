@@ -569,7 +569,10 @@ class EventServer:
         self.token_ok = retry
         if self.api_srv.is_addon:
             # SmartHub running with Home Assistant, use internal websocket
-            self.logger.info("--- Open internal add-on websocket to home assistant.")
+            if not self.HA_not_ready:
+                self.logger.info(
+                    "--- Open internal add-on websocket to home assistant."
+                )
             self._uri = "ws://supervisor/core/websocket"
             self.logger.debug(f"URI: {self._uri}")
             self.auth_token = os.getenv("SUPERVISOR_TOKEN")

@@ -2,6 +2,7 @@
 
 from typing import Final
 
+SMHUB_VERSION = "1.9.3"
 
 OWN_IP = "192.168.178.110"
 ANY_IP = "0.0.0.0"
@@ -54,7 +55,7 @@ RT_ERROR_CODE = {
 class SMHUB_INFO:
     """Holds information."""
 
-    SW_VERSION = "1.9.2"
+    SW_VERSION = SMHUB_VERSION
     TYPE = "Smart Hub"
     TYPE_CODE = "20"
     SERIAL = "RBPI"
