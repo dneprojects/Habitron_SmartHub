@@ -436,20 +436,23 @@ class EventServer:
     async def notify_event(self, rtr: int, event: list[int]):
         """Trigger event on remote host (e.g. home assistant)"""
 
+        if event is None:
+            return
+
+        if (
+            self.api_srv._test_mode or self.api_srv._netw_blocked
+        ) and self.websck_is_closed:
+            # in test mode or if network blocked websocket will not be opened
+            return
+
         if self.api_srv._test_mode:
             self.events_buffer.append(event)
 
         if self.websck_is_closed:
-            success = await self.open_websocket()
-        else:
-            success = True
-        if not success:
-            if self.api_srv._test_mode:
+            if not await self.open_websocket():
+                self.logger.warning("Failed to send event via websocket, open failed")
                 return
-            self.logger.warning("Failed to send event via websocket, open failed")
-            return
-        if event is None:
-            return
+
         try:
             evnt_data = {
                 "hub_uid": self.api_srv.sm_hub._host_ip,
