@@ -184,34 +184,16 @@ class ConfigServer:
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         file_name = request.query["file"]
-        file_name = file_name.split(".")[0] + ".xlsx"
+        file_name = file_name.split(".")[0] + ".html"
         api_srv = request.app["api_srv"]
         rtr = api_srv.routers[0]
         page = create_documentation(rtr, file_name)
-        return web.Response(text=page, content_type="text/html", charset="utf-8")
-        # if api_srv.is_addon:
-        #     try:
-        #         data_file_path = DATA_FILES_ADDON_DIR
-        #         web_path = f"file://{api_srv.sm_hub._host_ip}/addon_configs/{api_srv.sm_hub.slug_name}/{file_name}"
-        #         return show_message_page(
-        #             "Dokumentation erzeugt.",
-        #             f"Datei unter {web_path} abgelegt.",
-        #         )
-        #     except Exception as err_msg:
-        #         return show_message_page(
-        #             "Fehler bei der Erzeugung der Dokumentation:<br>",
-        #             f"{err_msg}",
-        #         )
-        # else:
-        #     data_file_path = DATA_FILES_DIR
-        #     with open(data_file_path + file_name, "rb") as fid:
-        #         str_data = fid.read()
-        #     return web.Response(
-        #         headers=MultiDict(
-        #             {"Content-Disposition": f"Attachment; filename = {file_name}"}
-        #         ),
-        #         body=str_data,
-        #     )
+        return web.Response(
+            headers=MultiDict(
+                {"Content-Disposition": f"Attachment; filename = {file_name}"}
+            ),
+            body=page,
+        )
 
     @routes.get("/download")
     async def get_download(request: web.Request) -> web.Response:  # type: ignore

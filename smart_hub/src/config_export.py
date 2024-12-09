@@ -89,7 +89,6 @@ def document_overview(doc, page, rt, mods) -> str:
         mod_cnt += 1
     page += "        </tbody>\n"
     page += "      </table>\n"
-    page += "    <br><br><br><br><br>\n"
 
     ws = doc.create_sheet("System", 0)
     row = 1
@@ -126,6 +125,8 @@ def document_overview(doc, page, rt, mods) -> str:
     ws.column_dimensions["C"].width = 28
     ws.column_dimensions["D"].width = 28
     ws.set_printer_settings(ws.PAPERSIZE_A4, ws.ORIENTATION_LANDSCAPE)
+
+    page += '    <br><br><a href="#overview">zur Übersicht</a><hr><div class="pagebreak"> </div>\n'
     return page
 
 
@@ -219,14 +220,14 @@ def document_hub(doc, page, hub) -> str:
     ws.cell(row, 2).value = hub._host_ip
     row += 1
 
-    page += '    <br><br><a href="#overview">zur Übersicht</a><br><br><br><br><hr><br><br>\n'
+    page += '    <br><br><a href="#overview">zur Übersicht</a><hr><div class="pagebreak"> </div>\n'
 
     return page
 
 
 def document_router(doc, page, rt) -> str:
     """Export router information to excel sheet."""
-    ws = doc.create_sheet(clean_name(rt._name), 1)
+    ws = doc.create_sheet(clean_name(rt._name), 2)
     rt_serial = rt.serial[1:].decode("iso8859-1").strip()
     settings = rt.settings
 
@@ -406,7 +407,7 @@ def document_router(doc, page, rt) -> str:
         page += "      </table>\n"
         row += 1
 
-    page += '    <br><br><a href="#overview">zur Übersicht</a><br><br><br><br><hr><br><br>\n'
+    page += '    <br><br><a href="#overview">zur Übersicht</a><hr><div class="pagebreak"> </div>\n'
 
     return page
 
@@ -414,7 +415,7 @@ def document_router(doc, page, rt) -> str:
 def document_module(doc, page, mod, idx) -> str:
     """Export module information to excel sheet."""
 
-    ws = doc.create_sheet(clean_name(mod._name), idx + 2)
+    ws = doc.create_sheet(clean_name(mod._name), idx + 3)
     input_type = {1: "Taster", 2: "Schalter", 3: "Analog"}
     output_type = {-10: "", 1: "", 2: "Dimmbar"}
     cover_type = {-1: "Rollladen", 1: "Rollladen", -2: "Jalousie", 2: "Jalousie"}
@@ -715,7 +716,7 @@ def document_module(doc, page, mod, idx) -> str:
         page += "        </tbody>\n"
         page += "      </table>\n"
 
-    page += '    <br><br><a href="#overview">zur Übersicht</a><br><br><br><br><hr><br><br>\n'
+    page += '    <br><br><a href="#overview">zur Übersicht</a><hr><div class="pagebreak"> </div>\n'
 
     ws.column_dimensions["B"].width = 34
     ws.column_dimensions["C"].width = 12
@@ -785,12 +786,15 @@ def add_css_info() -> str:
     page += '    body {font: 10px/1.231 arial, helvetica, clean, sans-serif;line-height: 16px; font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;}'
     page += "    h1 {padding-bottom: 5px; padding-top: 20px; font-size: 16px; color: #c0372d;}\n"
     page += "    h2 {padding-bottom: 5px; padding-top: 12px; font-size: 14px; font-weight: bold;}\n"
-    page += "    hr {width: 400px; margin-left: 10px; margin-top: 100px;}\n"
-    page += "    table {font-weight: inherit; font-style: inherit; font-size: 100%; width: 420px;}"
-    page += "    th {background-color: #af6258; color: #ffffff; padding: 3px; padding-top: 6px; padding-bottom: 6px;text-align: left; }"
-    page += "    tr:nth-child(odd) {background-color: #f4e5e3;}"
-    page += "    a:-webkit-any-link {color: #c0372d; text-decoration: none;}"
-    page += "    a:hover {text-decoration: underline;}"
+    page += "    hr {width: 415px; margin-left: 0px; margin-top: 10px; border-color: #c0372d;}\n"
+    page += "    table {font-weight: inherit; font-style: inherit; font-size: 100%; width: 420px;}\n"
+    page += "    th {background-color: #af6258; color: #ffffff; padding: 3px; padding-top: 6px; padding-bottom: 6px;text-align: left; }\n"
+    page += "    tr:nth-child(odd) {background-color: #f4e5e3;}\n"
+    page += "    a:-webkit-any-link {color: #c0372d; text-decoration: none;}\n"
+    page += "    a:hover {text-decoration: underline;}\n"
+    page += (
+        "    @media print { .pagebreak { clear: both; page-break-after: always; } }\n"
+    )
     page += "  </style>\n"
     page += "</head>\n"
     page += "<body>\n"
