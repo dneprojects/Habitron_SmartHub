@@ -783,11 +783,11 @@ def add_css_info() -> str:
     page = ""
     page += "<head>\n"
     page += "  <style>\n"
-    page += '    body {font: 10px/1.231 arial, helvetica, clean, sans-serif;line-height: 16px; font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;}'
+    page += '    body {margin-left: 60px; font: 10px/1.231 arial, helvetica, clean, sans-serif;line-height: 16px; font-family: "Lucida Sans", Arial, Verdana, Helvetica, sans-serif;}'
     page += "    h1 {padding-bottom: 5px; padding-top: 20px; font-size: 16px; color: #c0372d;}\n"
     page += "    h2 {padding-bottom: 5px; padding-top: 12px; font-size: 14px; font-weight: bold;}\n"
-    page += "    hr {width: 415px; margin-left: 0px; margin-top: 10px; border-color: #c0372d;}\n"
-    page += "    table {font-weight: inherit; font-style: inherit; font-size: 100%; width: 420px;}\n"
+    page += "    hr {width: 635px; margin-left: 0px; margin-top: 10px; border-color: #c0372d;}\n"
+    page += "    table {font-weight: inherit; font-style: inherit; font-size: 100%; width: 640px;}\n"
     page += "    th {background-color: #af6258; color: #ffffff; padding: 3px; padding-top: 6px; padding-bottom: 6px;text-align: left; }\n"
     page += "    tr:nth-child(odd) {background-color: #f4e5e3;}\n"
     page += "    a:-webkit-any-link {color: #c0372d; text-decoration: none;}\n"
