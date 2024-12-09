@@ -452,9 +452,7 @@ class EventServer:
         if self.websck_is_closed:
             if not await self.open_websocket():
                 if self.HA_not_ready:
-                    self.logger.info(
-                        "    Waiting for Home Assistant to finish loading..."
-                    )
+                    self.logger.info("    Waiting for Home Assistant to restart...")
                 else:
                     self.logger.warning(
                         "    Failed to send event via websocket, open failed"
@@ -482,7 +480,7 @@ class EventServer:
 
         except ConnectionClosedOK:
             self.logger.warning(
-                "Connection closed by HA server, waiting for HA to reconnect..."
+                "Connection closed by Home Assistant server, shutting down."
             )
             await self.wait_for_ha_booting()
         except Exception as error_msg:
@@ -674,7 +672,7 @@ class EventServer:
         while self.wait_for_HA:
             await self.close_websocket()
             self.websck_is_closed = True
-            self.logger.info("    Waiting for Home Assistant to finish loading...")
+            self.logger.info("    Waiting for Home Assistant to restart...")
             await asyncio.sleep(4)
             self.wait_for_HA = False
             try:
