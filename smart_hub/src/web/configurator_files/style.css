@@ -456,13 +456,16 @@ a:hover {
    text-decoration: underline;
 }
 
-
 th {
    background-color: #af6258;
    color: #ffffff;
    padding: 3px;
    padding-top: 6px;
    padding-bottom: 6px;
+}
+
+th#th-chk {
+   padding: 2px;
 }
 
 tr#atm-tr:nth-child(odd) {

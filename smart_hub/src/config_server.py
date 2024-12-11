@@ -46,6 +46,7 @@ from const import (
     INGRESS_PORT,
     WEB_FILES_DIR,
     MirrIdx,
+    MOD_CHANGED,
 )
 
 routes = web.RouteTableDef()
@@ -104,7 +105,20 @@ class ConfigServer:
                     )
             return response
 
-        self.app = web.Application(middlewares=[ingress_middleware])
+        @web.middleware
+        async def release_network_block(request: web.Request, handler) -> web.Response:
+            """Release network block after next action if previous action enabled it."""
+            api_srv = request.app["api_srv"]
+            rt_no = api_srv.routers[0]._id
+            if api_srv.release_block_next:
+                api_srv.block_network_if(rt_no, False)
+                api_srv.release_block_next = False
+            response = await handler(request)
+            return response
+
+        self.app = web.Application(
+            middlewares=[ingress_middleware, release_network_block]
+        )
         self.app.logger = logging.getLogger(__name__)
         self.settings_srv = ConfigSettingsServer(self.app, self.api_srv)
         self.app.add_subapp("/settings", self.settings_srv.app)
@@ -640,7 +654,8 @@ async def send_to_router(app, content: str):
 async def send_to_module(app, content: str, mod_addr: int):
     """Send uploads to module."""
     rtr = app["api_srv"].routers[0]
-    if app["api_srv"].is_offline:
+    module = rtr.get_module(mod_addr)
+    if module is None:
         rtr.modules.append(
             HbtnModule(
                 mod_addr,
@@ -651,6 +666,8 @@ async def send_to_module(app, content: str, mod_addr: int):
             )
         )
         module = rtr.modules[-1]
+        module.changed = MOD_CHANGED.NEW
+    if app["api_srv"].is_offline or module.changed & MOD_CHANGED.NEW:
         module.smg_upload, module.list = seperate_upload(content)
         module.calc_SMG_crc(module.smg_upload)
         module.calc_SMC_crc(module.list)
@@ -662,7 +679,6 @@ async def send_to_module(app, content: str, mod_addr: int):
         module.io_properties, module.io_prop_keys = module.get_io_properties()
         return
 
-    module = rtr.get_module(mod_addr)
     module.smg_upload, module.list_upload = seperate_upload(content)
     list_update = calc_crc(module.list_upload) != module.get_smc_crc()
     stat_update = module.different_smg_crcs()

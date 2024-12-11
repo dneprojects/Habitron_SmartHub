@@ -418,7 +418,7 @@ class RtHdlr(HdlrBase):
 
         await self.send_rt_channels(self.rtr.channels)
         await self.send_rt_timeout(self.rtr.timeout)
-        await self.send_rt_group_no(self.rtr.groups)
+        await self.send_rt_group_no(self.rtr.groups[1:])
         await self.send_rt_group_deps(self.rtr.mode_dependencies[1:])
         await self.send_rt_name(self.rtr.name)
         umd_name1 = self.rtr.user_modes[1:11]

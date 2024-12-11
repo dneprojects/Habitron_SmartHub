@@ -4,6 +4,7 @@ from messages import calc_crc
 from os.path import isfile
 from config_commons import is_outdated
 from const import (
+    MOD_CHANGED,
     RT_STAT_CODES,
     DATA_FILES_DIR,
     DATA_FILES_ADDON_DIR,
@@ -50,7 +51,7 @@ class HbtnRouter:
         self.channel_list: dict[int, list[int]] = {}
         self.comm_errors = b"\x00\x00\x00"
         self.timeout: bytes = b"\x14"
-        self.groups: bytes = b"\0" * 80
+        self.groups: bytes = b"\x50" + b"\0" * 80
         self.mode_dependencies: bytes = b"\0" * 80
         self.mode0 = 0
         self.cov_autostop_cnt = 1
@@ -668,6 +669,7 @@ class HbtnRouter:
             + mod_serial
             + "\x00" * (MirrIdx.END - MirrIdx.MOD_SERIAL - 16)
         ).encode("iso8859-1")
+        new_module.changed = MOD_CHANGED.NEW
         self.modules.append(new_module)
         self.mod_addrs.append(mod_addr)
         channels_str = ""
@@ -687,15 +689,16 @@ class HbtnRouter:
             self.groups[:mod_addr] + int.to_bytes(0) + self.groups[mod_addr + 1 :]
         )
 
-    def remove_module(self, mod_addr):
+    def remove_module(self, mod):
         """Remove module from router lists."""
 
-        mod = self.get_module(mod_addr)
         md_chan = mod._channel  # type: ignore
-        self.modules.remove(mod)
-        self.mod_addrs.remove(mod_addr)
+        if mod in self.modules:
+            self.modules.remove(mod)
+        if mod._id in self.mod_addrs:
+            self.mod_addrs.remove(mod._id)
         # remove entry from channel list
-        self.channel_list[md_chan].remove(mod_addr)
+        self.channel_list[md_chan].remove(mod._id)
         channels_str = ""
         for ch_i in range(4):
             # prepare channels byte string
@@ -705,7 +708,7 @@ class HbtnRouter:
         self.channels = channels_str.encode("iso8859-1")
         # set entry back to group 0
         self.groups = (
-            self.groups[:mod_addr] + int.to_bytes(0) + self.groups[mod_addr + 1 :]
+            self.groups[: mod._id] + int.to_bytes(0) + self.groups[mod._id + 1 :]
         )
 
     def get_module_by_serial(self, serial: str):
@@ -733,7 +736,6 @@ class HbtnRouter:
         rm_list = []
         for m_i in range(len(self.modules)):
             mod = self.modules[m_i]
-            mod.changed = False
             mod_group = old_groups[mod._id - 1]
             if "modid_" + mod._serial in changes_dict.keys():
                 old_id = mod._id
@@ -744,11 +746,10 @@ class HbtnRouter:
                     mod.old_id = mod._id
                     mod._id = new_id
                     mod.status = chr(new_id).encode("iso8859-1") + mod.status[1:]
-                    mod.changed = True
+                    mod.changed |= MOD_CHANGED.ID
                 if new_chan != mod._channel:
                     mod._channel = new_chan
-                    mod.changed = True
-
+                    mod.changed |= MOD_CHANGED.CHAN
                 if mod.changed:
                     # adapt channel list
                     for chan, mod_ids in self.channel_list.items():
@@ -757,9 +758,9 @@ class HbtnRouter:
                     self.channel_list[new_chan].append(new_id)
                     # build new group list
                     self.groups = (
-                        self.groups[: new_id - 1]
+                        self.groups[:new_id]
                         + int.to_bytes(mod_group)  # type: ignore
-                        + self.groups[new_id:]
+                        + self.groups[new_id + 1 :]
                     )
             else:
                 # module not in list, remember to be removed
@@ -768,11 +769,14 @@ class HbtnRouter:
             # remove in second loop to not change order in fist loop
             mod = self.get_module_by_serial(m_ser)
             self.removed_modules.append(mod)
-            self.modules.remove(mod)
+            self.remove_module(mod)
         for mod in self.err_modules:
             if f"modid_unknown{mod._id}" not in changes_dict.keys():
                 # remove router module entry from list
                 self.removed_modules.append(mod)
+                self.remove_module(mod)
+        for mod in self.removed_modules:
+            if mod in self.err_modules:
                 self.err_modules.remove(mod)
         # prepare channels byte string from channel list
         for ch_i in range(1, 5):
@@ -781,3 +785,4 @@ class HbtnRouter:
                 channels_str += f"{chr(m_a)}"
         self.channels = channels_str.encode("iso8859-1")
         self.build_smr()
+        self.settings.smr = self.smr

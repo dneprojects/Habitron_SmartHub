@@ -4,6 +4,7 @@ const sort_tbl = document.getElementById("sort_table");
 const rem_button = document.getElementById("tbl-button");
 const rel_button = document.getElementById("reload-button");
 const chk_boxes = document.getElementsByClassName("mod_sels");
+const chk_box_all = document.getElementById("mod-all");
 const mod_table = document.getElementById("mod-table")
 const resp_popup = document.getElementById("resp-popup");
 
@@ -14,6 +15,13 @@ if (resp_popup) {
 close_resp_popup.addEventListener("click", function () {
     resp_popup.classList.remove("show");
 });
+
+if (chk_box_all) {
+    chk_box_all.addEventListener("click", function () {
+        sel_deselect_all();
+    });
+}
+
 
 if (rem_button) {
     rem_button.addEventListener("click", function () {
@@ -32,6 +40,12 @@ for (let i = 0; i < chk_boxes.length; i++) {
     chk_boxes[i].addEventListener("change", function () {
         controlRemoveButton();
     })
+}
+
+function sel_deselect_all() {
+    for (let i = 1; i < chk_boxes.length; i++) {
+        chk_boxes[i].checked = chk_boxes[0].checked
+    }
 }
 
 function controlRemoveButton() {

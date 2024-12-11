@@ -621,7 +621,7 @@ def build_comm_table(rtr):
         + '            <th title="Fehleranzahl Modulstörung">Stör.</th>\n'
         + '            <th title="Momentane Antwortzeit [ms]">Antw.</th>\n'
         + '            <th title="Maximale Antwortzeit [ms]">Max.</th>\n'
-        + '            <th data-sort-method="none" title="Auswählen, um Fehlerzähler zurückzusetzen"></th>\n'
+        + '            <th id="th-chk" data-sort-method="none" title="Auswählen, um Fehlerzähler zurückzusetzen"><input type="checkbox" class="mod_sels" name="mods_all" id="mod-all"></th>\n'
         + "        </tr>\n"
         + "    </thead>\n"
         + "    <tbody>\n"

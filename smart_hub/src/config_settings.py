@@ -34,6 +34,7 @@ from const import (
     DAY_NIGHT_MODES,
     DAY_NIGHT_MODES_HELP,
     RT_ERROR_CODE,
+    MOD_CHANGED,
 )
 from configuration import set_cover_name, set_cover_output_name
 from multidict import MultiDict
@@ -296,6 +297,8 @@ def show_module_overview(main_app, mod_addr, popup_msg="") -> web.Response:
     )
     mod_image, type_desc = get_module_image(module._typ)
     main_app["module"] = module
+    if module.settings is None:
+        module.get_module_settings()
     mod_description = get_module_properties(module)
     def_filename = f"module_{mod_addr}.hmd"
     page = fill_page_template(
@@ -359,7 +362,10 @@ async def show_next_prev(main_app, args):
                     # group membership changed, update in router
                     await router.set_module_group(mod_addr, int(settings.group_member))
                     settings.group = int(settings.group_member)
-                success_msg = "Änderungen übernommen"
+                if module.changed & MOD_CHANGED.NEW:
+                    success_msg = "Neues Modul, Änderungen temporär übernommen,<br>Daten in Konfigurationsdatei speichern<br>oder Modul durch Übertragen hinzufügen."
+                else:
+                    success_msg = "Änderungen übernommen"
             except Exception as err_msg:
                 success_msg = f"Error while saving module settings: {err_msg}"
                 main_app.logger.error(success_msg)

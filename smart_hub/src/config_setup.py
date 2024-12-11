@@ -9,10 +9,8 @@ from config_commons import (
     inspect_header,
     show_homepage,
 )
-from const import (
-    CONF_PORT,
-    MODULE_TYPES,
-)
+from const import CONF_PORT, MODULE_TYPES, MOD_CHANGED
+
 
 routes = web.RouteTableDef()
 
@@ -65,19 +63,30 @@ class ConfigSetupServer:
         mod_serial = request.query["mod_serial"]
         mod_name = f"NewModule_{len(rtr.modules) + 1}"
         rtr.new_module(rtr_chan, mod_addr, mod_typ, mod_name, mod_serial)
-        return show_module_types(main_app)
+        if api_srv.is_offline:
+            return show_module_types(main_app)
+        else:
+            await api_srv.block_network_if(rtr._id, True)
+            await api_srv.set_server_mode(rtr._id)
+            api_srv.release_block_next = True
+            # prepare router for next new model in channel under address
+            await rtr.hdlr.set_module_address(0, rtr_chan, mod_addr)
+            return show_module_types(
+                main_app,
+                f"Modul {mod_name} jetzt per Tastendruck<br>mit Router verbinden.",
+            )
 
-    @routes.get("/remove")
-    async def mod_remove(request: web.Request) -> web.Response:  # type: ignore
-        inspect_header(request)
-        main_app = request.app["parent"]
-        api_srv = main_app["api_srv"]
-        rtr = api_srv.routers[0]
-        if client_not_authorized(request):
-            return show_not_authorized(main_app)
-        mod_addr = int(request.query["RemoveModule"])
-        rtr.rem_module(mod_addr)
-        return show_modules(main_app)
+    # @routes.get("/remove")
+    # async def mod_remove(request: web.Request) -> web.Response:  # type: ignore
+    #     inspect_header(request)
+    #     main_app = request.app["parent"]
+    #     api_srv = main_app["api_srv"]
+    #     rtr = api_srv.routers[0]
+    #     if client_not_authorized(request):
+    #         return show_not_authorized(main_app)
+    #     mod_addr = int(request.query["RemoveModule"])
+    #     rtr.rem_module(mod_addr)
+    #     return show_modules(main_app)
 
     @routes.get("/table_close")
     async def tbl_close(request: web.Request) -> web.Response:  # type: ignore
@@ -191,7 +200,7 @@ def show_setup_page(app, popup_msg="") -> web.Response:
     return web.Response(text=page, content_type="text/html", charset="utf-8")
 
 
-def show_module_types(app) -> web.Response:
+def show_module_types(app, popup_msg="") -> web.Response:
     """Prepare modules page."""
     api_srv = app["api_srv"]
     rtr = api_srv.routers[0]
@@ -216,6 +225,11 @@ def show_module_types(app) -> web.Response:
         images += f'<div class="figd_grid" name="add_type_img" id=add-type-{type_str}><div class="fig_grid"><img src="configurator_files/{pic_file}" alt="{MODULE_TYPES[m_type]}"><p class="mod_subtext">{MODULE_TYPES[m_type]}</p></div></a></div>\n'
     page = page.replace("<!-- ImageGrid -->", images)
     page = page.replace("const mod_addrs = [];", f"const mod_addrs = {rtr.mod_addrs};")
+    if len(popup_msg):
+        page = page.replace(
+            '<h3 id="resp_popup_txt">response_message</h3>',
+            f'<h3 id="resp_popup_txt">{popup_msg}</h3>',
+        ).replace('id="resp-popup-disabled"', 'id="resp-popup"')
     return web.Response(text=page, content_type="text/html", charset="utf-8")
 
 
@@ -315,23 +329,40 @@ async def transfer_setup_table_changes(main_app) -> web.Response:
     rtr.removed_modules = []
     # save new model address/channel
     for mod in rtr.modules:
-        if mod.changed:
-            # change model internal address to new value
-            # (module needs to be connected to old channel)
-            if "old_id" in mod.__dir__() and mod.old_id != mod._id:
-                await rtr.hdlr.set_module_address(2, mod.old_id, mod._id)
-                await rtr.hdlr.del_mod_addr(mod.old_id)
-            # register new mod addr in router channel list
+        if mod.changed & MOD_CHANGED.NEW:
+            # new model, register new mod addr in router channel list
             await rtr.hdlr.set_module_address(1, mod._channel, mod._id)
+        elif mod.changed & MOD_CHANGED.ID:
+            # change model internal address to new value
+            # (module needs to remain connected to old channel)
+            if "old_id" in mod.__dir__() and mod.old_id != mod._id:
+                # change mod addr in module
+                await rtr.hdlr.set_module_address(2, mod.old_id, mod._id)
+                # remove old mod addr from router channel list
+                await rtr.hdlr.del_mod_addr(mod.old_id)
+                # register new mod addr in router channel list
+                await rtr.hdlr.set_module_address(1, mod._channel, mod._id)
             main_app.logger.info(
                 f"Module address changed from {mod.old_id} to {mod._id}"
             )
             # save changed group list?
-            mod.changed = False
+        elif mod.changed & MOD_CHANGED.CHAN:
+            # change model communication channel
+            # (module needs to remain connected to old channel)
+            # remove old mod addr from router channel list
+            await rtr.hdlr.del_mod_addr(mod._id)
+            # register new mod addr in router channel list
+            await rtr.hdlr.set_module_address(1, mod._channel, mod._id)
+        mod.changed = 0
+    # Store channel and group changes permanently
+    await rtr.hdlr.send_rt_channels(rtr.channels)
+    await rtr.hdlr.send_rt_group_no(rtr.groups[1:])
     return show_setup_page(
         main_app,
         "Änderungen an Moduladressen<br>und Kanalzuordnungen<br>wurden umgesetzt.<br><br>"
-        + "Die entfernten Module<br>wurden aus der Router-Liste gelöscht.",
+        + "Die entfernten Module<br>wurden aus der Router-Liste gelöscht.<br>"
+        + "Bei Änderungen an Kanalzuordnungen<br>die Module jetzt neu anschliessen.<br>"
+        + "Danach Router neu starten!",
     )
 
 

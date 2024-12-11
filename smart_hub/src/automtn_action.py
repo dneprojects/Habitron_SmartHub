@@ -528,7 +528,7 @@ class AutomationAction:
         opt_str = '<option value="">-- Rollladen/Jalousie wählen --</option>'
         no_covs = 0
         for cov in sel_atm.settings.covers:
-            if cov.type > 0:
+            if abs(cov.type) > 0:
                 opt_str += f'<option value="{cov.nmbr}">{cov.name}</option>'
                 no_covs += 1
         if (no_covs == 0) and (SelActCodes["cover"] in self.actions_dict.keys()):

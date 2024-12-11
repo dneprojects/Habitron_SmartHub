@@ -2,7 +2,7 @@
 
 from typing import Final
 
-SMHUB_VERSION = "1.9.6"
+SMHUB_VERSION = "1.9.7"
 
 OWN_IP = "192.168.178.110"
 ANY_IP = "0.0.0.0"
@@ -957,3 +957,13 @@ LOGGING_LEVELS: dict[int, str] = {
     40: "error",
     50: "critical",
 }
+
+
+class MOD_CHANGED:
+    """Bit mask for module changes."""
+
+    NOT = 0
+    NEW = 1
+    ID = 2
+    CHAN = 4
+    DEL = 8

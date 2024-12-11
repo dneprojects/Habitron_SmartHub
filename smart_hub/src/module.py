@@ -10,6 +10,7 @@ from const import (
     HA_EVENTS,
     FW_FILES_DIR,
     MODULE_FIRMWARE,
+    MOD_CHANGED,
 )
 from configuration import (
     ModuleSettings,
@@ -42,7 +43,7 @@ class HbtnModule:
         self.list: bytes = b""  # SMC information: labels, commands
         self.list_upload: bytes = b""  # buffer for SMC upload
         self.settings = None
-        self.changed = False  # Flag to indicate id/chan/remove changes in setup
+        self.changed = 0  # Flag bitmask to indicate new/id/chan/remove changes in setup
         self.update_available = False
         self.update_version = ""
 
@@ -566,7 +567,8 @@ class HbtnModule:
         self.list = await settings.set_list()
         self.list_upload = self.list
         self.smg_upload = self.build_smg()
-        if not self.api_srv.is_offline:
+        if not self.api_srv.is_offline and not self.changed & MOD_CHANGED.NEW:
+            # new module not available via router
             await self.hdlr.send_module_smg(self._id)
             await self.hdlr.send_module_list(self._id)
         self.comp_status = self.get_status(False)
