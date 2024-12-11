@@ -716,6 +716,60 @@ def document_module(doc, page, mod, idx) -> str:
         page += "        </tbody>\n"
         page += "      </table>\n"
 
+    if len(automation_set.forward):
+        ext_mod_name = ""
+        page += "      <h2>Weitergeleitete Automatisierungen</h2>\n"
+        page += "      <table>\n"
+        page += "        <thead>\n"
+        page += "          <tr>\n"
+        page += "            <th>Nr.</th>\n"
+        page += "            <th>Auslöser</th>\n"
+        page += "            <th>Bedingung</th>\n"
+        page += "            <th>Aktion</th>\n"
+        page += "          </tr>\n"
+        page += "        </thead>\n"
+        page += "        <tbody>\n"
+        ws.cell(row, 1).value = "Weitergeleitete Automatisierungen"
+        ws.cell(row, 1).font = subheader_font_red
+        row += 1
+        ws = write_atm_ext_headers(ws, row)
+        row += 1
+        for atm in automation_set.forward:
+            if mod.get_rtr().get_module(atm.src_mod) is None:
+                curr_mod_name = f"Mod_{atm.src_mod}?"
+            else:
+                curr_mod_name = mod.get_rtr().get_module(atm.src_mod)._name
+            if ext_mod_name != curr_mod_name:
+                ext_mod_name = curr_mod_name
+                atm_no = 1
+                ws.cell(row, 2).value = f"Modul {atm.src_mod} '{ext_mod_name}'"
+                ws.cell(row, 2).font = subheader_font
+                row += 1
+                page += "          <tr>\n"
+                page += "            <th></th>\n"
+                page += f"            <th>Modul {atm.src_mod} '{ext_mod_name}'</th>\n"
+                page += "            <th></th>\n"
+                page += "            <th></th>\n"
+                page += "          </tr>\n"
+            page += "          <tr>\n"
+            page += f"            <td>{atm_no}</td>\n"
+            page += f"            <td>{atm.trigger.description}</td>\n"
+            page += f"            <td>{atm.condition.name}</td>\n"
+            page += f"            <td>{atm.action.description}</td>\n"
+            page += "          </tr>\n"
+            ws.cell(row, 1).value = atm_no
+            ws.cell(row, 1).alignment = left_aligned
+            ws.cell(row, 2).value = atm.trigger.description
+            ws.cell(row, 2).alignment = left_aligned
+            ws.cell(row, 3).value = atm.condition.name
+            ws.cell(row, 3).alignment = left_aligned
+            ws.cell(row, 4).value = atm.action.description
+            ws.cell(row, 4).alignment = left_aligned
+            atm_no += 1
+            row += 1
+        page += "        </tbody>\n"
+        page += "      </table>\n"
+
     page += '    <br><br><a href="#overview">zur Übersicht</a><hr><div class="pagebreak"> </div>\n'
 
     ws.column_dimensions["B"].width = 34
