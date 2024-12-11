@@ -283,6 +283,8 @@ def fill_automations_template(
         page = enable_new_popup(main_app["settings"], page)
         if len(main_app["automations_def"].forward) == 0:
             page = disable_button("weiter", page)
+    if step == 2:
+        page = disable_button("weiter", page)
     settings_form = prepare_automations_list(main_app, step)
     page = disable_chg_del_button(main_app, step, page)
     page = page.replace("<p>ContentText</p>", settings_form)
@@ -327,8 +329,11 @@ def prepare_automations_list(main_app, step):
     curr_mod = 0
     if step == 0:
         automations = main_app["automations_def"].local
-    else:
+    elif step == 1:
         automations = main_app["automations_def"].external
+        last_source_header = ""
+    else:
+        automations = main_app["automations_def"].forward
         last_source_header = ""
     tbl = (
         indent(4)
