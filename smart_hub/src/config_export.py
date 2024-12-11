@@ -23,7 +23,6 @@ def create_documentation(router, filename):
 
     for idx in range(len(router.modules)):
         mod = router.modules[idx]
-        # ws.add_image("./web/configurator_files/logo.png", "F1")
         page = document_module(doc, page, mod, idx)
     page += "</body>\n"
 
@@ -32,7 +31,7 @@ def create_documentation(router, filename):
         data_file_path = DATA_FILES_ADDON_DIR
     else:
         data_file_path = DATA_FILES_DIR
-    doc.save(data_file_path + filename)
+    doc.save(data_file_path + filename.split(".")[0] + ".xlsx")
     return page
 
 
@@ -661,6 +660,7 @@ def document_module(doc, page, mod, idx) -> str:
         page += "        </tbody>\n"
         page += "      </table>\n"
         row += 1
+
     if len(automation_set.external):
         ext_mod_name = ""
         page += "      <h2>Externe Automatisierungen</h2>\n"
@@ -681,7 +681,7 @@ def document_module(doc, page, mod, idx) -> str:
         row += 1
         for atm in automation_set.external:
             if mod.get_rtr().get_module(atm.src_mod) is None:
-                curr_mod_name = f"Mod_{atm.src_mod}?"
+                curr_mod_name = f"Mod_{atm.src_mod}_not_found"
             else:
                 curr_mod_name = mod.get_rtr().get_module(atm.src_mod)._name
             if ext_mod_name != curr_mod_name:
