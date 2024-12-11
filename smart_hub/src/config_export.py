@@ -6,7 +6,6 @@ from automation import AutomationsSet
 from configuration import ModuleSettingsLight
 from const import DATA_FILES_ADDON_DIR, DATA_FILES_DIR
 import psutil
-import re
 
 header_font = Font(b=True, sz=14.0, color="c0372d")
 subheader_font = Font(b=True, sz=12.0)
