@@ -284,10 +284,12 @@ def fill_automations_template(
         if len(main_app["api_srv"].routers) < 2:
             page = disable_button("weiter", page)
     if step == 2:
-        # if (len(app["automations_def"].external) == 0) and (
-        #     len(app["automations_def"].forward) == 0
-        # ):
-        page = disable_button("weiter", page)
+        if (len(main_app["automations_def"].external) == 0) and (
+            len(main_app["automations_def"].forward) == 0
+        ):
+            pass
+        else:
+            page = disable_button("weiter", page)
     settings_form = prepare_automations_list(main_app, step)
     page = disable_chg_del_button(main_app, step, page)
     page = page.replace("<p>ContentText</p>", settings_form)
