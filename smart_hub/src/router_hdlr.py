@@ -939,6 +939,7 @@ class RtHdlr(HdlrBase):
 
     async def set_module_address(self, mode: int, ch_or_mod: int, new_mod: int):
         """Set module address in router adress table."""
+        await self.rt_msg.api_hdlr.api_srv.set_server_mode()
         if mode == 0:
             rt_cmd = RT_CMDS.NEXT_MD_ADDR.replace("<ch>", chr(ch_or_mod))
         elif mode == 1:

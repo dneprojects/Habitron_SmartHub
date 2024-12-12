@@ -76,18 +76,6 @@ class ConfigSetupServer:
                 f"Modul {mod_name} jetzt per Tastendruck<br>mit Router verbinden.",
             )
 
-    # @routes.get("/remove")
-    # async def mod_remove(request: web.Request) -> web.Response:  # type: ignore
-    #     inspect_header(request)
-    #     main_app = request.app["parent"]
-    #     api_srv = main_app["api_srv"]
-    #     rtr = api_srv.routers[0]
-    #     if client_not_authorized(request):
-    #         return show_not_authorized(main_app)
-    #     mod_addr = int(request.query["RemoveModule"])
-    #     rtr.rem_module(mod_addr)
-    #     return show_modules(main_app)
-
     @routes.get("/table_close")
     async def tbl_close(request: web.Request) -> web.Response:  # type: ignore
         inspect_header(request)
@@ -323,7 +311,9 @@ async def transfer_setup_table_changes(main_app) -> web.Response:
 
     api_srv = main_app["api_srv"]
     rtr = api_srv.routers[0]
+    await api_srv.block_network_if(rtr._id, True)
     for mod in rtr.removed_modules:
+        await api_srv.set_server_mode()
         await rtr.hdlr.del_mod_addr(mod._id)
         main_app.logger.info(f"Module {mod._id} deleted from router list")
     rtr.removed_modules = []
@@ -357,6 +347,7 @@ async def transfer_setup_table_changes(main_app) -> web.Response:
     # Store channel and group changes permanently
     await rtr.hdlr.send_rt_channels(rtr.channels)
     await rtr.hdlr.send_rt_group_no(rtr.groups[1:])
+    await api_srv.block_network_if(rtr._id, False)
     return show_setup_page(
         main_app,
         "Änderungen an Moduladressen<br>und Kanalzuordnungen<br>wurden umgesetzt.<br><br>"

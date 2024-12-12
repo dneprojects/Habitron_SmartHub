@@ -570,7 +570,7 @@ async def show_router_syspage(main_app, popup_msg="") -> web.Response:
         + f'<tr><td><label for="{id_name}">{prompt}</label></td>'
         + f'<td><input name="{id_name}" type="number" min="1" max="64" id="{id_name}" value="1" title="neue Moduladresse"/></td>\n'
         + '<td><select name="new_mod_ch" id="new_mod_ch" title="Routerkanalpaar"><option value="1">1 + 2</option><option value="2">3 + 4</option><option value="3">5 + 6</option><option value="4">7 + 8</option></select></td>\n'
-        + f'<td><input name="btn_{id_name}" type="submit" id="btn_{id_name}" value="Anbieten"/></td></tr>\n'
+        + f'<td><input name="btn_{id_name}" type="submit" id="btn_{id_name}" value="Anlegen"/></td></tr>\n'
     )
     tbl += indent(6) + "</form>"
     id_name = "rtr_timeout"
