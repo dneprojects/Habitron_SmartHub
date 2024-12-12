@@ -235,7 +235,7 @@ class ConfigTestingServer:
         main_app = request.app["parent"]
         api_srv = main_app["api_srv"]
         rtr = api_srv.routers[0]
-        await rtr.hdlr.set_module_address(0, chan, id)
+        await rtr.hdlr.set_module_address(1, chan, id)
         return await show_router_syspage(main_app, "")
 
 
@@ -563,7 +563,7 @@ async def show_router_syspage(main_app, popup_msg="") -> web.Response:
     )
     tbl += indent(6) + "</form>"
     id_name = "new_mod_id"
-    prompt = "Neue Moduladresse auf Kanalpaar anbieten"
+    prompt = "Neue Moduladresse auf Kanalpaar anlegen"
     tbl += indent(6) + '<form action="test/new_chan_id" method="post">\n'
     tbl += (
         indent(7)
