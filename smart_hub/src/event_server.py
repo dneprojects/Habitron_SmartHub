@@ -652,6 +652,8 @@ class EventServer:
                     if retry:
                         await self.open_websocket(retry=False)
                     return False
+                else:
+                    self.api_srv.ha_version = json.loads(resp)["ha_version"]
             except Exception as err_msg:
                 self.logger.error(f"    Websocket authentification failed: {err_msg}")
                 await self.close_websocket()

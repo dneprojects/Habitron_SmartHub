@@ -32,6 +32,8 @@ class ApiServer:
         self.sm_hub = sm_hub
         self.logger = logging.getLogger(__name__)
         self._rt_serial: tuple[StreamReader, StreamWriter] = rt_serial
+        self.ha_version = "0.0.0"
+        self.hbtint_version = "0.0.0"
         self._opr_mode: bool = True  # Allows explicitly setting operate mode off
         self.routers = []
         self.routers.append(HbtnRouter(self, 1))

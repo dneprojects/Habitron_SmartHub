@@ -21,6 +21,8 @@ class DataHdlr(HdlrBase):
                 self.response = self.api_srv.sm_hub.get_info()
 
             case spec.SMHUB_UPDATE:
+                if len(self._args[1:]) > 0:
+                    self.api_srv.hbtint_version = self._args[1:].decode("iso8859-1")
                 self.response = self.api_srv.sm_hub.get_update()
 
             case spec.RT_NAME_FW_NM_PCREAD:
