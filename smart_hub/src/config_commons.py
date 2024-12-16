@@ -77,8 +77,12 @@ def show_homepage(app) -> web.Response:
         app["side_menu"], "", api_srv.is_offline or api_srv._pc_mode
     )
     info_obj = api_srv.sm_hub.get_info_obj()
-    mem_str = f'{info_obj["hardware"]["memory"]["total"]}, genutzt {info_obj["hardware"]["memory"]["percent"]}'
-    sd_str = f'{info_obj["hardware"]["disk"]["total"]}, genutzt {info_obj["hardware"]["disk"]["percent"]}'
+    mem_str = f'{info_obj["hardware"]["memory"]["total"]}, genutzt {info_obj["hardware"]["memory"]["percent"]}'.replace(
+        "%", "%25"
+    )
+    sd_str = f'{info_obj["hardware"]["disk"]["total"]}, genutzt {info_obj["hardware"]["disk"]["percent"]}'.replace(
+        "%", "%25"
+    )
     page = page.replace("<!-- SideMenu -->", side_menu)
     page = page.replace("<v_smhub>", SMHUB_INFO.SW_VERSION)
     page = page.replace("<v_ha>", api_srv.ha_version)
