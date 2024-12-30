@@ -229,7 +229,7 @@ class ApiServer:
         if self._opr_mode and self.evnt_srv.running():
             return True
         if self.evnt_srv.running():
-            # Send command to router
+            # Switch mode in router only
             m_chr = chr(int(self.mirror_mode_enabled))
             e_chr = chr(int(self.event_mode_enabled))
             cmd = RT_CMDS.SET_OPR_MODE.replace("<mirr>", m_chr).replace("<evnt>", e_chr)
@@ -237,15 +237,16 @@ class ApiServer:
             # if self.hdlr.rt_msg._resp_code == 133:
             self.logger.info("--- Switched to Operate mode")
             self._opr_mode = True
-            await self.evnt_srv.start()
             await asyncio.sleep(0.1)
             return self._opr_mode
         if self._opr_mode:
+            # Start event server only
             self.logger.debug("Already in Operate mode, recovering event server")
             await self.evnt_srv.start()
             await asyncio.sleep(0.1)
             return self._opr_mode
-        # Send command to router
+
+        # Switch mode in router and start event server
         m_chr = chr(int(self.mirror_mode_enabled))
         e_chr = chr(int(self.event_mode_enabled))
         cmd = RT_CMDS.SET_OPR_MODE.replace("<mirr>", m_chr).replace("<evnt>", e_chr)
