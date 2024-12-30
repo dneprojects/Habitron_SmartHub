@@ -84,11 +84,6 @@ class HdlrBase:
             except TimeoutError:
                 self.logger.warning("Timeout receiving router response, returning 0 0")
             except Exception as err_msg:
-                if f"{err_msg}".startswith(
-                    "readexactly() called while another coroutine is already waiting"
-                ):
-                    await self.api_srv.evnt_srv.stop()
-                    self.logger.debug("Stopped event server")
                 self.logger.warning(
                     f"Error receiving router response: {err_msg}, returning 0 0"
                 )

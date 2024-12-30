@@ -452,7 +452,9 @@ class EventServer:
         if self.websck_is_closed:
             if not await self.open_websocket():
                 if self.HA_not_ready:
-                    self.logger.info("    Waiting for Home Assistant to restart...")
+                    self.logger.info(
+                        "    Waiting for Home Assistant to finish loading..."
+                    )
                 else:
                     self.logger.warning(
                         "    Failed to send event via websocket, open failed"
@@ -482,7 +484,9 @@ class EventServer:
             self.logger.warning(
                 "Connection closed by Home Assistant server, shutting down."
             )
-            await self.wait_for_ha_booting()
+            await self.wait_for_ha_booting(
+                "    Waiting for Home Assistant to restart..."
+            )
         except Exception as error_msg:
             # Use to get cancel event in api_server
             self.logger.error(f"Could not connect to event server: {error_msg}")
@@ -668,13 +672,13 @@ class EventServer:
         self.websck_is_closed = False
         return True
 
-    async def wait_for_ha_booting(self):
+    async def wait_for_ha_booting(self, msg):
         """Wait for home assistant to finish rebooting."""
         self.wait_for_HA = True
         while self.wait_for_HA:
             await self.close_websocket()
             self.websck_is_closed = True
-            self.logger.info("    Waiting for Home Assistant to restart...")
+            self.logger.info(msg)
             await asyncio.sleep(4)
             self.wait_for_HA = False
             try:
@@ -710,9 +714,13 @@ class EventServer:
         if self.api_srv._init_mode:
             return
         if self.busy_starting:
-            self.logger.debug("New EventSrv task is aleady starting")
+            self.logger.debug("New EventSrv task is already starting")
             return
         self.busy_starting = True
+        self.logger.debug("Waiting for websocket connection")
+        await self.wait_for_ha_booting(
+            "    Waiting for Home Assistant to finish loading..."
+        )
         self.logger.debug("Starting new EventSrv task")
         self.ev_srv_task = self.api_srv.loop.create_task(
             self.watch_rt_events(self.api_srv._rt_serial[0])
