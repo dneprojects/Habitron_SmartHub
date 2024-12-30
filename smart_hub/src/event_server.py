@@ -717,10 +717,7 @@ class EventServer:
             self.logger.debug("New EventSrv task is already starting")
             return
         self.busy_starting = True
-        self.logger.debug("Waiting for websocket connection")
-        await self.wait_for_ha_booting(
-            "    Waiting for Home Assistant to finish loading..."
-        )
+        await self.api_srv.set_operate_mode()
         self.logger.debug("Starting new EventSrv task")
         self.ev_srv_task = self.api_srv.loop.create_task(
             self.watch_rt_events(self.api_srv._rt_serial[0])

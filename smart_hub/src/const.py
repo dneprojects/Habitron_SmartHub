@@ -2,7 +2,7 @@
 
 from typing import Final
 
-SMHUB_VERSION = "2.0.5"
+SMHUB_VERSION = "2.0.6"
 
 OWN_IP = "192.168.178.110"
 ANY_IP = "0.0.0.0"
