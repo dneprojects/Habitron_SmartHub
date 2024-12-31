@@ -4,6 +4,7 @@ import logging
 from logging import Logger, config as log_conf
 from logging import RootLogger
 from logging.handlers import RotatingFileHandler
+from datetime import datetime
 import yaml
 import serial
 import serial.tools.list_ports
@@ -59,12 +60,20 @@ class SmartHub:
         self.skip_init: bool = False
         self.restart: bool = False
         self.token = os.getenv("SUPERVISOR_TOKEN")
+        now = datetime.now()
+        self.logger.info(
+            "___________________________________________________________\n"
+        )
         if self.token is None:
             self.is_addon: bool = False
             self.logger.info(f"Starting Smart Hub: version {self.get_version()}")
         else:
             self.is_addon: bool = True
             self.logger.info(f"Starting Smart Center: version {self.get_version()}")
+        self.logger.info(f"   {(now.strftime("%d.%m.%Y, %H:%M"))}")
+        self.logger.info(
+            "___________________________________________________________\n"
+        )
         self.slug_name: str | None = os.getenv("HOSTNAME")
         if self.slug_name:
             self.slug_name = self.slug_name.replace("-", "_")
@@ -302,7 +311,7 @@ async def open_serial_interface(
 ) -> tuple[StreamReader, StreamWriter]:
     """Open serial connection of given device."""
 
-    logger.info(f"   Open serial connection: {device}")
+    logger.info(f"Open serial connection: {device}")
     ser_rd, ser_wr = await serial_asyncio.open_serial_connection(
         url=device,
         baudrate=RT_BAUDRATE[bd_rate],

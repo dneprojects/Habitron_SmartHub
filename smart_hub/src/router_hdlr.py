@@ -496,11 +496,11 @@ class RtHdlr(HdlrBase):
                 desc_len = int.from_bytes(self.rt_msg._resp_buffer[7:9], "little")
 
             if desc_len == 0:
-                self.logger.info("Router descriptions empty")
+                self.logger.info("   Router descriptions empty")
                 desc_to_read = False
             elif resp_cnt != desc_cnt:
                 self.logger.warning(
-                    f"Router description {desc_cnt}: received {resp_cnt}, read again, discarded"
+                    f"   Router description {desc_cnt}: received {resp_cnt}, read again, discarded"
                 )
             else:
                 resp = self.rt_msg._resp_buffer[-35:-1]
@@ -511,7 +511,7 @@ class RtHdlr(HdlrBase):
 
                 if desc_cnt >= desc_len:
                     self.logger.info(
-                        f"{desc_len} router descriptions read successfully"
+                        f"   {desc_len} router descriptions read successfully"
                     )
                     self.rtr.descriptions = desc
                     desc_to_read = False

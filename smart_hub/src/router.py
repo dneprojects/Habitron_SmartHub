@@ -140,7 +140,7 @@ class HbtnRouter:
         modules = await self.get_full_status()
         await self.get_descriptions()
         self.get_router_settings()
-        self.logger.info("Router initialized")
+        self.logger.info("   Router initialized")
 
         self.logger.info("Setting up modules...")
         for m_idx in range(modules[0]):
@@ -444,7 +444,7 @@ class HbtnRouter:
             file_path = DATA_FILES_DIR
         if not isfile(file_path + file_name):
             file_path = DATA_FILES_DIR
-            self.logger.debug(f"Add-on config path not found, using {file_path}")
+            self.logger.debug(f"   Add-on config path not found, using {file_path}")
         if isfile(file_path + file_name):
             try:
                 fid = open(file_path + file_name, "r")
@@ -457,15 +457,17 @@ class HbtnRouter:
                     for ci in range(len(line) - 1):
                         self.descriptions_file += chr(int(line[ci]))
                 fid.close()
-                self.logger.info(f"Descriptions loaded from {file_path + file_name}")
+                self.logger.info(f"   Descriptions loaded from {file_path + file_name}")
                 self.get_glob_descriptions(self.descriptions_file)
             except Exception as err_msg:
                 self.logger.error(
-                    f"Error loading description from file {file_path + file_name}: {err_msg}"
+                    f"   Error loading description from file {file_path + file_name}: {err_msg}"
                 )
                 fid.close()
         else:
-            self.logger.warning(f"Descriptions file {file_path + file_name} not found")
+            self.logger.warning(
+                f"   Descriptions file {file_path + file_name} not found"
+            )
 
     def save_firmware(self, bin_data) -> None:
         "Save firmware binary to file and fw_data buffer."

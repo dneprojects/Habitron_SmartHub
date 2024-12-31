@@ -455,6 +455,7 @@ class EventServer:
                     self.logger.info(
                         "    Waiting for Home Assistant to finish loading..."
                     )
+                    await asyncio.sleep(4)
                 else:
                     self.logger.warning(
                         "    Failed to send event via websocket, open failed"
@@ -686,7 +687,7 @@ class EventServer:
                     self._uri,
                     open_timeout=4,
                 )
-                await asyncio.sleep(1)
+                await asyncio.sleep(4)
                 resp = await self.websck.recv()
                 self.failure_count = 0
             except Exception:
