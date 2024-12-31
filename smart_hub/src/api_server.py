@@ -1,3 +1,4 @@
+from datetime import datetime
 import struct
 import const
 import asyncio
@@ -265,9 +266,14 @@ class ApiServer:
         if not mode:
             # Start of re-init with mode == 0
             self._init_mode = True
-            self.logger.info("--- Starting intialization")
+            now = datetime.now()
+            self.logger.info(
+                "___________________________________________________________\n"
+            )
+            self.logger.info("Starting intialization")
+            self.logger.info(f"   {(now.strftime("%d.%m.%Y, %H:%M"))}")
             self.logger.debug(
-                "Stopping EventSrv task, setting Srv mode for initialization, doing rollover"
+                "   Stopping EventSrv task, setting Srv mode for initialization, doing rollover"
             )
             await asyncio.sleep(0.1)
             root_file_hdlr: RotatingFileHandler = logging.root.handlers[1]  # type: ignore
@@ -281,12 +287,15 @@ class ApiServer:
         else:
             # finishing re-init with mode == 1
             self._init_mode = False
-            self.logger.debug("Re-initializing EventSrv task")
+            self.logger.debug("   Re-initializing EventSrv task")
             await self.evnt_srv.start()
             await asyncio.sleep(0.5)
             await self.set_operate_mode(rt_no)
             await asyncio.sleep(0.2)
-            self.logger.info("--- Initialization finished")
+            self.logger.info("Initialization finished")
+            self.logger.info(
+                "___________________________________________________________"
+            )
             return "Init mode reset"
 
     async def set_server_mode(self, rt_no=1) -> bool:
