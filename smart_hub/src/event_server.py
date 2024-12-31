@@ -687,7 +687,7 @@ class EventServer:
                     self._uri,
                     open_timeout=4,
                 )
-                await asyncio.sleep(4)
+                await asyncio.sleep(1)
                 resp = await self.websck.recv()
                 self.failure_count = 0
             except Exception:

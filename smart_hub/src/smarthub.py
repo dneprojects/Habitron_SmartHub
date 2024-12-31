@@ -61,9 +61,8 @@ class SmartHub:
         self.restart: bool = False
         self.token = os.getenv("SUPERVISOR_TOKEN")
         now = datetime.now()
-        self.logger.info(
-            "___________________________________________________________\n"
-        )
+        self.logger.info("___________________________________________________________")
+        self.logger.info("")
         if self.token is None:
             self.is_addon: bool = False
             self.logger.info(f"Starting Smart Hub: version {self.get_version()}")
@@ -71,13 +70,12 @@ class SmartHub:
             self.is_addon: bool = True
             self.logger.info(f"Starting Smart Center: version {self.get_version()}")
         self.logger.info(f'   {now.strftime("%d.%m.%Y, %H:%M")}')
-        self.logger.info(
-            "___________________________________________________________\n"
-        )
         self.slug_name: str | None = os.getenv("HOSTNAME")
         if self.slug_name:
             self.slug_name = self.slug_name.replace("-", "_")
-            self.logger.info("Addon Slug name: " + self.slug_name)
+            self.logger.info("   Addon Slug name: " + self.slug_name)
+        self.logger.info("___________________________________________________________")
+        self.logger.info("")
 
     def reboot_hub(self):
         """Reboot hardware."""
