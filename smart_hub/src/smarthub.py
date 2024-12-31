@@ -70,7 +70,7 @@ class SmartHub:
         else:
             self.is_addon: bool = True
             self.logger.info(f"Starting Smart Center: version {self.get_version()}")
-        self.logger.info(f"   {(now.strftime("%d.%m.%Y, %H:%M"))}")
+        self.logger.info(f'   {now.strftime("%d.%m.%Y, %H:%M")}')
         self.logger.info(
             "___________________________________________________________\n"
         )

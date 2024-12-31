@@ -271,7 +271,7 @@ class ApiServer:
                 "___________________________________________________________\n"
             )
             self.logger.info("Starting intialization")
-            self.logger.info(f"   {(now.strftime("%d.%m.%Y, %H:%M"))}")
+            self.logger.info(f'   {now.strftime("%d.%m.%Y, %H:%M")}')
             self.logger.debug(
                 "   Stopping EventSrv task, setting Srv mode for initialization, doing rollover"
             )
