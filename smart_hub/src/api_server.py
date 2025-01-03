@@ -6,6 +6,7 @@ import os
 from asyncio.streams import StreamReader, StreamWriter
 
 from const import RT_CMDS, API_CATEGS
+from const import API_ADMIN as spec
 import logging
 from logging.handlers import RotatingFileHandler
 from messages import ApiMessage
@@ -132,7 +133,9 @@ class ApiServer:
                         await self.set_server_mode(rt)
                     case API_CATEGS.ADMIN:
                         self.hdlr = AdminHdlr(self)
-                        await self.set_server_mode(rt)
+                        if self.api_msg._cmd_spec != spec.SMHUB_REINIT:
+                            # If reinit, server mode is set anyway
+                            await self.set_server_mode(rt)
                     case API_CATEGS.FORWARD:
                         self.hdlr = ForwardHdlr(self)
                     case _:
@@ -214,7 +217,7 @@ class ApiServer:
             await self.set_operate_mode(rt_no)
             self.logger.debug("Release operate mode block")
 
-    async def set_operate_mode(self, rt_no=1) -> bool:
+    async def set_operate_mode(self, rt_no=1, silent=False) -> bool:
         """Turn on operate mode: enable router events."""
         # Client ip needed for event handling;
         # method "get_extra_info" is only implemented for writer object
@@ -236,7 +239,8 @@ class ApiServer:
             cmd = RT_CMDS.SET_OPR_MODE.replace("<mirr>", m_chr).replace("<evnt>", e_chr)
             await self.hdlr.handle_router_cmd(rt_no, cmd)
             # if self.hdlr.rt_msg._resp_code == 133:
-            self.logger.info("--- Switched to Operate mode")
+            if not silent:
+                self.logger.info("--- Switched to Operate mode")
             self._opr_mode = True
             await asyncio.sleep(0.1)
             return self._opr_mode
@@ -267,10 +271,8 @@ class ApiServer:
             # Start of re-init with mode == 0
             self._init_mode = True
             now = datetime.now()
-            self.logger.info(
-                "___________________________________________________________"
-            )
-            self.logger.info("")
+            self.logger.info("_________________________________")
+            self.logger.info(" ")
             self.logger.info("Starting intialization")
             self.logger.info(f'   {now.strftime("%d.%m.%Y, %H:%M")}')
             self.logger.debug(
@@ -291,13 +293,11 @@ class ApiServer:
             self.logger.debug("   Re-initializing EventSrv task")
             await self.evnt_srv.start()
             await asyncio.sleep(0.5)
-            await self.set_operate_mode()
+            await self.set_operate_mode(silent=True)
             await asyncio.sleep(0.2)
             self.logger.info("Initialization finished")
-            self.logger.info(
-                "___________________________________________________________"
-            )
-            self.logger.info("")
+            self.logger.info("_________________________________")
+            self.logger.info(" ")
             await self.set_operate_mode()  # try a second time
             return "Init mode reset"
 
