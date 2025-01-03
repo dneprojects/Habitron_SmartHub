@@ -482,12 +482,12 @@ class EventServer:
             self.logger.debug(f"Notify returned {resp}")
 
         except ConnectionClosedOK:
-            self.logger.warning("Connection closed by Home Assistant server")
+            self.logger.warning("Connection closed by Home Assistant")
             await self.wait_for_ha_booting(
                 "    Waiting for Home Assistant to restart..."
             )
         except ConnectionClosedError:
-            self.logger.warning("Connection closed by Home Assistant server")
+            self.logger.warning("Connection closed by Home Assistant")
             await self.wait_for_ha_booting(
                 "    Waiting for Home Assistant to restart..."
             )
