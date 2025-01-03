@@ -645,9 +645,7 @@ class EventServer:
                 msg["access_token"] = self.auth_token
                 await self.websck.send(json.dumps(msg))
                 resp = await self.websck.recv()
-                self.logger.info(
-                    f"    Websocket connecting to {self._uri}, response: {resp}"
-                )
+                self.logger.info(f"    Websocket connecting to {self._uri}")
                 if json.loads(resp)["type"] == "auth_invalid":
                     self.logger.error(
                         f"    Websocket authentification failed: {json.loads(resp)['message']}"
@@ -659,6 +657,9 @@ class EventServer:
                     return False
                 else:
                     self.api_srv.ha_version = json.loads(resp)["ha_version"]
+                    self.logger.info(
+                        f"    Home Assistant version: {self.api_srv.ha_version}"
+                    )
             except Exception as err_msg:
                 self.logger.error(f"    Websocket authentification failed: {err_msg}")
                 await self.close_websocket()
