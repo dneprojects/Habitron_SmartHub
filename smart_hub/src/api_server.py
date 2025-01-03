@@ -239,7 +239,9 @@ class ApiServer:
             cmd = RT_CMDS.SET_OPR_MODE.replace("<mirr>", m_chr).replace("<evnt>", e_chr)
             await self.hdlr.handle_router_cmd(rt_no, cmd)
             # if self.hdlr.rt_msg._resp_code == 133:
-            if not silent:
+            if silent:
+                self.logger.debug("--- Switched to Operate mode")
+            else:
                 self.logger.info("--- Switched to Operate mode")
             self._opr_mode = True
             await asyncio.sleep(0.1)
@@ -291,12 +293,14 @@ class ApiServer:
             self._init_mode = False
             self.logger.debug("   Re-initializing EventSrv task")
             await self.evnt_srv.start()
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(1)
             await self.set_operate_mode(silent=True)
             await asyncio.sleep(0.2)
+            if not self._opr_mode:
+                await self.set_operate_mode()  # if prev. call failed
+            self.evnt_srv.HA_not_ready = True
             self.logger.info("Initialization finished")
             self.logger.info("_________________________________")
-            await self.set_operate_mode()  # try a second time
             return "Init mode reset"
 
     async def set_server_mode(self, rt_no=1) -> bool:
