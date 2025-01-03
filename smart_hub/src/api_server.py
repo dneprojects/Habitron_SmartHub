@@ -297,7 +297,7 @@ class ApiServer:
             while not self._opr_mode:
                 await asyncio.sleep(1)
                 await self.set_operate_mode(silent=False)
-            # self.evnt_srv.HA_not_ready = True
+            self.evnt_srv.wait_for_HA = False
             self.logger.info("Initialization finished")
             self.logger.info("_________________________________")
             return "Init mode reset"

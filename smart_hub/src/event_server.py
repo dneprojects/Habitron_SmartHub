@@ -575,13 +575,17 @@ class EventServer:
         self.token_ok = retry
         if self.api_srv.is_addon:
             # SmartHub running with Home Assistant, use internal websocket
-            self.logger.debug("--- Open internal add-on websocket to home assistant.")
+            if not self.HA_not_ready:
+                self.logger.debug(
+                    "--- Open internal add-on websocket to home assistant."
+                )
             self._uri = "ws://supervisor/core/websocket"
             self.logger.debug(f"URI: {self._uri}")
             self.auth_token = os.getenv("SUPERVISOR_TOKEN")
         else:
             # Stand-alone SmartHub, use external websocket connection to host ip
-            self.logger.info("--- Open websocket to home assistant.")
+            if not self.HA_not_ready:
+                self.logger.info("--- Open websocket to home assistant.")
             self.auth_token = self.get_ident()
             self._client_ip = self.api_srv._client_ip
             self._uri = "ws://<ip>:8123/api/websocket".replace("<ip>", self._client_ip)
