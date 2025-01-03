@@ -627,6 +627,7 @@ class EventServer:
             await asyncio.sleep(1)
             resp = await self.websck.recv()
             self.failure_count = 0
+            self.HA_not_ready = False
         except Exception as err_msg:
             err_message = f"{err_msg}"
             if err_message.endswith("HTTP 502") or err_message.endswith(

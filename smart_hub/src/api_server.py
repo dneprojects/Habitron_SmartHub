@@ -338,8 +338,11 @@ class ApiServer:
     async def set_initial_server_mode(self, rt_no=1) -> None:
         """Turn on server mode: disable router events"""
         self._init_mode = True
+        if self._opr_mode:
+            await self.hdlr.handle_router_cmd(rt_no, RT_CMDS.SET_SRV_MODE)
+        else:
+            await self.hdlr.handle_router_cmd_resp(rt_no, RT_CMDS.SET_SRV_MODE)
         self._opr_mode = False
-        await self.hdlr.handle_router_cmd_resp(rt_no, RT_CMDS.SET_SRV_MODE)
         await self.evnt_srv.stop()
         self.logger.debug("Operate mode turned off initially")
 
