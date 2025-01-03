@@ -575,27 +575,21 @@ class EventServer:
         self.token_ok = retry
         if self.api_srv.is_addon:
             # SmartHub running with Home Assistant, use internal websocket
-            if not self.HA_not_ready:
-                self.logger.debug(
-                    "--- Open internal add-on websocket to home assistant."
-                )
+            self.logger.debug("--- Open internal add-on websocket to home assistant.")
             self._uri = "ws://supervisor/core/websocket"
             self.logger.debug(f"URI: {self._uri}")
             self.auth_token = os.getenv("SUPERVISOR_TOKEN")
         else:
             # Stand-alone SmartHub, use external websocket connection to host ip
-            if not self.HA_not_ready:
-                self.logger.info("--- Open websocket to home assistant.")
-                self.auth_token = self.get_ident()
-                self._client_ip = self.api_srv._client_ip
-                self._uri = "ws://<ip>:8123/api/websocket".replace(
-                    "<ip>", self._client_ip
-                )
-                self.logger.debug(f"URI: {self._uri}")
-                # supervisor_token  "2f428d27e04db95b4c844b451af4858fba585aac82f70ee6259cf8ec1834a00abf6a448f49ee18d3fc162f628ce6f479fe4647c6f8624f88"
-                # token for local docker:    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmYTIzMmRhMDBhZTc0MmNmYTJiY2FiNjM1OGE5MzEzOSIsImlhdCI6MTcyNDMxNzMxNiwiZXhwIjoyMDM5Njc3MzE2fQ.0M83XHd6uspRqBl4Z1IdyM_ynML9M9ctlVx9vSrMGAY"
-                # token for 192.168.178.160: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI5NGY2ZjMyZjdhYjE0NzAzYmI4MTc5YjZhOTdhYzdjNSIsImlhdCI6MTcxMzYyMjgxNywiZXhwIjoyMDI4OTgyODE3fQ.2iJQuKgpavJOelH_WHEDe06X2XmAmyHB3FlzkDPl4e0"
-                # token for SmartCenter 5:   token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmN2UxMGFhNzcyZTE0ZWY0OGFmOTkzNDVlOTIwNTNlNiIsImlhdCI6MTcxMzUxNDM4MSwiZXhwIjoyMDI4ODc0MzgxfQ.9kpjxhElmWAqTY2zwSsTyLSZiJQZkaV5FX8Pyj9j8HQ"
+            self.logger.info("--- Open websocket to home assistant.")
+            self.auth_token = self.get_ident()
+            self._client_ip = self.api_srv._client_ip
+            self._uri = "ws://<ip>:8123/api/websocket".replace("<ip>", self._client_ip)
+            self.logger.debug(f"URI: {self._uri}")
+            # supervisor_token  "2f428d27e04db95b4c844b451af4858fba585aac82f70ee6259cf8ec1834a00abf6a448f49ee18d3fc162f628ce6f479fe4647c6f8624f88"
+            # token for local docker:    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmYTIzMmRhMDBhZTc0MmNmYTJiY2FiNjM1OGE5MzEzOSIsImlhdCI6MTcyNDMxNzMxNiwiZXhwIjoyMDM5Njc3MzE2fQ.0M83XHd6uspRqBl4Z1IdyM_ynML9M9ctlVx9vSrMGAY"
+            # token for 192.168.178.160: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI5NGY2ZjMyZjdhYjE0NzAzYmI4MTc5YjZhOTdhYzdjNSIsImlhdCI6MTcxMzYyMjgxNywiZXhwIjoyMDI4OTgyODE3fQ.2iJQuKgpavJOelH_WHEDe06X2XmAmyHB3FlzkDPl4e0"
+            # token for SmartCenter 5:   token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmN2UxMGFhNzcyZTE0ZWY0OGFmOTkzNDVlOTIwNTNlNiIsImlhdCI6MTcxMzUxNDM4MSwiZXhwIjoyMDI4ODc0MzgxfQ.9kpjxhElmWAqTY2zwSsTyLSZiJQZkaV5FX8Pyj9j8HQ"
 
         if self.api_srv.is_addon and (self.auth_token is None or not self.token_ok):
             # addon uses environment variable
