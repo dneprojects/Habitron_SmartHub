@@ -573,7 +573,7 @@ class EventServer:
         if self.api_srv.is_addon:
             # SmartHub running with Home Assistant, use internal websocket
             if not self.HA_not_ready:
-                self.logger.info(
+                self.logger.debug(
                     "--- Open internal add-on websocket to home assistant."
                 )
             self._uri = "ws://supervisor/core/websocket"
@@ -660,6 +660,7 @@ class EventServer:
                     self.logger.info(
                         f"    Home Assistant version: {self.api_srv.ha_version}"
                     )
+                    self.logger.info("_________________________________")
             except Exception as err_msg:
                 self.logger.error(f"    Websocket authentification failed: {err_msg}")
                 await self.close_websocket()

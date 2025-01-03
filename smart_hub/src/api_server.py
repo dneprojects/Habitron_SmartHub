@@ -272,7 +272,6 @@ class ApiServer:
             self._init_mode = True
             now = datetime.now()
             self.logger.info("_________________________________")
-            self.logger.info(" ")
             self.logger.info("Starting intialization")
             self.logger.info(f'   {now.strftime("%d.%m.%Y, %H:%M")}')
             self.logger.debug(
@@ -297,7 +296,6 @@ class ApiServer:
             await asyncio.sleep(0.2)
             self.logger.info("Initialization finished")
             self.logger.info("_________________________________")
-            self.logger.info(" ")
             await self.set_operate_mode()  # try a second time
             return "Init mode reset"
 
