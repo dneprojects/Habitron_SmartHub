@@ -250,13 +250,10 @@ class EventServer:
         elif (rt_event[4] == 133) and (rt_event[5] == 0):
             # Last response in Opr mode, shut down event watcher
             self.logger.debug(
-                "Event server received router response: Mirror/events stopped, stopping router event watcher"
+                "Event server received router response: Mirror/events stopped, ignored"
             )
-            # if len(rt_rd._buffer) > 0:
-            #     prefix = await rt_rd.readexactly(4)
-            #     tail = await rt_rd.readexactly(prefix[3] - 3)
-            #     rt_event = prefix + tail
-            self.evnt_running = False
+            # self.evnt_running = False
+            m_len = 9
 
         elif rt_event[4] == 100:  # router chan status
             if rt_event[6] != 0:
