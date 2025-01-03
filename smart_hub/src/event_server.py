@@ -252,7 +252,7 @@ class EventServer:
             self.logger.debug(
                 "Event server received router response: Mirror/events stopped, stopping router event watcher"
             )
-            self.evnt_running = False
+            await self.stop()
 
         elif rt_event[4] == 100:  # router chan status
             if rt_event[6] != 0:
@@ -745,9 +745,7 @@ class EventServer:
             else:
                 self.ev_srv_task.cancel()
                 self.logger.debug(f"EventSrv stoppped after {t_max} sec")
-            self.ev_srv_task_running = False
-            # if not self.api_srv.is_addon:
-            #     await self.close_websocket()
+        self.ev_srv_task_running = False
 
     def running(self) -> bool:
         """Check status of event server task, set and retrun status flag."""
