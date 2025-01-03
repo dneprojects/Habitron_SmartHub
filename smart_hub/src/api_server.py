@@ -293,10 +293,11 @@ class ApiServer:
             self._init_mode = False
             self.logger.debug("   Re-initializing EventSrv task")
             await self.evnt_srv.start()
+            self._opr_mode = False
             while not self._opr_mode:
                 await asyncio.sleep(1)
-                await self.set_operate_mode(silent=True)
-            self.evnt_srv.HA_not_ready = True
+                await self.set_operate_mode(silent=False)
+            # self.evnt_srv.HA_not_ready = True
             self.logger.info("Initialization finished")
             self.logger.info("_________________________________")
             return "Init mode reset"

@@ -4,7 +4,11 @@ import logging
 import json
 import os
 import websockets
-from websockets import ConnectionClosedOK, WebSocketClientProtocol
+from websockets import (
+    ConnectionClosedError,
+    ConnectionClosedOK,
+    WebSocketClientProtocol,
+)
 from const import DATA_FILES_ADDON_DIR, DATA_FILES_DIR, HA_EVENTS
 # from forward_hdlr import ForwardHdlr
 
@@ -252,7 +256,7 @@ class EventServer:
             self.logger.debug(
                 "Event server received router response: Mirror/events stopped, stopping router event watcher"
             )
-            await self.stop()
+            self.evnt_running = False
 
         elif rt_event[4] == 100:  # router chan status
             if rt_event[6] != 0:
@@ -322,8 +326,8 @@ class EventServer:
             pass  # discard response, info is always 74 123
 
         else:
-            # Discard resonse of API command
-            self.logger.warning(
+            # Discard response of API command
+            self.logger.debug(
                 f"Event server received router response, response discarded: {rt_event}"
             )
         return m_len
@@ -478,9 +482,12 @@ class EventServer:
             self.logger.debug(f"Notify returned {resp}")
 
         except ConnectionClosedOK:
-            self.logger.warning(
-                "Connection closed by Home Assistant server, shutting down."
+            self.logger.warning("Connection closed by Home Assistant server")
+            await self.wait_for_ha_booting(
+                "    Waiting for Home Assistant to restart..."
             )
+        except ConnectionClosedError:
+            self.logger.warning("Connection closed by Home Assistant server")
             await self.wait_for_ha_booting(
                 "    Waiting for Home Assistant to restart..."
             )
@@ -577,15 +584,18 @@ class EventServer:
             self.auth_token = os.getenv("SUPERVISOR_TOKEN")
         else:
             # Stand-alone SmartHub, use external websocket connection to host ip
-            self.logger.info("--- Open websocket to home assistant.")
-            self.auth_token = self.get_ident()
-            self._client_ip = self.api_srv._client_ip
-            self._uri = "ws://<ip>:8123/api/websocket".replace("<ip>", self._client_ip)
-            self.logger.debug(f"URI: {self._uri}")
-            # supervisor_token  "2f428d27e04db95b4c844b451af4858fba585aac82f70ee6259cf8ec1834a00abf6a448f49ee18d3fc162f628ce6f479fe4647c6f8624f88"
-            # token for local docker:    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmYTIzMmRhMDBhZTc0MmNmYTJiY2FiNjM1OGE5MzEzOSIsImlhdCI6MTcyNDMxNzMxNiwiZXhwIjoyMDM5Njc3MzE2fQ.0M83XHd6uspRqBl4Z1IdyM_ynML9M9ctlVx9vSrMGAY"
-            # token for 192.168.178.160: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI5NGY2ZjMyZjdhYjE0NzAzYmI4MTc5YjZhOTdhYzdjNSIsImlhdCI6MTcxMzYyMjgxNywiZXhwIjoyMDI4OTgyODE3fQ.2iJQuKgpavJOelH_WHEDe06X2XmAmyHB3FlzkDPl4e0"
-            # token for SmartCenter 5:   token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmN2UxMGFhNzcyZTE0ZWY0OGFmOTkzNDVlOTIwNTNlNiIsImlhdCI6MTcxMzUxNDM4MSwiZXhwIjoyMDI4ODc0MzgxfQ.9kpjxhElmWAqTY2zwSsTyLSZiJQZkaV5FX8Pyj9j8HQ"
+            if not self.HA_not_ready:
+                self.logger.info("--- Open websocket to home assistant.")
+                self.auth_token = self.get_ident()
+                self._client_ip = self.api_srv._client_ip
+                self._uri = "ws://<ip>:8123/api/websocket".replace(
+                    "<ip>", self._client_ip
+                )
+                self.logger.debug(f"URI: {self._uri}")
+                # supervisor_token  "2f428d27e04db95b4c844b451af4858fba585aac82f70ee6259cf8ec1834a00abf6a448f49ee18d3fc162f628ce6f479fe4647c6f8624f88"
+                # token for local docker:    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmYTIzMmRhMDBhZTc0MmNmYTJiY2FiNjM1OGE5MzEzOSIsImlhdCI6MTcyNDMxNzMxNiwiZXhwIjoyMDM5Njc3MzE2fQ.0M83XHd6uspRqBl4Z1IdyM_ynML9M9ctlVx9vSrMGAY"
+                # token for 192.168.178.160: token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI5NGY2ZjMyZjdhYjE0NzAzYmI4MTc5YjZhOTdhYzdjNSIsImlhdCI6MTcxMzYyMjgxNywiZXhwIjoyMDI4OTgyODE3fQ.2iJQuKgpavJOelH_WHEDe06X2XmAmyHB3FlzkDPl4e0"
+                # token for SmartCenter 5:   token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmN2UxMGFhNzcyZTE0ZWY0OGFmOTkzNDVlOTIwNTNlNiIsImlhdCI6MTcxMzUxNDM4MSwiZXhwIjoyMDI4ODc0MzgxfQ.9kpjxhElmWAqTY2zwSsTyLSZiJQZkaV5FX8Pyj9j8HQ"
 
         if self.api_srv.is_addon and (self.auth_token is None or not self.token_ok):
             # addon uses environment variable
@@ -619,10 +629,9 @@ class EventServer:
             self.failure_count = 0
         except Exception as err_msg:
             err_message = f"{err_msg}"
-            if (
-                err_message.endswith("HTTP 502")
-                or err_message.endswith("timed out during handshake")
-            ) and self.api_srv.is_addon:
+            if err_message.endswith("HTTP 502") or err_message.endswith(
+                "timed out during handshake"
+            ):
                 self.logger.debug(
                     "    Open web socket failed, waiting for Home Assistant to finish loading..."
                 )
