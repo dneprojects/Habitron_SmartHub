@@ -453,12 +453,12 @@ class EventServer:
             if not await self.open_websocket():
                 if self.HA_not_ready:
                     self.logger.info(
-                        "    Waiting for Home Assistant to finish loading..."
+                        "   Waiting for Home Assistant to finish loading..."
                     )
                     await asyncio.sleep(4)
                 else:
                     self.logger.warning(
-                        "    Failed to send event via websocket, open failed"
+                        "   Failed to send event via websocket, open failed"
                     )
                 return
 
@@ -484,12 +484,12 @@ class EventServer:
         except ConnectionClosedOK:
             self.logger.warning("Connection closed by Home Assistant")
             await self.wait_for_ha_booting(
-                "    Waiting for Home Assistant to restart..."
+                "   Waiting for Home Assistant to restart..."
             )
         except ConnectionClosedError:
             self.logger.warning("Connection closed by Home Assistant")
             await self.wait_for_ha_booting(
-                "    Waiting for Home Assistant to restart..."
+                "   Waiting for Home Assistant to restart..."
             )
         except Exception as error_msg:
             # Use to get cancel event in api_server
@@ -508,9 +508,7 @@ class EventServer:
         else:
             success = True
         if not success:
-            self.logger.warning(
-                "    Failed to get ha config via websocket, open failed"
-            )
+            self.logger.warning("   Failed to get ha config via websocket, open failed")
             return
         ws_cmd = WEBSOCK_MSG.config_msg
         self.notify_id += 1
@@ -557,7 +555,7 @@ class EventServer:
         if not self.websck_is_closed:
             return True
         if self.wait_for_HA:
-            # HA not ready
+            # HA rebooting
             return False
         if self.api_srv._netw_blocked:
             # First run, don't start websocket, HA is not ready
@@ -577,7 +575,7 @@ class EventServer:
             # SmartHub running with Home Assistant, use internal websocket
             if not self.HA_not_ready:
                 self.logger.debug(
-                    "--- Open internal add-on websocket to home assistant."
+                    "-- Open internal add-on websocket to home assistant."
                 )
             self._uri = "ws://supervisor/core/websocket"
             self.logger.debug(f"URI: {self._uri}")
@@ -585,7 +583,7 @@ class EventServer:
         else:
             # Stand-alone SmartHub, use external websocket connection to host ip
             if not self.HA_not_ready:
-                self.logger.info("--- Open websocket to home assistant.")
+                self.logger.info("-- Open websocket to home assistant.")
             self.auth_token = self.get_ident()
             self._client_ip = self.api_srv._client_ip
             self._uri = "ws://<ip>:8123/api/websocket".replace("<ip>", self._client_ip)
@@ -599,16 +597,16 @@ class EventServer:
             # addon uses environment variable
             self.auth_token = self.get_ident()
             self.logger.info(
-                f"    Auth not valid, getting default token: {self.auth_token}"
+                f"   Auth not valid, getting default token: {self.auth_token}"
             )
         if self.auth_token is None:
             if self.api_srv.is_addon:
                 self.logger.error(
-                    "    Websocket auth token is none, open_websocket failed."
+                    "   Websocket auth token is none, open_websocket failed."
                 )
             else:
                 self.logger.error(
-                    "    Websocket stored token is none, open_websocket failed"
+                    "   Websocket stored token is none, open_websocket failed"
                 )
             self.websck_is_closed = True
             self.token_ok = False
@@ -626,13 +624,20 @@ class EventServer:
             resp = await self.websck.recv()
             self.failure_count = 0
             self.HA_not_ready = False
+        except TimeoutError:
+            self.logger.debug("   Open web socket failed with TimeoutError")
+            await self.close_websocket()
+            self.websck_is_closed = True
+            self.token_ok = False
+            self.failure_count += 1
+            return False
         except Exception as err_msg:
             err_message = f"{err_msg}"
             if err_message.endswith("HTTP 502") or err_message.endswith(
                 "timed out during handshake"
             ):
                 self.logger.debug(
-                    "    Open web socket failed, waiting for Home Assistant to finish loading..."
+                    "   Open web socket failed, waiting for Home Assistant to finish loading..."
                 )
                 self.HA_not_ready = True
                 return False
@@ -649,10 +654,10 @@ class EventServer:
                 msg["access_token"] = self.auth_token
                 await self.websck.send(json.dumps(msg))
                 resp = await self.websck.recv()
-                self.logger.info(f"    Websocket connecting to {self._uri}")
+                self.logger.info(f"   Websocket connecting to {self._uri}")
                 if json.loads(resp)["type"] == "auth_invalid":
                     self.logger.error(
-                        f"    Websocket authentification failed: {json.loads(resp)['message']}"
+                        f"   Websocket authentification failed: {json.loads(resp)['message']}"
                     )
                     await self.close_websocket()
                     self.token_ok = False
@@ -662,18 +667,16 @@ class EventServer:
                 else:
                     self.api_srv.ha_version = json.loads(resp)["ha_version"]
                     self.logger.info(
-                        f"    Home Assistant version: {self.api_srv.ha_version}"
+                        f"   Home Assistant version: {self.api_srv.ha_version}"
                     )
                     self.logger.info("_________________________________")
             except Exception as err_msg:
-                self.logger.error(f"    Websocket authentification failed: {err_msg}")
+                self.logger.error(f"   Websocket authentification failed: {err_msg}")
                 await self.close_websocket()
                 self.token_ok = False
                 return False
         else:
-            self.logger.info(
-                f"    Websocket connected to {self._uri}, response: {resp}"
-            )
+            self.logger.info(f"   Websocket connected to {self._uri}, response: {resp}")
             self.token_ok = True
             self.HA_not_ready = False
         self.websck_is_closed = False

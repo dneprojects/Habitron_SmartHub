@@ -240,9 +240,9 @@ class ApiServer:
             await self.hdlr.handle_router_cmd(rt_no, cmd)
             # if self.hdlr.rt_msg._resp_code == 133:
             if silent:
-                self.logger.debug("--- Switched to Operate mode")
+                self.logger.debug("-- Switched to Operate mode")
             else:
-                self.logger.info("--- Switched to Operate mode")
+                self.logger.info("-- Switched to Operate mode")
             self._opr_mode = True
             await asyncio.sleep(0.1)
             return self._opr_mode
@@ -259,7 +259,7 @@ class ApiServer:
         cmd = RT_CMDS.SET_OPR_MODE.replace("<mirr>", m_chr).replace("<evnt>", e_chr)
         await self.hdlr.handle_router_cmd_resp(rt_no, cmd)
         # if self.hdlr.rt_msg._resp_code == 133:
-        self.logger.info("--- Switched to Operate mode")
+        self.logger.info("-- Switched to Operate mode")
         self._opr_mode = True
         # Start event handler
         await self.evnt_srv.start()
@@ -292,6 +292,7 @@ class ApiServer:
             # finishing re-init with mode == 1
             self._init_mode = False
             self.logger.debug("   Re-initializing EventSrv task")
+            self.evnt_srv.HA_not_ready = True
             await self.evnt_srv.start()
             self._opr_mode = False
             while not self._opr_mode:
@@ -300,6 +301,7 @@ class ApiServer:
             self.evnt_srv.wait_for_HA = False
             self.logger.info("Initialization finished")
             self.logger.info("_________________________________")
+            self.logger.info("Waiting for web socket connection")
             return "Init mode reset"
 
     async def set_server_mode(self, rt_no=1) -> bool:
@@ -317,7 +319,7 @@ class ApiServer:
         self._opr_mode = False
         await asyncio.sleep(1)
         await self.ensure_empty_response_buf()
-        self.logger.info("--- Switched to Client/Server mode")
+        self.logger.info("-- Switched to Client/Server mode")
         return not self._opr_mode
 
     async def ensure_empty_response_buf(self, rt_no=1) -> None:
