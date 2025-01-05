@@ -678,7 +678,7 @@ class EventServer:
         self.websck_is_closed = False
         return True
 
-    async def wait_for_ha_booting(self, msg):
+    async def wait_for_ha_booting(self):
         """Wait for home assistant to finish rebooting."""
         self.wait_for_HA = True
         while self.wait_for_HA:
