@@ -483,14 +483,10 @@ class EventServer:
 
         except ConnectionClosedOK:
             self.logger.warning("Connection closed by Home Assistant")
-            await self.wait_for_ha_booting(
-                "   Waiting for Home Assistant to restart..."
-            )
+            await self.wait_for_ha_booting()
         except ConnectionClosedError:
             self.logger.warning("Connection closed by Home Assistant")
-            await self.wait_for_ha_booting(
-                "   Waiting for Home Assistant to restart..."
-            )
+            await self.wait_for_ha_booting()
         except Exception as error_msg:
             # Use to get cancel event in api_server
             self.logger.error(f"Could not connect to event server: {error_msg}")
@@ -688,7 +684,10 @@ class EventServer:
         while self.wait_for_HA:
             await self.close_websocket()
             self.websck_is_closed = True
-            self.logger.info(msg)
+            if self.HA_not_ready:
+                self.logger.info("   Waiting for Home Assistant to finish loading...")
+            else:
+                self.logger.info("   Waiting for Home Assistant to restart...")
             await asyncio.sleep(4)
             self.wait_for_HA = False
             try:
