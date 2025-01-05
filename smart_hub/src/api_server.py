@@ -285,12 +285,16 @@ class ApiServer:
             self.logger.debug(
                 "Stopping EventSrv task, setting Srv mode for initialization, rollover done"
             )
+            await self.sm_hub.close_serial_interface(self._rt_serial)
             await asyncio.sleep(0.5)  # wait for anything async to complete
+            self._rt_serial = await self.sm_hub.init_serial(0, self.logger)
+            self.logger.debug("   Serial connection reset")
             await self.set_initial_server_mode()
             return "Init mode set"
         else:
             # finishing re-init with mode == 1
             self._init_mode = False
+            self._netw_blocked = True
             self.logger.debug("   Re-initializing EventSrv task")
             self.evnt_srv.HA_not_ready = True
             await self.evnt_srv.start()
@@ -302,9 +306,10 @@ class ApiServer:
             self.logger.info("Initialization finished")
             self.logger.info("_________________________________")
             self.logger.info("Waiting for web socket connection")
+            self._netw_blocked = False
             return "Init mode reset"
 
-    async def set_server_mode(self, rt_no=1) -> bool:
+    async def set_server_mode(self, rt_no=1, silent=False) -> bool:
         """Turn on client/server mode: disable router events"""
         if not (self._opr_mode):
             return True
@@ -319,7 +324,10 @@ class ApiServer:
         self._opr_mode = False
         await asyncio.sleep(1)
         await self.ensure_empty_response_buf()
-        self.logger.info("-- Switched to Client/Server mode")
+        if silent:
+            self.logger.debug("-- Switched to Client/Server mode")
+        else:
+            self.logger.info("-- Switched to Client/Server mode")
         return not self._opr_mode
 
     async def ensure_empty_response_buf(self, rt_no=1) -> None:

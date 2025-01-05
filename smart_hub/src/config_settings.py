@@ -181,10 +181,11 @@ class ConfigSettingsServer:
         return await show_module_testpage(request.app["parent"], module._id, True)
 
 
-def show_router_overview(main_app, popup_msg="") -> web.Response:
+async def show_router_overview(main_app, popup_msg="") -> web.Response:
     """Prepare overview page of module."""
     api_srv = main_app["api_srv"]
     rtr = api_srv.routers[0]
+
     side_menu = activate_side_menu(
         main_app["side_menu"], ">Router<", api_srv.is_offline or api_srv._pc_mode
     )

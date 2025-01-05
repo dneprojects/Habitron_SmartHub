@@ -168,7 +168,7 @@ class ConfigServer:
         inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
-        return show_router_overview(request.app)
+        return await show_router_overview(request.app)
 
     @routes.get("/hub")
     async def get_hub(request: web.Request) -> web.Response:  # type: ignore
@@ -293,7 +293,7 @@ class ConfigServer:
             init_side_menu(app)
             success_msg = "Router configuration file uploaded"
             app.logger.info(success_msg)  # noqa: F541
-            return show_router_overview(app, success_msg)  # type: ignore
+            return await show_router_overview(app, success_msg)  # type: ignore
         else:
             mod_addr = int(str(data["ModUpload"]))
             if data["ModUpload"] == content_str.split(";")[0]:
