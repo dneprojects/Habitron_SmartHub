@@ -305,7 +305,8 @@ class ApiServer:
             self.evnt_srv.wait_for_HA = False
             self.logger.info("Initialization finished")
             self.logger.info("_________________________________")
-            self.logger.info("Waiting for web socket connection")
+            if self.evnt_srv.websck_is_closed:
+                self.logger.info("Waiting for web socket connection")
             self._netw_blocked = False
             return "Init mode reset"
 
