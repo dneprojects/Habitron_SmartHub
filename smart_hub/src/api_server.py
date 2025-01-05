@@ -302,7 +302,7 @@ class ApiServer:
             while not self._opr_mode:
                 await asyncio.sleep(1)
                 await self.set_operate_mode(silent=True)
-            self.evnt_srv.wait_for_HA = False
+            self.evnt_srv.wait_for_HA = True
             self.logger.info("Initialization finished")
             self.logger.info("_________________________________")
             self.logger.info("Waiting for web socket connection")
