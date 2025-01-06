@@ -1,3 +1,4 @@
+from datetime import datetime
 from aiohttp import web
 from const import (
     WEB_FILES_DIR,
@@ -89,6 +90,7 @@ def show_homepage(app) -> web.Response:
     page = page.replace("<v_hbtn>", api_srv.hbtint_version)
     page = page.replace("<mem_quota>", mem_str)
     page = page.replace("<sd_quota>", sd_str)
+    page = page.replace("<start_time>", api_srv.sm_hub.start_datetime)
     if api_srv.is_offline or api_srv._pc_mode:
         page = page.replace(">Hub<", ">Home<")
     return web.Response(text=page, content_type="text/html", charset="utf-8")
@@ -166,6 +168,7 @@ def show_hub_overview(app) -> web.Response:
     props += "<table>\n"
     props += f'<tr><td style="width:90px;">Typ:</td><td>{info_obj["software"]["type"]}</td></tr>\n'
     props += f'<tr><td style="width:90px;">Version:</td><td>{info_obj["software"]["version"]}</td></tr>\n'
+    props += f'<tr><td style="width:90px;">Letzter Start:</td><td>{smhub.start_datetime}</td></tr>\n'
     props += f'<tr><td style="width:90px;">Logging:</td><td>Ausgabe: {LOGGING_LEVELS[info_obj["software"]["loglevel"]["console"]]}, Datei: {LOGGING_LEVELS[info_obj["software"]["loglevel"]["file"]]}</td></tr>\n'
     props += '<tr><td style="width:90px;">&nbsp;</td><td>&nbsp;</td></tr>\n'
     props += f'<tr><td style="width:90px;">Hardware:</td><td>{info_obj["hardware"]["platform"]["type"]} #{info_obj["hardware"]["platform"]["serial"]}</td></tr>\n'

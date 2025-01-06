@@ -700,6 +700,8 @@ class EventServer:
                 self.failure_count = 0
             except Exception:
                 self.wait_for_HA = True
+        if self.HA_not_ready:
+            self.HA_not_ready = False
         return resp
 
     async def close_websocket(self):

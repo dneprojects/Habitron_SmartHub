@@ -190,7 +190,22 @@ class ConfigServer:
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         mod_addr = int(request.match_info["mod_addr"])
-        return show_module_overview(request.app, mod_addr)
+        return show_module_overview(request.app, mod_addr) @ routes.get("/modules")
+
+    @routes.get("/log_file")
+    async def download_logs(request: web.Request) -> web.Response:  # type: ignore
+        inspect_header(request)
+        if client_not_authorized(request):
+            return show_not_authorized(request.app)
+        file_name = "smhub.log"
+        with open(file_name) as fid:
+            str_data = fid.read()
+        return web.Response(
+            headers=MultiDict(
+                {"Content-Disposition": f"Attachment; filename = {file_name}"}
+            ),
+            body=str_data,
+        )
 
     @routes.get("/sysdoc")
     async def get_documentation(request: web.Request) -> web.Response:  # type: ignore

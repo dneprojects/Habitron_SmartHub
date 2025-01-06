@@ -56,11 +56,11 @@ class SmartHub:
         self.wlan_mac: str = ""
         self.curr_mac: str = ""
         self.info = self.get_info()
+        self.start_datetime = datetime.now().strftime("%d.%m.%Y, %H:%M")
         self.get_macs()
         self.skip_init: bool = False
         self.restart: bool = False
         self.token = os.getenv("SUPERVISOR_TOKEN")
-        now = datetime.now()
         self.logger.info("_________________________________")
         if self.token is None:
             self.is_addon: bool = False
@@ -68,7 +68,7 @@ class SmartHub:
         else:
             self.is_addon: bool = True
             self.logger.info("Starting Smart Center")
-        self.logger.info(f'   {now.strftime("%d.%m.%Y, %H:%M")}')
+        self.logger.info(f"   {self.start_datetime}")
         self.logger.info(f"   Version: {self.get_version()}")
         self.slug_name: str | None = os.getenv("HOSTNAME")
         if self.slug_name:

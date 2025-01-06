@@ -98,8 +98,8 @@
                 <h2>Smart Configurator</h2>
                 <h3>Passen Sie hier die Grundeinstellungen des Systems an.</h3>
                 <br>
-                <p>Bei Fragen wenden Sie sich bitte, ggf. mit einer detaillierten Problembeschreibung, an:</p><br>
-                <a href= "mailto:support@habitron.de?subject=Anfrage%20zum%20Smart%20Configurator&amp;body=Versionsinformationen%0ASmart%20Hub: <v_smhub>%0AHome%20Assistant: <v_ha>%0AIntegration Habitron: <v_hbtn>%0A%0ASpeichernutzung%0AArbeitsspeicher: <mem_quota>%0ADateispeicher: <sd_quota>%0A%0AProblembeschreibung:%0A%0A">support@habitron.de</a>
+                <p>Bei Fragen wenden Sie sich bitte, ggf.<br>mit einer detaillierten Problembeschreibung<br>und angehängter Log-Datei (Button unten),<br>an:</p><br>
+                <a href= "mailto:support@habitron.de?subject=Anfrage%20zum%20Smart%20Configurator&amp;body=Letzter Start:%20<start_time>%0A%0AVersionsinformationen%0ASmart%20Hub:%20<v_smhub>%0AHome%20Assistant:%20<v_ha>%0AIntegration Habitron:%20<v_hbtn>%0A%0ASpeichernutzung%0AArbeitsspeicher:%20<mem_quota>%0ADateispeicher:%20<sd_quota>%0A%0AProblembeschreibung:%0A%0A">support@habitron.de</a>
                 <!-- MainContentEnd -->
               </div>
 
@@ -109,10 +109,12 @@
         <div id="clear"></div>
       </div>
       <div id="footer"><div class="inside">
-        <div id="confbutton" style="position: relative;">
-          <!--button name="ConfigFiles" id="files_button"
-            style="float: right; position: absolute; top: 0; left: 560px;">Systemkonfiguration</button-->
-        </div>
+        <form action="log_file" id="log_form">
+          <div id="confbutton" style="position: relative;">
+            <button name="LogFiles" id="files_button"
+              style="float: right; position: absolute; top: 0; left: 0px;">Log File</button>
+          </div>
+        </form>
       </div>
       </div>
       

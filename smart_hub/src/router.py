@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 from glob import glob
 from messages import calc_crc
 from os.path import isfile
@@ -173,6 +174,7 @@ class HbtnRouter:
         await self.get_module_comm_status()
         for mod_addr in mods_to_remove:
             self.mod_addrs.remove(mod_addr)
+        self.api_srv.sm_hub.start_datetime = datetime.now().strftime("%d.%m.%Y, %H:%M")
 
     async def get_status(self) -> bytes:
         """Return router channel status and mod errors."""
