@@ -209,7 +209,7 @@ class ConfigServer:
         return web.Response(
             headers=MultiDict(
                 {
-                    "Content-Disposition": f"Attachment; filename = {file_name.split("/")[-1]}"
+                    "Content-Disposition": f"Attachment; filename = {file_name.split('/')[-1]}"
                 }
             ),
             body=str_data,
