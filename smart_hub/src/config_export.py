@@ -238,7 +238,7 @@ def document_hub(doc, page, hub) -> str:
 def document_router(doc, page, rt) -> str:
     """Export router information to excel sheet."""
     ws = doc.create_sheet(clean_name(rt._name), 2)
-    rt_serial = rt.serial[1:].decode("iso8859-1").strip()
+    rt_serial = clean_name(rt.serial[1:].decode("iso8859-1").strip())
     settings = rt.settings
 
     page += '      <h1 id="rt">' + f"Router '{clean_name(rt._name)}'</h1>\n"
@@ -458,7 +458,7 @@ def document_module(doc, page, mod, idx) -> str:
     page += "          <td>Kanalpaar:</td>\n"
     page += f"          <td>{channel_str[mod._channel]}</td>\n"
     page += "          <td>Seriennnr.:</td>\n"
-    page += f"          <td>{mod._serial}</td>\n"
+    page += f"          <td>{clean_name(mod._serial)}</td>\n"
     page += "        </tr>\n"
     page += "        <tr>\n"
     page += "          <td>Bereich:</td>\n"
@@ -488,7 +488,7 @@ def document_module(doc, page, mod, idx) -> str:
     ws.cell(row, 2).value = channel_str[mod._channel]
     ws.cell(row, 2).alignment = left_aligned
     ws.cell(row, 3).value = "Seriennnr.:"
-    ws.cell(row, 4).value = mod._serial
+    ws.cell(row, 4).value = clean_name(mod._serial)
     row += 1
     ws.cell(row, 1).value = "Bereich:"
     ws.cell(row, 2).value = mod.get_area_name()
