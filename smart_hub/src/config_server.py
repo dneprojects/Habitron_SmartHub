@@ -203,13 +203,14 @@ class ConfigServer:
         with open(f"./{LOGGING_DEF_FILE}", "r") as stream:
             config = yaml.load(stream, Loader=yaml.FullLoader)
         file_name = config["handlers"]["file"]["filename"]
-        request.app.logger.info(f"Open log file '{file_name}'...")
+        request.app.logger.debug(f"Open log file '{file_name}'...")
         with open(file_name) as fid:
             str_data = fid.read()
-        request.app.logger.info("Log file read successfully")
         return web.Response(
             headers=MultiDict(
-                {"Content-Disposition": f"Attachment; filename = {file_name}"}
+                {
+                    "Content-Disposition": f"Attachment; filename = {file_name.split("/")[-1]}"
+                }
             ),
             body=str_data,
         )
