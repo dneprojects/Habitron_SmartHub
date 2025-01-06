@@ -45,12 +45,10 @@ class RtHdlr(HdlrBase):
                 self.logger.info("Waiting for router booting...")
                 await asyncio.sleep(2)
         if ret_msg[-2] == RT_STAT_CODES.SYS_PROBLEMS:
-            self.logger.warning(
-                f"Router {self.rt_id} running, boot finished with problems"
-            )
+            self.logger.warning("Router running, boot finished with problems")
             await self.get_module_boot_status()
         else:
-            self.logger.info(f"Router {self.rt_id} running")
+            self.logger.info("Router running")
 
     async def get_module_boot_status(self):
         """Return boot status text."""

@@ -166,25 +166,28 @@ def show_hub_overview(app) -> web.Response:
     info_obj = api_srv.sm_hub.get_info_obj()
     props = "<h3>Eigenschaften</h3>\n"
     props += "<table>\n"
-    props += f'<tr><td style="width:90px;">Typ:</td><td>{info_obj["software"]["type"]}</td></tr>\n'
-    props += f'<tr><td style="width:90px;">Version:</td><td>{info_obj["software"]["version"]}</td></tr>\n'
-    props += f'<tr><td style="width:90px;">Letzter Start:</td><td>{smhub.start_datetime}</td></tr>\n'
-    props += f'<tr><td style="width:90px;">Logging:</td><td>Ausgabe: {LOGGING_LEVELS[info_obj["software"]["loglevel"]["console"]]}, Datei: {LOGGING_LEVELS[info_obj["software"]["loglevel"]["file"]]}</td></tr>\n'
-    props += '<tr><td style="width:90px;">&nbsp;</td><td>&nbsp;</td></tr>\n'
-    props += f'<tr><td style="width:90px;">Hardware:</td><td>{info_obj["hardware"]["platform"]["type"]} #{info_obj["hardware"]["platform"]["serial"]}</td></tr>\n'
-    props += f'<tr><td style="width:90px;">CPU:</td><td>{info_obj["hardware"]["cpu"]["type"]}, Takt {info_obj["hardware"]["cpu"]["frequency max"]}</td></tr>\n'
-    props += f'<tr><td style="width:90px;">Auslastung:</td><td>{info_obj["hardware"]["cpu"]["load"]}, akt. Takt {info_obj["hardware"]["cpu"]["frequency current"]}, Temperatur {info_obj["hardware"]["cpu"]["temperature"]}</td></tr>\n'
-    props += f'<tr><td style="width:90px;">Arbeitsspeicher:</td><td>{info_obj["hardware"]["memory"]["total"]}, genutzt {info_obj["hardware"]["memory"]["percent"]}</td></tr>\n'
-    props += f'<tr><td style="width:90px;">Dateispeicher:&nbsp;</td><td>{info_obj["hardware"]["disk"]["total"]}, genutzt {info_obj["hardware"]["disk"]["percent"]}</td></tr>\n'
-    props += '<tr><td style="width:90px;">&nbsp;</td><td>&nbsp;</td></tr>\n'
-    props += f'<tr><td style="width:90px;">Netzwerk:</td><td>{info_obj["hardware"]["network"]["ip"]}, Host {info_obj["hardware"]["network"]["host"]}</td></tr>\n'
+    props += f'<tr><td style="width:140px;">Typ:</td><td>{info_obj["software"]["type"]}</td></tr>\n'
+    props += f'<tr><td>Version:</td><td>{info_obj["software"]["version"]}</td></tr>\n'
+    props += f"<tr><td>Letzter Start:</td><td>{smhub.start_datetime}</td></tr>\n"
+    props += f'<tr><td>Logging:</td><td>Ausgabe: {LOGGING_LEVELS[info_obj["software"]["loglevel"]["console"]]}, Datei: {LOGGING_LEVELS[info_obj["software"]["loglevel"]["file"]]}</td></tr>\n'
+    props += '<tr style="line-height:8px;"><td>&nbsp;</td><td>&nbsp;</td></tr>\n'
+    props += f'<tr><td>Hardware:</td><td>{info_obj["hardware"]["platform"]["type"]} #{info_obj["hardware"]["platform"]["serial"]}</td></tr>\n'
+    props += f'<tr><td>CPU:</td><td>{info_obj["hardware"]["cpu"]["type"]}, Takt {info_obj["hardware"]["cpu"]["frequency max"]}</td></tr>\n'
+    props += f'<tr><td>Auslastung:</td><td>{info_obj["hardware"]["cpu"]["load"]}, akt. Takt {info_obj["hardware"]["cpu"]["frequency current"]}, Temperatur {info_obj["hardware"]["cpu"]["temperature"]}</td></tr>\n'
+    props += f'<tr><td>Arbeitsspeicher:</td><td>{info_obj["hardware"]["memory"]["total"]}, genutzt {info_obj["hardware"]["memory"]["percent"]}</td></tr>\n'
+    props += f'<tr><td>Dateispeicher:&nbsp;</td><td>{info_obj["hardware"]["disk"]["total"]}, genutzt {info_obj["hardware"]["disk"]["percent"]}</td></tr>\n'
+    props += '<tr style="line-height:8px;"><td>&nbsp;</td><td>&nbsp;</td></tr>\n'
+    props += f'<tr><td>Netzwerk:</td><td>{info_obj["hardware"]["network"]["ip"]}, Host {info_obj["hardware"]["network"]["host"]}</td></tr>\n'
     if (
         info_obj["hardware"]["network"]["mac"]
         == info_obj["hardware"]["network"]["lan mac"]
     ):
-        props += f'<tr><td style="width:90px;">Verbindung:</td><td>LAN, MAC Adresse {info_obj["hardware"]["network"]["mac"]}</td></tr>\n'
+        props += f'<tr><td>Verbindung:</td><td>LAN, MAC Adresse {info_obj["hardware"]["network"]["mac"]}</td></tr>\n'
     else:
-        props += f'<tr><td style="width:90px;">Verbindung:</td><td>WLAN, MAC Adresse {info_obj["hardware"]["network"]["mac"]}</td></tr>\n'
+        props += f'<tr><td>Verbindung:</td><td>WLAN, MAC Adresse {info_obj["hardware"]["network"]["mac"]}</td></tr>\n'
+    props += '<tr style="line-height:8px;"><td>&nbsp;</td><td>&nbsp;</td></tr>\n'
+    props += f"<tr><td>Home Assistant Version:</td><td>{api_srv.ha_version}</td></tr>\n"
+    props += f"<tr><td>Habitron Version:</td><td>{api_srv.hbtint_version}</td></tr>\n"
     props += "</table>\n"
     props = props.replace(".0MHz", " MHz")
     html_str = html_str.replace("Overview", subtitle)
