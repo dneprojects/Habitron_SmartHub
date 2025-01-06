@@ -17,13 +17,25 @@ def create_documentation(router, filename):
     """Take settings information and create full domumentation."""
     page = add_css_info()
     doc = Workbook()
-    page = document_overview(doc, page, router, router.modules)
-    page = document_hub(doc, page, router.api_srv.sm_hub)
-    page = document_router(doc, page, router)
+    try:
+        page = document_overview(doc, page, router, router.modules)
+    except Exception as err_msg:
+        router.logger.error(f"Error creating overview doc page: {err_msg}")
+    try:
+        page = document_hub(doc, page, router.api_srv.sm_hub)
+    except Exception as err_msg:
+        router.logger.error(f"Error creating hub doc page: {err_msg}")
+    try:
+        page = document_router(doc, page, router)
+    except Exception as err_msg:
+        router.logger.error(f"Error creating router doc page: {err_msg}")
 
     for idx in range(len(router.modules)):
         mod = router.modules[idx]
-        page = document_module(doc, page, mod, idx)
+        try:
+            page = document_module(doc, page, mod, idx)
+        except Exception as err_msg:
+            router.logger.error(f"Error creating module doc page: {err_msg}")
     page += "</body>\n"
 
     del doc["Sheet"]
