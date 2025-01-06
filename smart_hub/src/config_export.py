@@ -269,7 +269,7 @@ def document_router(doc, page, rt) -> str:
     page += "      </table>\n"
     row = 1
 
-    ws.cell(row, 1).value = f"Router '{rt._name}'"
+    ws.cell(row, 1).value = f"Router '{clean_name(rt._name)}'"
     ws.cell(row, 1).font = header_font
     row += 2
     ws.cell(row, 1).value = "Eigenschaften"
@@ -469,7 +469,7 @@ def document_module(doc, page, mod, idx) -> str:
     page += "      </table>\n"
 
     row = 1
-    ws.cell(row, 1).value = f"Modul '{mod._name}'"
+    ws.cell(row, 1).value = f"Modul '{clean_name(mod._name)}'"
     ws.cell(row, 1).font = header_font
     row += 2
     ws.cell(row, 1).value = "Grundeinstellungen"
@@ -695,7 +695,7 @@ def document_module(doc, page, mod, idx) -> str:
             if mod.get_rtr().get_module(atm.src_mod) is None:
                 curr_mod_name = f"Mod_{atm.src_mod}_not_found"
             else:
-                curr_mod_name = mod.get_rtr().get_module(atm.src_mod)._name
+                curr_mod_name = clean_name(mod.get_rtr().get_module(atm.src_mod)._name)
             if ext_mod_name != curr_mod_name:
                 ext_mod_name = curr_mod_name
                 atm_no = 1
@@ -749,7 +749,7 @@ def document_module(doc, page, mod, idx) -> str:
             if mod.get_rtr().get_module(atm.src_mod) is None:
                 curr_mod_name = f"Mod_{atm.src_mod}?"
             else:
-                curr_mod_name = mod.get_rtr().get_module(atm.src_mod)._name
+                curr_mod_name = clean_name(mod.get_rtr().get_module(atm.src_mod)._name)
             if ext_mod_name != curr_mod_name:
                 ext_mod_name = curr_mod_name
                 atm_no = 1
