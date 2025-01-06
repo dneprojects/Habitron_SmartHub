@@ -260,11 +260,11 @@ def document_router(doc, page, rt) -> str:
     page += "        </tr>\n"
     page += "        <tr>\n"
     page += "          <td>Benutzer Modus 1:</td>\n"
-    page += f"          <td>{settings.user1_name}</td>\n"
+    page += f"          <td>{clean_name(settings.user1_name)}</td>\n"
     page += "        </tr>\n"
     page += "        <tr>\n"
     page += "          <td>Benutzer Modus 2:</td>\n"
-    page += f"          <td>{settings.user2_name}</td>\n"
+    page += f"          <td>{clean_name(settings.user2_name)}</td>\n"
     page += "        </tr>\n"
     page += "      </table>\n"
     row = 1
@@ -282,10 +282,10 @@ def document_router(doc, page, rt) -> str:
     ws.cell(row, 2).value = rt_serial
     row += 1
     ws.cell(row, 1).value = "Benutzer Modus 1"
-    ws.cell(row, 2).value = settings.user1_name
+    ws.cell(row, 2).value = clean_name(settings.user1_name)
     row += 1
     ws.cell(row, 1).value = "Benutzer Modus 2"
-    ws.cell(row, 2).value = settings.user2_name
+    ws.cell(row, 2).value = clean_name(settings.user2_name)
     row += 1
 
     if len(settings.areas):
@@ -307,11 +307,11 @@ def document_router(doc, page, rt) -> str:
         for area in settings.areas:
             page += "          <tr>\n"
             page += f"            <td>{area.nmbr}</td>\n"
-            page += f"            <td>{area.name}</td>\n"
+            page += f"            <td>{clean_name(area.name)}</td>\n"
             page += "          </tr>\n"
             ws.cell(row, 1).value = area.nmbr
             ws.cell(row, 1).alignment = left_aligned
-            ws.cell(row, 2).value = area.name
+            ws.cell(row, 2).value = clean_name(area.name)
             row += 1
         page += "        </tbody>\n"
         page += "      </table>\n"
@@ -347,12 +347,12 @@ def document_router(doc, page, rt) -> str:
                 mod_dep = ""
             page += "          <tr>\n"
             page += f"            <td>{grp.nmbr}</td>\n"
-            page += f"            <td>{grp.name}</td>\n"
+            page += f"            <td>{clean_name(grp.name)}</td>\n"
             page += f"            <td>{mod_dep}</td>\n"
             page += "          </tr>\n"
             ws.cell(row, 1).value = grp.nmbr
             ws.cell(row, 1).alignment = left_aligned
-            ws.cell(row, 2).value = grp.name
+            ws.cell(row, 2).value = clean_name(grp.name)
             ws.cell(row, 3).value = mod_dep
             row += 1
         page += "        </tbody>\n"
@@ -378,11 +378,11 @@ def document_router(doc, page, rt) -> str:
         for flg in settings.glob_flags:
             page += "          <tr>\n"
             page += f"            <td>{flg.nmbr}</td>\n"
-            page += f"            <td>{flg.name}</td>\n"
+            page += f"            <td>{clean_name(flg.name)}</td>\n"
             page += "          </tr>\n"
             ws.cell(row, 1).value = flg.nmbr
             ws.cell(row, 1).alignment = left_aligned
-            ws.cell(row, 2).value = flg.name
+            ws.cell(row, 2).value = clean_name(flg.name)
             row += 1
         page += "        </tbody>\n"
         page += "      </table>\n"
@@ -407,11 +407,11 @@ def document_router(doc, page, rt) -> str:
         for cmd in settings.coll_cmds:
             page += "          <tr>\n"
             page += f"            <td>{cmd.nmbr}</td>\n"
-            page += f"            <td>{cmd.name}</td>\n"
+            page += f"            <td>{clean_name(cmd.name)}</td>\n"
             page += "          </tr>\n"
             ws.cell(row, 1).value = cmd.nmbr
             ws.cell(row, 1).alignment = left_aligned
-            ws.cell(row, 2).value = cmd.name
+            ws.cell(row, 2).value = clean_name(cmd.name)
             row += 1
         page += "        </tbody>\n"
         page += "      </table>\n"

@@ -370,6 +370,6 @@ class ExtAutomationDefinition(AutomationDefinition):
             self.trigger = AutomationTrigger(self, src_settings, atm_def)
         else:
             settings.logger.warning(
-                f"Automation reference to module {self.src_mod}, module not found."
+                f"Automation reference in module {settings.module._id} to {self.src_mod}, module not found."
             )
             self.trigger = AutomationTrigger(self, settings, atm_def)
