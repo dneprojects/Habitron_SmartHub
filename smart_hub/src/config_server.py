@@ -192,7 +192,7 @@ class ConfigServer:
         if client_not_authorized(request):
             return show_not_authorized(request.app)
         mod_addr = int(request.match_info["mod_addr"])
-        return show_module_overview(request.app, mod_addr) @ routes.get("/modules")
+        return show_module_overview(request.app, mod_addr)
 
     @routes.get("/log_file")
     async def download_logs(request: web.Request) -> web.Response:  # type: ignore
