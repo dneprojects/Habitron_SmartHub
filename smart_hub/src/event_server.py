@@ -681,6 +681,7 @@ class EventServer:
     async def wait_for_ha_booting(self):
         """Wait for home assistant to finish rebooting."""
         self.wait_for_HA = True
+        self.HA_not_ready = False
         while self.wait_for_HA:
             await self.close_websocket()
             self.websck_is_closed = True
@@ -700,8 +701,6 @@ class EventServer:
                 self.failure_count = 0
             except Exception:
                 self.wait_for_HA = True
-        if self.HA_not_ready:
-            self.HA_not_ready = False
         return resp
 
     async def close_websocket(self):
