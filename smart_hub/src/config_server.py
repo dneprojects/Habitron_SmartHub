@@ -3,6 +3,7 @@ from aiohttp import web
 # import ssl
 from urllib.parse import parse_qs
 from multidict import MultiDict
+import yaml
 from config_settings import (
     ConfigSettingsServer,
     show_router_overview,
@@ -39,6 +40,7 @@ import asyncio
 import logging
 import pathlib
 from const import (
+    LOGGING_DEF_FILE,
     MODULE_CODES,
     LICENSE_PAGE,
     OWN_INGRESS_IP,
@@ -197,9 +199,14 @@ class ConfigServer:
         inspect_header(request)
         if client_not_authorized(request):
             return show_not_authorized(request.app)
-        file_name = "smhub.log"
+
+        with open(f"./{LOGGING_DEF_FILE}", "r") as stream:
+            config = yaml.load(stream, Loader=yaml.FullLoader)
+        file_name = config["handlers"]["file"]["filename"]
+        request.app.logger.info(f"Open log file '{file_name}'...")
         with open(file_name) as fid:
             str_data = fid.read()
+        request.app.logger.info("Log file read successfully")
         return web.Response(
             headers=MultiDict(
                 {"Content-Disposition": f"Attachment; filename = {file_name}"}
