@@ -347,7 +347,7 @@ async def show_next_prev(main_app, args):
         if mod_addr > 0:
             return show_module_overview(main_app, mod_addr, "Änderungen verworfen")
         else:
-            return show_router_overview(main_app, "Änderungen verworfen")
+            return await show_router_overview(main_app, "Änderungen verworfen")
 
     if button == "save":
         if mod_addr > 0:
@@ -390,7 +390,7 @@ async def show_next_prev(main_app, args):
                 success_msg = f"Error while saving router settings: {err_msg}"
                 main_app.logger.error(success_msg)
             await main_app["api_srv"].block_network_if(router._id, False)
-            return show_router_overview(main_app, success_msg)
+            return await show_router_overview(main_app, success_msg)
     props = settings.properties
     main_app["props"] = props
     io_keys = settings.prop_keys
